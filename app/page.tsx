@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { WeatherBanner } from "@/components/WeatherBanner";
 import { IconLeaf, IconNote, IconSync, IconChevronRight } from "@/components/icons";
 import { fields, workLogs, fieldStatusLabel } from "@/lib/mock-data";
 
@@ -20,8 +19,6 @@ export default function Home() {
         title="ダッシュボード"
         description="圃場と作業記録のようすを一目で確認できます。"
       />
-
-      <WeatherBanner />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="登録圃場数" value={fields.length} unit="筆" icon={<IconLeaf className="h-4 w-4" />} />

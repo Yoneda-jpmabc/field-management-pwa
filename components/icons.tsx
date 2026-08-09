@@ -101,37 +101,3 @@ export function IconSettings({ className }: IconProps) {
     </svg>
   );
 }
-
-export function IconCloud({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M7 18.5a4 4 0 0 1-.5-7.97 5 5 0 0 1 9.7-1.9A4.5 4.5 0 0 1 17.5 18.5H7Z" />
-    </svg>
-  );
-}
-
-export function IconCloudRain({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M6.5 16a4 4 0 0 1-.4-7.98 5 5 0 0 1 9.7-1.9A4.5 4.5 0 0 1 17 16H6.5Z" />
-      <path d="M8.5 18.5 7.5 21M12.5 18.5l-1 2.5M16 18.5l-1 2.5" />
-    </svg>
-  );
-}
-
-export function IconSnowflake({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M12 3v18M4.9 7l14.2 10M4.9 17 19.1 7" />
-      <path d="m9 4.5 3 2.5 3-2.5M9 19.5l3-2.5 3 2.5M5.3 9.5l1-3.6 3.6-1M5.3 14.5l1 3.6 3.6 1M18.7 9.5l-1-3.6-3.6-1M18.7 14.5l-1 3.6-3.6 1" />
-    </svg>
-  );
-}
-
-export function IconBolt({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M13 3 5 13.5h5.5L11 21l8-11h-5.5L13 3Z" />
-    </svg>
-  );
-}
