@@ -7,13 +7,11 @@ export type SupabaseHealth = {
 };
 
 /**
- * まだテーブルが 1 つも無いため、存在しないテーブル名をわざと引いて疎通を確かめている。
- * PostgREST が返す PGRST205（スキーマキャッシュに無い）は DB まで到達できた証拠になり、
- * キーが不正なら手前の 401 で弾かれるので両者を区別できる。
- *
- * テーブルを作ったら PROBE_TABLE を実テーブル名に変えるだけでよい。
+ * 実テーブルを 1 行だけ引いて疎通を確かめる。
+ * PGRST205（スキーマキャッシュに無い）が返ったときも DB までは到達できているので、
+ * 接続そのものは OK として扱う。キーが不正なら手前の 401 で弾かれる。
  */
-const PROBE_TABLE = "__connectivity_check__";
+const PROBE_TABLE = "workers";
 const TABLE_NOT_FOUND = "PGRST205";
 
 export async function GET() {
@@ -43,7 +41,8 @@ export async function GET() {
   if (error.code === TABLE_NOT_FOUND) {
     return NextResponse.json<SupabaseHealth>({
       ok: true,
-      message: "Supabase に接続できました。テーブルはまだ作成されていません。",
+      message:
+        "Supabase に接続できました。スキーマキャッシュが古い可能性があります。",
     });
   }
 
