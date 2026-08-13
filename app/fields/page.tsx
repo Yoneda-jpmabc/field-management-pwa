@@ -1,25 +1,26 @@
 import { PageHeader } from "@/components/ui/PageHeader";
-import { IconPlus } from "@/components/icons";
 import { FieldsBrowser } from "@/components/fields/FieldsBrowser";
-import { fields } from "@/lib/mock-data";
+import { fetchFields } from "@/lib/fields/queries";
 
-export default function FieldsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function FieldsPage() {
+  const { items, errorMessage } = await fetchFields();
+
   return (
     <>
       <PageHeader
         title="圃場"
-        description={`登録されている圃場は${fields.length}筆です。`}
-        actions={
-          <button
-            type="button"
-            className="control-focus flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent-hover"
-          >
-            <IconPlus className="h-4 w-4" />
-            圃場を追加
-          </button>
-        }
+        description={`登録されている圃場は${items.length}筆です。`}
       />
-      <FieldsBrowser fields={fields} />
+
+      {errorMessage && (
+        <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
+          {errorMessage}
+        </p>
+      )}
+
+      <FieldsBrowser fields={items} />
     </>
   );
 }

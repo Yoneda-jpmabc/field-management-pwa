@@ -1,65 +1,89 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { IconPlus } from "@/components/icons";
-import { workLogs } from "@/lib/mock-data";
+import { fetchWorkRecords } from "@/lib/work-records/queries";
+import { formatWeekday } from "@/lib/work-records/period";
+import type { WorkRecordListItem } from "@/lib/work-records/queries";
 
-function groupByDate() {
-  const groups = new Map<string, typeof workLogs>();
-  for (const log of workLogs) {
-    const bucket = groups.get(log.date) ?? [];
-    bucket.push(log);
-    groups.set(log.date, bucket);
+export const dynamic = "force-dynamic";
+
+function groupByDate(items: WorkRecordListItem[]) {
+  const groups = new Map<string, WorkRecordListItem[]>();
+  for (const item of items) {
+    const bucket = groups.get(item.workDate) ?? [];
+    bucket.push(item);
+    groups.set(item.workDate, bucket);
   }
-  return [...groups.entries()].sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  // クエリ側で日付降順に並べてあるので、挿入順がそのまま新しい順になる。
+  return [...groups.entries()];
 }
 
-export default function LogsPage() {
-  const grouped = groupByDate();
+export default async function LogsPage() {
+  const { items, errorMessage } = await fetchWorkRecords();
+  const grouped = groupByDate(items);
 
   return (
     <>
       <PageHeader
         title="作業記録"
-        description="日付ごとの作業履歴です。オフライン時の記録も自動的に一覧に反映されます。"
+        description="登録された作業実績を日付ごとに並べています。"
         actions={
-          <button
-            type="button"
+          <Link
+            href="/records"
             className="control-focus flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent-hover"
           >
             <IconPlus className="h-4 w-4" />
             記録を追加
-          </button>
+          </Link>
         }
       />
 
-      <div className="flex flex-col gap-6">
-        {grouped.map(([date, logs]) => (
-          <div key={date}>
-            <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
-              {date}
-            </h2>
-            <Card className="divide-y divide-separator !p-0">
-              {logs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between gap-4 px-5 py-4">
-                  <div className="min-w-0">
-                    <p className="text-[15px] font-medium text-foreground">
-                      {log.fieldName}
-                      <span className="ml-2 text-foreground-tertiary">{log.type}</span>
-                    </p>
+      {errorMessage && (
+        <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
+          {errorMessage}
+        </p>
+      )}
+
+      {grouped.length === 0 ? (
+        <Card className="py-12 text-center text-foreground-secondary">
+          まだ作業記録がありません。実績タブから登録できます。
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {grouped.map(([date, records]) => (
+            <div key={date}>
+              <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+                {date}（{formatWeekday(date)}）
+              </h2>
+              <Card className="divide-y divide-separator !p-0">
+                {records.map((record) => (
+                  <div key={record.id} className="px-5 py-4">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <p className="min-w-0 text-[15px] font-medium text-foreground">
+                        {record.workerName}
+                        <span className="ml-2 text-foreground-tertiary">
+                          {record.workTypeLabel}
+                        </span>
+                      </p>
+                      {record.timeLabel && (
+                        <span className="shrink-0 font-mono text-sm text-foreground-secondary">
+                          {record.timeLabel}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-0.5 truncate text-sm text-foreground-secondary">
-                      {log.memo}
+                      {[record.fieldName, record.memo]
+                        .filter(Boolean)
+                        .join(" ・ ") || "—"}
                     </p>
                   </div>
-                  <Badge tone={log.synced ? "success" : "warning"}>
-                    {log.synced ? "同期済み" : "未同期"}
-                  </Badge>
-                </div>
-              ))}
-            </Card>
-          </div>
-        ))}
-      </div>
+                ))}
+              </Card>
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }

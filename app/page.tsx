@@ -2,34 +2,67 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { IconLeaf, IconNote, IconSync, IconChevronRight } from "@/components/icons";
-import { fields, workLogs, fieldStatusLabel } from "@/lib/mock-data";
+import { countFields, fetchFields } from "@/lib/fields/queries";
+import {
+  countWorkRecordsOn,
+  countWorkers,
+  fetchWorkRecords,
+  fetchWorkSummary,
+} from "@/lib/work-records/queries";
+import {
+  formatHours,
+  resolvePeriod,
+  todayInTokyo,
+} from "@/lib/work-records/period";
 
-const TODAY = "2026-07-19";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const growingCount = fields.filter((f) => f.status === "growing").length;
-  const todayLogCount = workLogs.filter((l) => l.date === TODAY).length;
-  const unsyncedCount = workLogs.filter((l) => !l.synced).length;
+export default async function Home() {
+  const today = todayInTokyo();
+  const thisMonth = resolvePeriod("month", today);
+
+  const [fieldCount, workerCount, todayCount, monthSummary, recent, fieldList] =
+    await Promise.all([
+      countFields(),
+      countWorkers(),
+      countWorkRecordsOn(today),
+      fetchWorkSummary(thisMonth.from, thisMonth.to),
+      fetchWorkRecords(5),
+      fetchFields(4),
+    ]);
 
   return (
     <>
       <PageHeader
         title="ダッシュボード"
-        description="圃場と作業記録のようすを一目で確認できます。"
+        description="圃場と作業実績のようすを一目で確認できます。"
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="登録圃場数" value={fields.length} unit="筆" icon={<IconLeaf className="h-4 w-4" />} />
-        <StatCard label="生育中の圃場" value={growingCount} unit="筆" icon={<IconLeaf className="h-4 w-4" />} />
-        <StatCard label="本日の作業記録" value={todayLogCount} unit="件" icon={<IconNote className="h-4 w-4" />} />
         <StatCard
-          label="未同期の記録"
-          value={unsyncedCount}
+          label="登録圃場数"
+          value={fieldCount}
+          unit="筆"
+          icon={<IconLeaf className="h-4 w-4" />}
+        />
+        <StatCard
+          label="登録ユーザー数"
+          value={workerCount}
+          unit="人"
+          icon={<IconLeaf className="h-4 w-4" />}
+        />
+        <StatCard
+          label="本日の作業記録"
+          value={todayCount}
           unit="件"
+          icon={<IconNote className="h-4 w-4" />}
+        />
+        <StatCard
+          label={`${thisMonth.label}の作業時間`}
+          value={formatHours(monthSummary.totalMinutes).replace("時間", "")}
+          unit="時間"
           icon={<IconSync className="h-4 w-4" />}
-          tone={unsyncedCount > 0 ? "warning" : "default"}
         />
       </div>
 
@@ -47,23 +80,36 @@ export default function Home() {
               <IconChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <ul className="flex flex-col divide-y divide-separator">
-            {workLogs.slice(0, 4).map((log) => (
-              <li key={log.id} className="flex items-center justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-[15px] font-medium text-foreground">
-                    {log.fieldName} ・ {log.type}
-                  </p>
-                  <p className="truncate text-sm text-foreground-secondary">
-                    {log.date} — {log.memo}
-                  </p>
-                </div>
-                <Badge tone={log.synced ? "success" : "warning"}>
-                  {log.synced ? "同期済み" : "未同期"}
-                </Badge>
-              </li>
-            ))}
-          </ul>
+          {recent.items.length === 0 ? (
+            <p className="py-6 text-center text-sm text-foreground-secondary">
+              まだ作業記録がありません。
+            </p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-separator">
+              {recent.items.map((record) => (
+                <li
+                  key={record.id}
+                  className="flex items-center justify-between gap-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-medium text-foreground">
+                      {record.workerName} ・ {record.workTypeLabel}
+                    </p>
+                    <p className="truncate text-sm text-foreground-secondary">
+                      {record.workDate}
+                      {record.fieldName && ` — ${record.fieldName}`}
+                      {record.memo && ` — ${record.memo}`}
+                    </p>
+                  </div>
+                  {record.timeLabel && (
+                    <span className="shrink-0 font-mono text-sm text-foreground-secondary">
+                      {record.timeLabel}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
 
         <Card className="lg:col-span-2">
@@ -77,31 +123,29 @@ export default function Home() {
               <IconChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <ul className="flex flex-col divide-y divide-separator">
-            {fields.slice(0, 4).map((field) => (
-              <li key={field.id} className="flex items-center justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-[15px] font-medium text-foreground">
+          {fieldList.items.length === 0 ? (
+            <p className="py-6 text-center text-sm text-foreground-secondary">
+              圃場がまだ登録されていません。
+            </p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-separator">
+              {fieldList.items.map((field) => (
+                <li
+                  key={field.id}
+                  className="flex items-center justify-between gap-4 py-3"
+                >
+                  <p className="min-w-0 truncate text-[15px] font-medium text-foreground">
                     {field.name}
                   </p>
-                  <p className="truncate text-sm text-foreground-secondary">
-                    {field.cropType} ・ {field.areaAre}a
+                  <p className="shrink-0 text-sm text-foreground-secondary">
+                    {[field.crop, field.areaA !== null && `${field.areaA}a`]
+                      .filter(Boolean)
+                      .join(" ・ ") || "—"}
                   </p>
-                </div>
-                <Badge
-                  tone={
-                    field.status === "growing"
-                      ? "success"
-                      : field.status === "resting"
-                        ? "neutral"
-                        : "accent"
-                  }
-                >
-                  {fieldStatusLabel[field.status]}
-                </Badge>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </>
