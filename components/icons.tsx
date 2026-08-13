@@ -40,6 +40,17 @@ export function IconNote({ className }: IconProps) {
   );
 }
 
+export function IconChecklist({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M9 4.5H7a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1h-2" />
+      <rect x="9" y="3" width="6" height="3" rx="1" />
+      <path d="m8.75 12 1.6 1.6 3.4-3.4" />
+      <path d="M8.75 17.2h6.5" />
+    </svg>
+  );
+}
+
 export function IconSync({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "./nav-items";
-import { IconGrid, IconLeaf, IconNote, IconSettings } from "../icons";
+import {
+  IconChecklist,
+  IconGrid,
+  IconLeaf,
+  IconNote,
+  IconSettings,
+} from "../icons";
 
 const icons = {
   "square.grid.2x2": IconGrid,
   leaf: IconLeaf,
+  checklist: IconChecklist,
   "note.text": IconNote,
   gearshape: IconSettings,
 } as const;
