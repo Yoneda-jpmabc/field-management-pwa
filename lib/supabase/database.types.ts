@@ -16,6 +16,39 @@ export type Database = {
   };
   public: {
     Tables: {
+      crops: {
+        Row: {
+          created_at: string;
+          crop_code: string;
+          deleted_at: string | null;
+          display_order: number;
+          id: string;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          crop_code: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          crop_code?: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       fields: {
         Row: {
           area_a: number | null;
@@ -60,6 +93,7 @@ export type Database = {
           batch_id: string | null;
           created_at: string;
           created_by: string | null;
+          crop_id: string | null;
           deleted_at: string | null;
           end_time: string | null;
           field_id: string | null;
@@ -76,6 +110,7 @@ export type Database = {
           batch_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          crop_id?: string | null;
           deleted_at?: string | null;
           end_time?: string | null;
           field_id?: string | null;
@@ -92,6 +127,7 @@ export type Database = {
           batch_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          crop_id?: string | null;
           deleted_at?: string | null;
           end_time?: string | null;
           field_id?: string | null;
@@ -105,6 +141,13 @@ export type Database = {
           worker_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "work_records_crop_id_fkey";
+            columns: ["crop_id"];
+            isOneToOne: false;
+            referencedRelation: "crops";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "work_records_field_id_fkey";
             columns: ["field_id"];

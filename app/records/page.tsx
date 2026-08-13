@@ -8,7 +8,7 @@ import { todayInTokyo } from "@/lib/work-records/period";
 export const dynamic = "force-dynamic";
 
 export default async function RecordsPage() {
-  const { workers, workTypes, fields, workTypeSuggestions, errorMessage } =
+  const { workers, workTypes, fields, crops, workTypeSuggestions, errorMessage } =
     await fetchWorkRecordFormData();
 
   return (
@@ -30,6 +30,7 @@ export default async function RecordsPage() {
         workers={workers}
         workTypes={workTypes}
         fields={fields}
+        crops={crops}
         workTypeSuggestions={workTypeSuggestions}
       />
     </>

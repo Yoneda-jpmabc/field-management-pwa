@@ -26,6 +26,7 @@ export type WorkRecordFormState = {
   /** 試験期間中のフリーテキスト作業種類。 */
   workTypeRaw: string;
   fieldId: string | null;
+  cropId: string | null;
   selectedWorkerIds: string[];
   memo: string;
 };

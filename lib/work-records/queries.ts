@@ -9,6 +9,7 @@ export type WorkRecordFormData = {
   workers: MasterOption[];
   workTypes: MasterOption[];
   fields: MasterOption[];
+  crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
   /** マスタ取得に失敗した場合のメッセージ。null なら成功。 */
   errorMessage: string | null;
@@ -17,8 +18,13 @@ export type WorkRecordFormData = {
 export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
   const supabase = await createSupabaseServerClient();
 
-  const [workersResult, workTypesResult, fieldsResult, suggestionsResult] =
-    await Promise.all([
+  const [
+    workersResult,
+    workTypesResult,
+    fieldsResult,
+    cropsResult,
+    suggestionsResult,
+  ] = await Promise.all([
       supabase
         .from("workers")
         .select("id, name, short_name")
@@ -41,6 +47,13 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         .order("display_order")
         .order("name"),
       supabase
+        .from("crops")
+        .select("id, name")
+        .is("deleted_at", null)
+        .eq("is_active", true)
+        .order("display_order")
+        .order("name"),
+      supabase
         .from("work_type_raw_stats")
         .select("work_type_raw, record_count")
         .order("record_count", { ascending: false })
@@ -51,6 +64,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     workersResult.error ??
     workTypesResult.error ??
     fieldsResult.error ??
+    cropsResult.error ??
     suggestionsResult.error;
 
   return {
@@ -63,6 +77,10 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
       label: row.name,
     })),
     fields: (fieldsResult.data ?? []).map((row) => ({
+      id: row.id,
+      label: row.name,
+    })),
+    crops: (cropsResult.data ?? []).map((row) => ({
       id: row.id,
       label: row.name,
     })),
@@ -164,6 +182,7 @@ export type WorkRecordListItem = {
   workDate: string;
   workerName: string;
   fieldName: string | null;
+  cropName: string | null;
   workTypeLabel: string;
   timeLabel: string | null;
   memo: string | null;
@@ -195,7 +214,7 @@ export async function fetchWorkRecords(limit = 100): Promise<WorkRecordList> {
   const { data, error } = await supabase
     .from("work_records")
     .select(
-      "id, work_date, start_time, end_time, memo, work_type_raw, workers(name, short_name), fields(name), work_type_master(name)",
+      "id, work_date, start_time, end_time, memo, work_type_raw, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
     )
     .is("deleted_at", null)
     .order("work_date", { ascending: false })
@@ -208,6 +227,7 @@ export async function fetchWorkRecords(limit = 100): Promise<WorkRecordList> {
       workDate: row.work_date,
       workerName: row.workers?.short_name ?? row.workers?.name ?? "不明",
       fieldName: row.fields?.name ?? null,
+      cropName: row.crops?.name ?? null,
       workTypeLabel:
         row.work_type_master?.name ?? row.work_type_raw?.trim() ?? "未設定",
       timeLabel: buildTimeLabel(row.start_time, row.end_time),

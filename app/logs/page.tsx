@@ -73,7 +73,7 @@ export default async function LogsPage() {
                       )}
                     </div>
                     <p className="mt-0.5 truncate text-sm text-foreground-secondary">
-                      {[record.fieldName, record.memo]
+                      {[record.cropName, record.fieldName, record.memo]
                         .filter(Boolean)
                         .join(" ・ ") || "—"}
                     </p>

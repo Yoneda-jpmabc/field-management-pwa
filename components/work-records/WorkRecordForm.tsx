@@ -15,6 +15,7 @@ type Props = {
   workers: MasterOption[];
   workTypes: MasterOption[];
   fields: MasterOption[];
+  crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
 };
 
@@ -28,6 +29,7 @@ function createInitialState(today: string): WorkRecordFormState {
     workTypeId: null,
     workTypeRaw: "",
     fieldId: null,
+    cropId: null,
     selectedWorkerIds: [],
     memo: "",
   };
@@ -38,6 +40,7 @@ export function WorkRecordForm({
   workers,
   workTypes,
   fields,
+  crops,
   workTypeSuggestions,
 }: Props) {
   const [form, setForm] = useState<WorkRecordFormState>(() =>
@@ -87,6 +90,8 @@ export function WorkRecordForm({
   const fieldLabel =
     fields.find((field) => field.id === form.fieldId)?.label ?? null;
 
+  const cropLabel = crops.find((crop) => crop.id === form.cropId)?.label ?? null;
+
   const timeLabel =
     form.startTime && form.endTime
       ? `${form.startTime} 〜 ${form.endTime}`
@@ -99,6 +104,7 @@ export function WorkRecordForm({
   const missing = [
     timeLabel ? null : "時間",
     workTypeLabel ? null : "作業種類",
+    cropLabel ? null : "作物",
     fieldLabel ? null : "圃場",
     form.memo.trim() ? null : "メモ",
   ].filter((item): item is string => item !== null);
@@ -237,6 +243,28 @@ export function WorkRecordForm({
         )}
       </FormCard>
 
+      <FormCard title="作物" hint="タップで選択。もう一度タップで解除できます。">
+        {crops.length === 0 ? (
+          <p className="text-sm text-foreground-tertiary">
+            作物マスタが空です。登録すればここに一覧が出ます。
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {crops.map((crop) => (
+              <Chip
+                key={crop.id}
+                selected={form.cropId === crop.id}
+                onClick={() =>
+                  update("cropId", form.cropId === crop.id ? null : crop.id)
+                }
+              >
+                {crop.label}
+              </Chip>
+            ))}
+          </div>
+        )}
+      </FormCard>
+
       <FormCard title="圃場" hint="未設定のまま登録できます。">
         {fields.length === 0 ? (
           <p className="text-sm text-foreground-tertiary">
@@ -316,6 +344,7 @@ export function WorkRecordForm({
             <SummaryRow label="作業日" value={form.workDate} />
             <SummaryRow label="時間" value={timeLabel} />
             <SummaryRow label="作業種類" value={workTypeLabel} />
+            <SummaryRow label="作物" value={cropLabel} />
             <SummaryRow label="圃場" value={fieldLabel} />
             <SummaryRow
               label="作業者"

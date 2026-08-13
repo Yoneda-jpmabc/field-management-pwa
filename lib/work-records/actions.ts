@@ -51,6 +51,7 @@ export async function createWorkRecords(
     work_type_id: input.workTypeId,
     work_type_raw: toTextOrNull(input.workTypeRaw),
     field_id: input.fieldId,
+    crop_id: input.cropId,
     memo: toTextOrNull(input.memo),
     batch_id: batchId,
   }));

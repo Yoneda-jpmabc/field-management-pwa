@@ -97,6 +97,7 @@ export default async function Home() {
                     </p>
                     <p className="truncate text-sm text-foreground-secondary">
                       {record.workDate}
+                      {record.cropName && ` — ${record.cropName}`}
                       {record.fieldName && ` — ${record.fieldName}`}
                       {record.memo && ` — ${record.memo}`}
                     </p>
