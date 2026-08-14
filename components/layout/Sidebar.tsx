@@ -57,7 +57,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-separator px-4 py-4">
-        <SyncStatus />
+        <SyncStatus showLabel />
       </div>
     </aside>
   );
