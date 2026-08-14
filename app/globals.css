@@ -95,9 +95,42 @@ body {
 
   .control-focus {
     outline: none;
+    /* モバイルでのダブルタップズーム抑止と、OS 標準のタップハイライト除去 */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .control-focus:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+  }
+}
+
+/* ボトムシートの出現アニメーション */
+@keyframes sheet-in {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -37,3 +37,44 @@ export type CreateWorkRecordsInput = WorkRecordFormState;
 export type CreateWorkRecordsResult =
   | { ok: true; insertedCount: number; batchId: string }
   | { ok: false; message: string };
+
+/**
+ * 確認タブで扱う登録済みレコード 1 件。
+ * 編集フォームへそのまま流し込めるよう ID を持ち、
+ * マスタから外れた（無効化済みなどの）場合に備えて表示名も持つ。
+ */
+export type EditableWorkRecord = {
+  id: string;
+  workDate: string;
+  /** "HH:MM"。未設定は空文字。 */
+  startTime: string;
+  endTime: string;
+  workTypeId: string | null;
+  workTypeRaw: string;
+  fieldId: string | null;
+  cropId: string | null;
+  workerId: string;
+  memo: string;
+  workerName: string;
+  workTypeLabel: string | null;
+  fieldName: string | null;
+  cropName: string | null;
+};
+
+/** 1 レコードの更新入力。 */
+export type UpdateWorkRecordInput = {
+  id: string;
+  workDate: string;
+  startTime: string;
+  endTime: string;
+  workTypeId: string | null;
+  workTypeRaw: string;
+  fieldId: string | null;
+  cropId: string | null;
+  workerId: string;
+  memo: string;
+};
+
+export type WorkRecordMutationResult =
+  | { ok: true }
+  | { ok: false; message: string };

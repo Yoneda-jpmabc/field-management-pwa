@@ -57,15 +57,21 @@ export function SummaryPanels({ summary }: { summary: WorkSummary }) {
               (row) => row.workerId === worker.workerId,
             );
             return (
-              <details key={worker.workerId} className="group py-3">
-                <summary className="control-focus flex cursor-pointer items-baseline justify-between gap-3 list-none">
+              <details key={worker.workerId} className="group py-2">
+                <summary className="control-focus flex min-h-11 cursor-pointer select-none items-center justify-between gap-3 list-none [&::-webkit-details-marker]:hidden">
                   <span className="text-[15px] font-medium text-foreground">
                     {worker.workerName}
                   </span>
-                  <span className="shrink-0 text-sm text-foreground-secondary">
+                  <span className="flex shrink-0 items-center gap-1.5 text-sm text-foreground-secondary">
                     {formatHours(worker.totalMinutes)}
-                    <span className="ml-2 text-foreground-tertiary">
+                    <span className="text-foreground-tertiary">
                       {worker.recordCount}件
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-foreground-tertiary transition-transform group-open:rotate-90"
+                    >
+                      ›
                     </span>
                   </span>
                 </summary>

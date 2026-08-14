@@ -1,5 +1,9 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MasterOption, WorkTypeSuggestion } from "./types";
+import type {
+  EditableWorkRecord,
+  MasterOption,
+  WorkTypeSuggestion,
+} from "./types";
 
 /**
  * 入力画面が必要とするマスタ類をまとめて取得する。
@@ -235,6 +239,57 @@ export async function fetchWorkRecords(limit = 100): Promise<WorkRecordList> {
     })),
     errorMessage: error
       ? `作業記録の取得に失敗しました（${error.message}）。`
+      : null,
+  };
+}
+
+export type EditableWorkRecordList = {
+  items: EditableWorkRecord[];
+  errorMessage: string | null;
+};
+
+/**
+ * 確認タブ用に、指定期間の登録済みレコードを編集可能な形で取得する。
+ * ID と表示名の両方を返すので、一覧表示とボトムシートでの編集の両方に使える。
+ */
+export async function fetchEditableWorkRecords(
+  fromDate: string,
+  toDate: string,
+): Promise<EditableWorkRecordList> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("work_records")
+    .select(
+      "id, work_date, start_time, end_time, work_type_id, work_type_raw, field_id, crop_id, worker_id, memo, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
+    )
+    .is("deleted_at", null)
+    .gte("work_date", fromDate)
+    .lte("work_date", toDate)
+    .order("work_date", { ascending: false })
+    .order("start_time", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
+
+  return {
+    items: (data ?? []).map((row) => ({
+      id: row.id,
+      workDate: row.work_date,
+      startTime: trimSeconds(row.start_time) ?? "",
+      endTime: trimSeconds(row.end_time) ?? "",
+      workTypeId: row.work_type_id,
+      workTypeRaw: row.work_type_raw ?? "",
+      fieldId: row.field_id,
+      cropId: row.crop_id,
+      workerId: row.worker_id,
+      memo: row.memo ?? "",
+      workerName: row.workers?.short_name ?? row.workers?.name ?? "不明",
+      workTypeLabel:
+        row.work_type_master?.name ?? row.work_type_raw?.trim() ?? null,
+      fieldName: row.fields?.name ?? null,
+      cropName: row.crops?.name ?? null,
+    })),
+    errorMessage: error
+      ? `作業実績の取得に失敗しました（${error.message}）。`
       : null,
   };
 }

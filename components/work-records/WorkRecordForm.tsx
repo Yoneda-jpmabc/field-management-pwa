@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import type {
   MasterOption,
@@ -152,7 +153,7 @@ export function WorkRecordForm({
             type="date"
             value={form.workDate}
             onChange={(event) => update("workDate", event.target.value)}
-            className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground"
+            className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
           />
         </label>
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -164,7 +165,7 @@ export function WorkRecordForm({
               type="time"
               value={form.startTime}
               onChange={(event) => update("startTime", event.target.value)}
-              className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground"
+              className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
             />
           </label>
           <label className="block">
@@ -175,7 +176,7 @@ export function WorkRecordForm({
               type="time"
               value={form.endTime}
               onChange={(event) => update("endTime", event.target.value)}
-              className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground"
+              className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
             />
           </label>
         </div>
@@ -211,7 +212,7 @@ export function WorkRecordForm({
           placeholder={
             workTypes.length > 0 ? "その他（自由入力）" : "例: 防除 / 施肥 / 収穫"
           }
-          className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground placeholder:text-foreground-tertiary"
+          className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
         />
         <datalist id="work-type-suggestions">
           {workTypeSuggestions.map((suggestion) => (
@@ -279,10 +280,10 @@ export function WorkRecordForm({
                   key={field.id}
                   type="button"
                   onClick={() => update("fieldId", selected ? null : field.id)}
-                  className={`control-focus flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-left text-[15px] transition-colors ${
+                  className={`control-focus flex min-h-12 items-center justify-between rounded-[10px] border px-3.5 text-left text-[15px] transition-colors ${
                     selected
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-separator-strong text-foreground hover:bg-surface-secondary"
+                      : "border-separator-strong text-foreground hover:bg-surface-secondary active:bg-surface-secondary"
                   }`}
                 >
                   {field.label}
@@ -318,12 +319,12 @@ export function WorkRecordForm({
           onChange={(event) => update("memo", event.target.value)}
           rows={3}
           placeholder="任意"
-          className="control-focus w-full resize-y rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground placeholder:text-foreground-tertiary"
+          className="control-focus w-full resize-y rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground placeholder:text-foreground-tertiary"
         />
       </FormCard>
 
       {feedback && (
-        <p
+        <div
           role="status"
           className={`rounded-[10px] px-4 py-3 text-sm ${
             feedback.tone === "success"
@@ -332,7 +333,15 @@ export function WorkRecordForm({
           }`}
         >
           {feedback.message}
-        </p>
+          {feedback.tone === "success" && (
+            <Link
+              href="/records/list"
+              className="control-focus mt-1 block font-medium underline underline-offset-2"
+            >
+              確認タブで見る（修正・削除もこちら）
+            </Link>
+          )}
+        </div>
       )}
 
       {confirming && (
@@ -365,7 +374,7 @@ export function WorkRecordForm({
               type="button"
               onClick={handleConfirm}
               disabled={pending}
-              className="control-focus flex-1 rounded-full bg-accent px-4 py-3 text-[15px] font-medium text-accent-foreground transition-colors hover:bg-accent-hover disabled:opacity-50"
+              className="control-focus min-h-12 flex-1 rounded-full bg-accent px-4 text-[15px] font-medium text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-hover disabled:opacity-50"
             >
               {pending ? "登録中…" : "確定して登録"}
             </button>
@@ -373,7 +382,7 @@ export function WorkRecordForm({
               type="button"
               onClick={() => setConfirming(false)}
               disabled={pending}
-              className="control-focus rounded-full border border-separator-strong px-4 py-3 text-[15px] font-medium text-foreground-secondary transition-colors hover:bg-surface-secondary disabled:opacity-50"
+              className="control-focus min-h-12 rounded-full border border-separator-strong px-4 text-[15px] font-medium text-foreground-secondary transition-colors hover:bg-surface-secondary active:bg-surface-secondary disabled:opacity-50"
             >
               戻る
             </button>
@@ -389,7 +398,7 @@ export function WorkRecordForm({
             setConfirming(true);
           }}
           disabled={!canSubmit}
-          className="control-focus sticky bottom-20 rounded-full bg-accent px-4 py-3.5 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] transition-colors hover:bg-accent-hover disabled:opacity-40 md:bottom-4"
+          className="control-focus sticky bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] min-h-13 rounded-full bg-accent px-4 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] transition-colors hover:bg-accent-hover active:bg-accent-hover disabled:opacity-40 md:bottom-4"
         >
           {canSubmit
             ? `内容を確認（${form.selectedWorkerIds.length}件）`
@@ -441,10 +450,10 @@ function Chip({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`control-focus rounded-full border px-4 py-2.5 text-[15px] transition-colors ${
+      className={`control-focus min-h-11 rounded-full border px-4 text-[15px] transition-colors ${
         selected
           ? "border-accent bg-accent text-accent-foreground"
-          : "border-separator-strong text-foreground hover:bg-surface-secondary"
+          : "border-separator-strong text-foreground hover:bg-surface-secondary active:bg-surface-secondary"
       }`}
     >
       {children}
