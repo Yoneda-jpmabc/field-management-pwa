@@ -44,39 +44,32 @@ export function SupabaseHealth({ initial }: { initial: HealthResult }) {
   const checking = state.kind === "checking";
   const ok = state.kind === "done" && state.result.ok;
 
-  const tone = checking
-    ? "text-foreground-secondary"
+  // 接続状態の行と同じ丸アイコンで揃える。緑=接続OK、オレンジ=接続できない。
+  const badgeTone = checking
+    ? "border-separator-strong bg-surface-secondary text-foreground-tertiary"
     : ok
-      ? "text-success"
-      : "text-warning";
-  const dot = checking
-    ? "bg-foreground-tertiary"
-    : ok
-      ? "bg-success"
-      : "bg-warning";
+      ? "border-success/40 bg-success-bg text-success"
+      : "border-warning/40 bg-warning-bg text-warning";
   const label = checking ? "確認中" : ok ? "接続OK" : "接続できません";
 
   return (
     <div className="flex flex-col items-end gap-1.5">
-      <div className="flex items-center gap-2">
-        <div
-          className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-separator bg-surface px-3 py-1.5 text-xs font-medium ${tone}`}
-          title={state.kind === "done" ? state.result.message : undefined}
-        >
-          <span className={`h-2 w-2 rounded-full ${dot}`} />
-          <span role="status">{label}</span>
-        </div>
-        <button
-          type="button"
-          aria-label="接続をもう一度確認する"
-          onClick={() => void recheck()}
-          disabled={checking}
-          className="control-focus flex h-9 w-9 items-center justify-center rounded-full border border-separator bg-surface text-foreground-secondary transition-colors hover:text-foreground disabled:opacity-50"
-        >
-          <IconSync className={`h-4 w-4 ${checking ? "animate-spin" : ""}`} />
-        </button>
-      </div>
-      {/* 成功しただけの場合は文言を出さない（バッジで足りるため）。 */}
+      {/* アイコン自体が再確認ボタンを兼ねる（押さなくても開いた時点で結果は出ている）。 */}
+      <button
+        type="button"
+        aria-label={`データベース接続: ${label}。タップで再確認します。`}
+        title={state.kind === "done" ? state.result.message : label}
+        onClick={() => void recheck()}
+        disabled={checking}
+        className={`control-focus flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors ${badgeTone}`}
+      >
+        <IconSync className={`h-[18px] w-[18px] ${checking ? "animate-spin" : ""}`} />
+      </button>
+      {/* 色だけでは伝わらないので、読み上げ用の文言も持たせる。 */}
+      <span className="sr-only" role="status">
+        {label}
+      </span>
+      {/* 成功しただけの場合は文言を出さない（アイコンで足りるため）。 */}
       {state.kind === "done" && (!state.result.ok || state.result.note) && (
         <p className="max-w-xs text-right text-xs text-foreground-tertiary">
           {state.result.message}
