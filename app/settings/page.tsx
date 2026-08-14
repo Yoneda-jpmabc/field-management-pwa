@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SupabaseHealth } from "@/components/settings/SupabaseHealth";
+import { checkSupabaseHealth } from "@/lib/supabase/health";
+
+// 疎通結果を毎回その場で確認するため、この画面はキャッシュしない。
+export const dynamic = "force-dynamic";
 
 function SettingsRow({
   title,
@@ -27,7 +31,9 @@ function SettingsRow({
   );
 }
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const health = await checkSupabaseHealth();
+
   return (
     <>
       <PageHeader
@@ -62,7 +68,7 @@ export default function SettingsPage() {
             <SettingsRow
               title="データベース接続"
               description="Supabase に接続できるかを確認します。"
-              control={<SupabaseHealth />}
+              control={<SupabaseHealth initial={health} />}
             />
           </Card>
         </section>
