@@ -88,6 +88,66 @@ export type Database = {
         };
         Relationships: [];
       };
+      work_plans: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          crop_id: string | null;
+          deleted_at: string | null;
+          display_order: number;
+          field_id: string | null;
+          id: string;
+          is_done: boolean;
+          memo: string | null;
+          plan_date: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          crop_id?: string | null;
+          deleted_at?: string | null;
+          display_order?: number;
+          field_id?: string | null;
+          id?: string;
+          is_done?: boolean;
+          memo?: string | null;
+          plan_date: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          crop_id?: string | null;
+          deleted_at?: string | null;
+          display_order?: number;
+          field_id?: string | null;
+          id?: string;
+          is_done?: boolean;
+          memo?: string | null;
+          plan_date?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "work_plans_crop_id_fkey";
+            columns: ["crop_id"];
+            isOneToOne: false;
+            referencedRelation: "crops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_plans_field_id_fkey";
+            columns: ["field_id"];
+            isOneToOne: false;
+            referencedRelation: "fields";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       work_records: {
         Row: {
           batch_id: string | null;

@@ -293,24 +293,3 @@ export async function fetchEditableWorkRecords(
       : null,
   };
 }
-
-/** ダッシュボード用の件数。ヘッダーだけ取れば十分なので head: true で数える。 */
-export async function countWorkRecordsOn(workDate: string): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from("work_records")
-    .select("id", { count: "exact", head: true })
-    .is("deleted_at", null)
-    .eq("work_date", workDate);
-  return count ?? 0;
-}
-
-export async function countWorkers(): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from("workers")
-    .select("id", { count: "exact", head: true })
-    .is("deleted_at", null)
-    .eq("is_active", true);
-  return count ?? 0;
-}
