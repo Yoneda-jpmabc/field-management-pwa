@@ -39,13 +39,3 @@ export async function fetchFields(limit?: number): Promise<FieldList> {
     errorMessage: error ? `圃場の取得に失敗しました（${error.message}）。` : null,
   };
 }
-
-export async function countFields(): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from("fields")
-    .select("id", { count: "exact", head: true })
-    .is("deleted_at", null)
-    .eq("is_active", true);
-  return count ?? 0;
-}

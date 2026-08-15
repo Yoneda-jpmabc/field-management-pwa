@@ -14,6 +14,8 @@ type Props = {
   unit: PeriodUnit;
   anchor: string;
   label: string;
+  /** 期間クエリを付けて遷移する先。確認タブと集計タブで共用する。 */
+  basePath?: string;
 };
 
 /**
@@ -22,13 +24,18 @@ type Props = {
  * 遷移は useTransition で包み、待ちの間は前の内容を出したまま
  * パネル全体を薄くして「反応した」ことを指に返す。
  */
-export function PeriodSwitcher({ unit, anchor, label }: Props) {
+export function PeriodSwitcher({
+  unit,
+  anchor,
+  label,
+  basePath = "/records/summary",
+}: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const go = (nextUnit: PeriodUnit, nextAnchor: string) => {
     startTransition(() => {
-      router.push(`/records/summary?unit=${nextUnit}&date=${nextAnchor}`);
+      router.push(`${basePath}?unit=${nextUnit}&date=${nextAnchor}`);
     });
   };
 
@@ -45,10 +52,10 @@ export function PeriodSwitcher({ unit, anchor, label }: Props) {
             key={candidate}
             type="button"
             onClick={() => go(candidate, anchor)}
-            className={`control-focus pressable flex-1 rounded-full py-3 text-center text-[15px] font-medium ${
+            className={`control-focus pressable min-h-11 flex-1 rounded-full text-center text-[15px] font-medium ${
               candidate === unit
                 ? "bg-surface text-foreground shadow-[var(--shadow-card)]"
-                : "text-foreground-secondary"
+                : "text-foreground-secondary hover:text-foreground"
             }`}
           >
             {PERIOD_UNIT_LABELS[candidate]}ごと
@@ -61,7 +68,7 @@ export function PeriodSwitcher({ unit, anchor, label }: Props) {
           type="button"
           aria-label="前の期間"
           onClick={() => go(unit, shiftAnchor(unit, anchor, -1))}
-          className="control-focus pressable rounded-full border border-separator-strong px-5 py-2.5 text-[15px] text-foreground-secondary"
+          className="control-focus pressable flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary hover:bg-surface-secondary"
         >
           ←
         </button>
@@ -82,7 +89,7 @@ export function PeriodSwitcher({ unit, anchor, label }: Props) {
           type="button"
           aria-label="次の期間"
           onClick={() => go(unit, shiftAnchor(unit, anchor, 1))}
-          className="control-focus pressable rounded-full border border-separator-strong px-5 py-2.5 text-[15px] text-foreground-secondary"
+          className="control-focus pressable flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary hover:bg-surface-secondary"
         >
           →
         </button>

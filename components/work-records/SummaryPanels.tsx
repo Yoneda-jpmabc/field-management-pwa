@@ -1,4 +1,3 @@
-import { IconChevronRight } from "@/components/icons";
 import { formatHours } from "@/lib/work-records/period";
 import type { WorkSummary } from "@/lib/work-records/queries";
 
@@ -58,22 +57,26 @@ export function SummaryPanels({ summary }: { summary: WorkSummary }) {
               (row) => row.workerId === worker.workerId,
             );
             return (
-              <details key={worker.workerId} className="group">
-                {/* summary 自体に余白を持たせて、指で押せる高さ（44px 以上）を確保する */}
-                <summary className="control-focus pressable flex cursor-pointer select-none list-none items-center gap-3 py-3">
-                  <IconChevronRight className="h-4 w-4 shrink-0 text-foreground-tertiary transition-transform group-open:rotate-90" />
-                  <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-foreground">
+              <details key={worker.workerId} className="group py-2">
+                <summary className="control-focus pressable flex min-h-11 cursor-pointer select-none items-center justify-between gap-3 list-none [&::-webkit-details-marker]:hidden">
+                  <span className="min-w-0 truncate text-[15px] font-medium text-foreground">
                     {worker.workerName}
                   </span>
-                  <span className="shrink-0 text-sm text-foreground-secondary">
+                  <span className="flex shrink-0 items-center gap-1.5 text-sm text-foreground-secondary">
                     {formatHours(worker.totalMinutes)}
-                    <span className="ml-2 text-foreground-tertiary">
+                    <span className="text-foreground-tertiary">
                       {worker.recordCount}件
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-foreground-tertiary transition-transform group-open:rotate-90"
+                    >
+                      ›
                     </span>
                   </span>
                 </summary>
                 <Bar value={worker.totalMinutes} max={maxWorkerMinutes} />
-                <ul className="mt-3 mb-3 flex flex-col gap-1.5 pl-7">
+                <ul className="mt-3 mb-1 flex flex-col gap-1.5 pl-3">
                   {breakdown.map((row) => (
                     <li
                       key={`${row.workerId}-${row.workTypeLabel}`}

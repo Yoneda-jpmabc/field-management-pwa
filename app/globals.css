@@ -129,6 +129,9 @@ summary {
 
   .control-focus {
     outline: none;
+    /* モバイルでのダブルタップズーム抑止と、OS 標準のタップハイライト除去 */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .control-focus:focus-visible {
     outline: 2px solid var(--accent);
@@ -152,17 +155,8 @@ summary {
   /*
    * 下部タブバーを避けるための余白。
    * タブバーの実高さ（約 3.25rem）＋ホームインジケータ領域を足す。
-   * iPhone の safe-area を数えないと、固定ボタンがタブバーの裏に潜る。
+   * iPhone の safe-area を数えないと、コンテンツ末尾がタブバーの裏に潜る。
    */
-  .above-tabbar {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 4.25rem);
-  }
-  @media (min-width: 768px) {
-    .above-tabbar {
-      bottom: 1rem;
-    }
-  }
-
   .pb-tabbar {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
   }
@@ -186,5 +180,35 @@ summary {
     50% {
       opacity: 0.45;
     }
+  }
+}
+
+/* ボトムシートの出現アニメーション */
+@keyframes sheet-in {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

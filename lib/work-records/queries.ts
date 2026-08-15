@@ -1,5 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MasterOption, WorkerOption, WorkTypeSuggestion } from "./types";
+import type {
+  EditableWorkRecord,
+  MasterOption,
+  WorkerOption,
+  WorkTypeSuggestion,
+} from "./types";
 
 /**
  * 入力画面が必要とするマスタ類をまとめて取得する。
@@ -240,40 +245,53 @@ export async function fetchWorkRecords(limit = 100): Promise<WorkRecordList> {
   };
 }
 
-/** ダッシュボード用の件数。ヘッダーだけ取れば十分なので head: true で数える。 */
-export async function countWorkRecordsOn(workDate: string): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from("work_records")
-    .select("id", { count: "exact", head: true })
-    .is("deleted_at", null)
-    .eq("work_date", workDate);
-  return count ?? 0;
-}
+export type EditableWorkRecordList = {
+  items: EditableWorkRecord[];
+  errorMessage: string | null;
+};
 
 /**
- * 指定期間ののべ作業時間（分）だけを取る。
- * ダッシュボードは合計しか使わないため、fetchWorkSummary（RPC 3本）を呼ぶと
- * 往復が2回分無駄になる。作業者別の1本だけ叩いて足し上げる。
+ * 確認タブ用に、指定期間の登録済みレコードを編集可能な形で取得する。
+ * ID と表示名の両方を返すので、一覧表示とボトムシートでの編集の両方に使える。
  */
-export async function fetchTotalMinutes(
+export async function fetchEditableWorkRecords(
   fromDate: string,
   toDate: string,
-): Promise<number> {
+): Promise<EditableWorkRecordList> {
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.rpc("work_summary_by_worker", {
-    from_date: fromDate,
-    to_date: toDate,
-  });
-  return (data ?? []).reduce((sum, row) => sum + Number(row.total_minutes), 0);
-}
 
-export async function countWorkers(): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from("workers")
-    .select("id", { count: "exact", head: true })
+  const { data, error } = await supabase
+    .from("work_records")
+    .select(
+      "id, work_date, start_time, end_time, work_type_id, work_type_raw, field_id, crop_id, worker_id, memo, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
+    )
     .is("deleted_at", null)
-    .eq("is_active", true);
-  return count ?? 0;
+    .gte("work_date", fromDate)
+    .lte("work_date", toDate)
+    .order("work_date", { ascending: false })
+    .order("start_time", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
+
+  return {
+    items: (data ?? []).map((row) => ({
+      id: row.id,
+      workDate: row.work_date,
+      startTime: trimSeconds(row.start_time) ?? "",
+      endTime: trimSeconds(row.end_time) ?? "",
+      workTypeId: row.work_type_id,
+      workTypeRaw: row.work_type_raw ?? "",
+      fieldId: row.field_id,
+      cropId: row.crop_id,
+      workerId: row.worker_id,
+      memo: row.memo ?? "",
+      workerName: row.workers?.short_name ?? row.workers?.name ?? "不明",
+      workTypeLabel:
+        row.work_type_master?.name ?? row.work_type_raw?.trim() ?? null,
+      fieldName: row.fields?.name ?? null,
+      cropName: row.crops?.name ?? null,
+    })),
+    errorMessage: error
+      ? `作業実績の取得に失敗しました（${error.message}）。`
+      : null,
+  };
 }

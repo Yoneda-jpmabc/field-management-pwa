@@ -131,6 +131,17 @@ export function shiftAnchor(
   }
 }
 
+/** from から to まで（両端を含む）の日付を順に並べて返す。週カレンダーの列挙に使う。 */
+export function enumerateDays(from: string, to: string): string[] {
+  const days: string[] = [];
+  for (let cursor = from; cursor <= to; cursor = addDays(cursor, 1)) {
+    days.push(cursor);
+    // 想定外の入力（from > to など）で無限ループさせない。
+    if (days.length > 366) break;
+  }
+  return days;
+}
+
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export function formatWeekday(iso: string): string {

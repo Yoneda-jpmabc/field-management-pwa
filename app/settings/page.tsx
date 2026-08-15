@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SupabaseHealth } from "@/components/settings/SupabaseHealth";
+import { checkSupabaseHealth } from "@/lib/supabase/health";
+
+// 疎通結果を毎回その場で確認するため、この画面はキャッシュしない。
+export const dynamic = "force-dynamic";
 
 function SettingsRow({
   title,
@@ -14,19 +18,22 @@ function SettingsRow({
   description: string;
   control: ReactNode;
 }) {
+  // 操作部が広い行（例: データベース接続）は、狭い画面だと見出しが折り返してしまう。
+  // 収まらないときだけ操作部を次の行へ送るため、flex-wrap + basis で最低幅を確保する。
   return (
-    // 375px 幅ではコントロールを横に置くと説明文が潰れるため、狭い画面では縦に積む
-    <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="min-w-0">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4">
+      <div className="min-w-0 flex-1 basis-48">
         <p className="text-[15px] font-medium text-foreground">{title}</p>
         <p className="mt-0.5 text-sm text-foreground-secondary">{description}</p>
       </div>
-      {control}
+      <div className="ml-auto shrink-0">{control}</div>
     </div>
   );
 }
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const health = await checkSupabaseHealth();
+
   return (
     <>
       <PageHeader
@@ -61,7 +68,7 @@ export default function SettingsPage() {
             <SettingsRow
               title="データベース接続"
               description="Supabase に接続できるかを確認します。"
-              control={<SupabaseHealth />}
+              control={<SupabaseHealth initial={health} />}
             />
           </Card>
         </section>

@@ -12,7 +12,7 @@ export function MobileHeader() {
           圃場管理
         </span>
       </div>
-      <SyncStatus compact />
+      <SyncStatus />
     </header>
   );
 }

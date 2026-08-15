@@ -62,6 +62,16 @@ export function IconSync({ className }: IconProps) {
   );
 }
 
+/** 電源マーク。同期の接続状態を「入・切」として見せるのに使う。 */
+export function IconPower({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M12 4v8" />
+      <path d="M17.7 7A8 8 0 1 1 6.3 7" />
+    </svg>
+  );
+}
+
 export function IconSearch({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>
