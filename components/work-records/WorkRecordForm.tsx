@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { CropIcon } from "@/components/icons";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import type {
   MasterOption,
@@ -296,7 +297,12 @@ export function WorkRecordForm({
                 onClick={() =>
                   update("cropId", form.cropId === crop.id ? null : crop.id)
                 }
+                className="flex items-center gap-1.5 pl-3 pr-4 text-[15px]"
               >
+                {/* 名前が隣にあるのでアイコンは装飾扱い */}
+                <span aria-hidden className="flex">
+                  <CropIcon name={crop.label} className="size-5 shrink-0" />
+                </span>
                 {crop.label}
               </Chip>
             ))}
