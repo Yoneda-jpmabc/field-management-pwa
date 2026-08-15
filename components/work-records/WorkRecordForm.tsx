@@ -37,6 +37,10 @@ function workerGroupLabel(group: string | null): string {
   return WORKER_GROUP_LABELS[group] ?? group;
 }
 
+/** 日付・時刻入力の共通スタイル。幅は用途ごとに外側の label で決める。 */
+const dateTimeInputClass =
+  "control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground";
+
 function createInitialState(today: string): WorkRecordFormState {
   return {
     workDate: today,
@@ -184,19 +188,21 @@ export function WorkRecordForm({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <FormCard title="日時" required>
-        <label className="block">
-          <span className="mb-1.5 block text-sm text-foreground-secondary">
-            作業日
-          </span>
-          <input
-            type="date"
-            value={form.workDate}
-            onChange={(event) => update("workDate", event.target.value)}
-            className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
-          />
-        </label>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <label className="block">
+        {/* 日付・時刻は中身の幅が決まっているので伸ばさない。
+            画面が狭いときだけ「作業日 / 開始・終了」で折り返す。 */}
+        <div className="flex flex-wrap gap-3">
+          <label className="block w-52">
+            <span className="mb-1.5 block text-sm text-foreground-secondary">
+              作業日
+            </span>
+            <input
+              type="date"
+              value={form.workDate}
+              onChange={(event) => update("workDate", event.target.value)}
+              className={dateTimeInputClass}
+            />
+          </label>
+          <label className="block w-32">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               開始
             </span>
@@ -204,10 +210,10 @@ export function WorkRecordForm({
               type="time"
               value={form.startTime}
               onChange={(event) => update("startTime", event.target.value)}
-              className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
+              className={dateTimeInputClass}
             />
           </label>
-          <label className="block">
+          <label className="block w-32">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               終了
             </span>
@@ -215,7 +221,7 @@ export function WorkRecordForm({
               type="time"
               value={form.endTime}
               onChange={(event) => update("endTime", event.target.value)}
-              className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
+              className={dateTimeInputClass}
             />
           </label>
         </div>
