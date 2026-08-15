@@ -9,6 +9,12 @@ export type MasterOption = {
   label: string;
 };
 
+/** 作業者チップ用。人数が多いので雇用区分ごとに見出しを付けて探しやすくする。 */
+export type WorkerOption = MasterOption & {
+  /** 雇用区分（正社員 / パート / 実習生）。未設定は null。 */
+  group: string | null;
+};
+
 /** work_type_raw のサジェスト候補（過去の入力を頻度順に並べたもの）。 */
 export type WorkTypeSuggestion = {
   value: string;

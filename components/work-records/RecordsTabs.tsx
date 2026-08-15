@@ -23,7 +23,7 @@ export function RecordsTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`control-focus flex-1 rounded-full py-2 text-center text-sm font-medium transition-colors ${
+            className={`control-focus pressable flex-1 rounded-full py-3 text-center text-[15px] font-medium ${
               active
                 ? "bg-surface text-foreground shadow-[var(--shadow-card)]"
                 : "text-foreground-secondary hover:text-foreground"

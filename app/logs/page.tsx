@@ -31,7 +31,7 @@ export default async function LogsPage() {
         actions={
           <Link
             href="/records"
-            className="control-focus flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent-hover"
+            className="control-focus pressable flex items-center gap-1.5 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
           >
             <IconPlus className="h-4 w-4" />
             記録を追加

@@ -19,6 +19,12 @@ function getSnapshot(): Theme {
     : "light";
 }
 
+/**
+ * サーバーでは端末の設定が分からないため light を返す。
+ * 実際の初期値は layout.tsx のインラインスクリプトが
+ * localStorage → OS のダークモード の順で決めている。
+ */
+
 function getServerSnapshot(): Theme {
   return "light";
 }
@@ -40,8 +46,8 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       aria-label={label}
       title={label}
-      className={`control-focus flex items-center justify-center rounded-full border border-separator bg-surface text-foreground-secondary transition-colors hover:text-foreground ${
-        compact ? "h-8 w-8" : "h-9 w-9"
+      className={`control-focus pressable flex shrink-0 items-center justify-center rounded-full border border-separator bg-surface text-foreground-secondary hover:text-foreground ${
+        compact ? "h-10 w-10" : "h-11 w-11"
       }`}
     >
       {theme === "light" ? (

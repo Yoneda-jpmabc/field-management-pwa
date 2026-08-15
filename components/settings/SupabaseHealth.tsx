@@ -55,7 +55,7 @@ export function SupabaseHealth() {
           : "接続できません";
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className="flex flex-col items-start gap-1.5 sm:items-end">
       <div className="flex items-center gap-2">
         <div
           className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-separator bg-surface px-3 py-1.5 text-xs font-medium ${tone}`}
@@ -68,14 +68,14 @@ export function SupabaseHealth() {
           type="button"
           onClick={check}
           disabled={state.kind === "checking"}
-          className="control-focus flex items-center gap-1.5 whitespace-nowrap rounded-full border border-separator bg-surface px-3 py-1.5 text-xs font-medium text-foreground-secondary transition-colors hover:text-foreground disabled:opacity-50"
+          className="control-focus pressable flex items-center gap-1.5 whitespace-nowrap rounded-full border border-separator bg-surface px-4 py-3.5 text-xs font-medium text-foreground-secondary hover:text-foreground disabled:opacity-50"
         >
           <IconSync className="h-3.5 w-3.5" />
           確認する
         </button>
       </div>
       {state.kind === "done" && (
-        <p className="max-w-xs text-right text-xs text-foreground-tertiary">
+        <p className="max-w-xs text-xs text-foreground-tertiary sm:text-right">
           {state.result.message}
         </p>
       )}

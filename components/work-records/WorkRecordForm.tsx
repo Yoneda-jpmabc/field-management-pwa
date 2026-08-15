@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import type {
   MasterOption,
+  WorkerOption,
   WorkRecordFormState,
   WorkTypeSuggestion,
 } from "@/lib/work-records/types";
@@ -12,7 +13,7 @@ import type {
 type Props = {
   /** サーバー側で Asia/Tokyo として求めた今日の日付（YYYY-MM-DD）。 */
   today: string;
-  workers: MasterOption[];
+  workers: WorkerOption[];
   workTypes: MasterOption[];
   fields: MasterOption[];
   crops: MasterOption[];
@@ -49,6 +50,30 @@ export function WorkRecordForm({
   const [confirming, setConfirming] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [pending, startTransition] = useTransition();
+  const confirmRef = useRef<HTMLDivElement>(null);
+
+  // 確認サマリーはフォーム末尾に出るため、開いたら見える位置まで運ぶ
+  useEffect(() => {
+    if (confirming) {
+      confirmRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [confirming]);
+
+  // 26人を平らに並べると探しにくいので、雇用区分ごとの見出し付きに分ける。
+  // 並び順は display_order のまま（区分内の順序も保たれる）。
+  const workerGroups = useMemo(() => {
+    const groups: { label: string; members: WorkerOption[] }[] = [];
+    for (const worker of workers) {
+      const label = worker.group ?? "その他";
+      const last = groups[groups.length - 1];
+      if (last && last.label === label) {
+        last.members.push(worker);
+      } else {
+        groups.push({ label, members: [worker] });
+      }
+    }
+    return groups;
+  }, [workers]);
 
   const update = <K extends keyof WorkRecordFormState>(
     key: K,
@@ -152,7 +177,7 @@ export function WorkRecordForm({
             type="date"
             value={form.workDate}
             onChange={(event) => update("workDate", event.target.value)}
-            className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground"
+            className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground"
           />
         </label>
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -164,7 +189,7 @@ export function WorkRecordForm({
               type="time"
               value={form.startTime}
               onChange={(event) => update("startTime", event.target.value)}
-              className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground"
+              className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground"
             />
           </label>
           <label className="block">
@@ -175,7 +200,7 @@ export function WorkRecordForm({
               type="time"
               value={form.endTime}
               onChange={(event) => update("endTime", event.target.value)}
-              className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground"
+              className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground"
             />
           </label>
         </div>
@@ -211,7 +236,7 @@ export function WorkRecordForm({
           placeholder={
             workTypes.length > 0 ? "その他（自由入力）" : "例: 防除 / 施肥 / 収穫"
           }
-          className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground placeholder:text-foreground-tertiary"
+          className="control-focus w-full rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground placeholder:text-foreground-tertiary"
         />
         <datalist id="work-type-suggestions">
           {workTypeSuggestions.map((suggestion) => (
@@ -279,7 +304,7 @@ export function WorkRecordForm({
                   key={field.id}
                   type="button"
                   onClick={() => update("fieldId", selected ? null : field.id)}
-                  className={`control-focus flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-left text-[15px] transition-colors ${
+                  className={`control-focus pressable flex items-center justify-between rounded-[10px] border px-3.5 py-3 text-left text-[15px] ${
                     selected
                       ? "border-accent bg-accent/10 text-accent"
                       : "border-separator-strong text-foreground hover:bg-surface-secondary"
@@ -299,15 +324,24 @@ export function WorkRecordForm({
         required
         hint="選んだ人数分のレコードをまとめて登録します。"
       >
-        <div className="flex flex-wrap gap-2">
-          {workers.map((worker) => (
-            <Chip
-              key={worker.id}
-              selected={form.selectedWorkerIds.includes(worker.id)}
-              onClick={() => toggleWorker(worker.id)}
-            >
-              {worker.label}
-            </Chip>
+        <div className="flex flex-col gap-4">
+          {workerGroups.map((group) => (
+            <div key={group.label}>
+              <p className="mb-2 text-xs font-medium text-foreground-tertiary">
+                {group.label}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {group.members.map((worker) => (
+                  <Chip
+                    key={worker.id}
+                    selected={form.selectedWorkerIds.includes(worker.id)}
+                    onClick={() => toggleWorker(worker.id)}
+                  >
+                    {worker.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </FormCard>
@@ -318,7 +352,7 @@ export function WorkRecordForm({
           onChange={(event) => update("memo", event.target.value)}
           rows={3}
           placeholder="任意"
-          className="control-focus w-full resize-y rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-[15px] text-foreground placeholder:text-foreground-tertiary"
+          className="control-focus w-full resize-y rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground placeholder:text-foreground-tertiary"
         />
       </FormCard>
 
@@ -336,7 +370,7 @@ export function WorkRecordForm({
       )}
 
       {confirming && (
-        <div className="surface-card p-5">
+        <div ref={confirmRef} className="surface-card p-5">
           <h2 className="text-[15px] font-semibold text-foreground">
             この内容で登録されます
           </h2>
@@ -365,7 +399,7 @@ export function WorkRecordForm({
               type="button"
               onClick={handleConfirm}
               disabled={pending}
-              className="control-focus flex-1 rounded-full bg-accent px-4 py-3 text-[15px] font-medium text-accent-foreground transition-colors hover:bg-accent-hover disabled:opacity-50"
+              className="control-focus pressable flex-1 rounded-full bg-accent px-4 py-3 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
             >
               {pending ? "登録中…" : "確定して登録"}
             </button>
@@ -373,7 +407,7 @@ export function WorkRecordForm({
               type="button"
               onClick={() => setConfirming(false)}
               disabled={pending}
-              className="control-focus rounded-full border border-separator-strong px-4 py-3 text-[15px] font-medium text-foreground-secondary transition-colors hover:bg-surface-secondary disabled:opacity-50"
+              className="control-focus pressable rounded-full border border-separator-strong px-4 py-3 text-[15px] font-medium text-foreground-secondary hover:bg-surface-secondary disabled:opacity-50"
             >
               戻る
             </button>
@@ -389,7 +423,7 @@ export function WorkRecordForm({
             setConfirming(true);
           }}
           disabled={!canSubmit}
-          className="control-focus sticky bottom-20 rounded-full bg-accent px-4 py-3.5 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] transition-colors hover:bg-accent-hover disabled:opacity-40 md:bottom-4"
+          className="control-focus pressable above-tabbar sticky rounded-full bg-accent px-4 py-4 text-base font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:opacity-40"
         >
           {canSubmit
             ? `内容を確認（${form.selectedWorkerIds.length}件）`
@@ -441,7 +475,7 @@ function Chip({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`control-focus rounded-full border px-4 py-2.5 text-[15px] transition-colors ${
+      className={`control-focus pressable select-none rounded-full border px-4 py-2.5 text-[15px] ${
         selected
           ? "border-accent bg-accent text-accent-foreground"
           : "border-separator-strong text-foreground hover:bg-surface-secondary"

@@ -43,7 +43,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`control-focus flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[15px] font-medium transition-colors ${
+              className={`control-focus pressable flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[15px] font-medium ${
                 active
                   ? "bg-accent/10 text-accent"
                   : "text-foreground-secondary hover:bg-surface-secondary hover:text-foreground"

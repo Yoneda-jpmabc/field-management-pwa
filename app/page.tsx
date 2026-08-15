@@ -7,8 +7,8 @@ import { countFields, fetchFields } from "@/lib/fields/queries";
 import {
   countWorkRecordsOn,
   countWorkers,
+  fetchTotalMinutes,
   fetchWorkRecords,
-  fetchWorkSummary,
 } from "@/lib/work-records/queries";
 import {
   formatHours,
@@ -22,12 +22,12 @@ export default async function Home() {
   const today = todayInTokyo();
   const thisMonth = resolvePeriod("month", today);
 
-  const [fieldCount, workerCount, todayCount, monthSummary, recent, fieldList] =
+  const [fieldCount, workerCount, todayCount, monthMinutes, recent, fieldList] =
     await Promise.all([
       countFields(),
       countWorkers(),
       countWorkRecordsOn(today),
-      fetchWorkSummary(thisMonth.from, thisMonth.to),
+      fetchTotalMinutes(thisMonth.from, thisMonth.to),
       fetchWorkRecords(5),
       fetchFields(4),
     ]);
@@ -60,7 +60,7 @@ export default async function Home() {
         />
         <StatCard
           label={`${thisMonth.label}の作業時間`}
-          value={formatHours(monthSummary.totalMinutes).replace("時間", "")}
+          value={formatHours(monthMinutes).replace("時間", "")}
           unit="時間"
           icon={<IconSync className="h-4 w-4" />}
         />
@@ -68,13 +68,13 @@ export default async function Home() {
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="text-[17px] font-semibold text-foreground">
               最近の作業記録
             </h2>
             <Link
               href="/logs"
-              className="control-focus flex items-center gap-0.5 text-sm font-medium text-accent"
+              className="control-focus pressable -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent"
             >
               すべて見る
               <IconChevronRight className="h-3.5 w-3.5" />
@@ -114,11 +114,11 @@ export default async function Home() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="text-[17px] font-semibold text-foreground">圃場</h2>
             <Link
               href="/fields"
-              className="control-focus flex items-center gap-0.5 text-sm font-medium text-accent"
+              className="control-focus pressable -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent"
             >
               すべて見る
               <IconChevronRight className="h-3.5 w-3.5" />

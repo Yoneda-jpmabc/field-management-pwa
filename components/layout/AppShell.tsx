@@ -9,7 +9,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileHeader />
-        <main className="flex-1 px-4 py-6 pb-24 md:px-10 md:py-10 md:pb-10">
+        {/* 下余白は pb-tabbar が持つので py-* は使わない（utilities が components に勝ち、上書きされるため） */}
+        <main className="pb-tabbar flex-1 px-4 pt-6 md:px-10 md:pt-10">
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>
         <BottomTabBar />

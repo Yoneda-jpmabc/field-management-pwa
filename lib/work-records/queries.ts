@@ -1,12 +1,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MasterOption, WorkTypeSuggestion } from "./types";
+import type { MasterOption, WorkerOption, WorkTypeSuggestion } from "./types";
 
 /**
  * 入力画面が必要とするマスタ類をまとめて取得する。
  * カードごとに別々に取りに行くとウォーターフォールになるため、ここで並列に投げる。
  */
 export type WorkRecordFormData = {
-  workers: MasterOption[];
+  workers: WorkerOption[];
   workTypes: MasterOption[];
   fields: MasterOption[];
   crops: MasterOption[];
@@ -27,7 +27,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
   ] = await Promise.all([
       supabase
         .from("workers")
-        .select("id, name, short_name")
+        .select("id, name, short_name, employment_type")
         .is("deleted_at", null)
         .eq("is_active", true)
         .order("display_order")
@@ -71,6 +71,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     workers: (workersResult.data ?? []).map((row) => ({
       id: row.id,
       label: row.short_name ?? row.name,
+      group: row.employment_type,
     })),
     workTypes: (workTypesResult.data ?? []).map((row) => ({
       id: row.id,
@@ -248,6 +249,23 @@ export async function countWorkRecordsOn(workDate: string): Promise<number> {
     .is("deleted_at", null)
     .eq("work_date", workDate);
   return count ?? 0;
+}
+
+/**
+ * 指定期間ののべ作業時間（分）だけを取る。
+ * ダッシュボードは合計しか使わないため、fetchWorkSummary（RPC 3本）を呼ぶと
+ * 往復が2回分無駄になる。作業者別の1本だけ叩いて足し上げる。
+ */
+export async function fetchTotalMinutes(
+  fromDate: string,
+  toDate: string,
+): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.rpc("work_summary_by_worker", {
+    from_date: fromDate,
+    to_date: toDate,
+  });
+  return (data ?? []).reduce((sum, row) => sum + Number(row.total_minutes), 0);
 }
 
 export async function countWorkers(): Promise<number> {

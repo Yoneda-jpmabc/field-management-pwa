@@ -33,7 +33,7 @@ export function FieldsBrowser({ fields }: { fields: FieldListItem[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="圃場名・作物・メモで検索"
-          className="control-focus w-full rounded-[10px] border border-separator bg-surface py-2.5 pl-10 pr-3.5 text-[15px] text-foreground placeholder:text-foreground-tertiary"
+          className="control-focus w-full rounded-[10px] border border-separator bg-surface py-2.5 pl-10 pr-3.5 text-base text-foreground placeholder:text-foreground-tertiary"
         />
       </div>
 

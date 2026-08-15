@@ -32,7 +32,7 @@ export function BottomTabBar() {
           <Link
             key={item.href}
             href={item.href}
-            className={`control-focus flex flex-1 flex-col items-center gap-1 pt-2 pb-1 text-[11px] font-medium ${
+            className={`control-focus pressable flex flex-1 flex-col items-center gap-1 pt-2 pb-1 text-[11px] font-medium ${
               active ? "text-accent" : "text-foreground-tertiary"
             }`}
           >
