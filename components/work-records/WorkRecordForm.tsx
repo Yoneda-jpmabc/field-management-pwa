@@ -23,6 +23,19 @@ type Props = {
 
 type Feedback = { tone: "success" | "danger"; message: string };
 
+/**
+ * 見出しに出す区分名の言い換え。DB の employment_type はそのまま（雇用区分としての意味を保つ）で、
+ * 画面上の呼び名だけを現場の呼称に合わせる。
+ */
+const WORKER_GROUP_LABELS: Record<string, string> = {
+  実習生: "Iチーム",
+};
+
+function workerGroupLabel(group: string | null): string {
+  if (!group) return "その他";
+  return WORKER_GROUP_LABELS[group] ?? group;
+}
+
 function createInitialState(today: string): WorkRecordFormState {
   return {
     workDate: today,
@@ -65,7 +78,7 @@ export function WorkRecordForm({
   const workerGroups = useMemo(() => {
     const groups: { label: string; members: WorkerOption[] }[] = [];
     for (const worker of workers) {
-      const label = worker.group ?? "その他";
+      const label = workerGroupLabel(worker.group);
       const last = groups[groups.length - 1];
       if (last && last.label === label) {
         last.members.push(worker);
