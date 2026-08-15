@@ -104,11 +104,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* タップ時の灰色ハイライトは自前の押下スタイルと二重になるので消す */
-html {
-  -webkit-tap-highlight-color: transparent;
-}
-
 /* ダブルタップズーム待ちの遅延をなくす（ピンチズームは効いたまま） */
 button,
 a,

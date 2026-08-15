@@ -24,10 +24,10 @@ export function RecordsTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`control-focus pressable flex min-h-11 flex-1 items-center justify-center rounded-full text-[15px] font-medium ${
+            className={`control-focus flex min-h-11 flex-1 items-center justify-center rounded-full text-[15px] font-medium transition-colors ${
               active
                 ? "bg-surface text-foreground shadow-[var(--shadow-card)]"
-                : "text-foreground-secondary hover:text-foreground"
+                : "text-foreground-secondary hover:text-foreground active:bg-surface/60"
             }`}
           >
             {tab.label}

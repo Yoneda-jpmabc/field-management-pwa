@@ -72,7 +72,7 @@ export default async function Home({
             </h2>
             <Link
               href="/logs"
-              className="control-focus pressable -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent"
+              className="control-focus -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent transition-colors active:bg-surface-secondary"
             >
               すべて見る
               <IconChevronRight className="h-3.5 w-3.5" />
@@ -116,7 +116,7 @@ export default async function Home({
             <h2 className="text-[17px] font-semibold text-foreground">圃場</h2>
             <Link
               href="/fields"
-              className="control-focus pressable -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent"
+              className="control-focus -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent transition-colors active:bg-surface-secondary"
             >
               すべて見る
               <IconChevronRight className="h-3.5 w-3.5" />

@@ -80,7 +80,7 @@ export function WeekCalendar({
         <button
           type="button"
           onClick={() => goToWeek(today)}
-          className="control-focus pressable -my-1 min-h-11 rounded-full px-3 text-sm font-medium text-accent"
+          className="control-focus -my-1 min-h-11 rounded-full px-3 text-sm font-medium text-accent transition-colors active:bg-surface-secondary"
         >
           今週
         </button>
@@ -91,7 +91,7 @@ export function WeekCalendar({
           type="button"
           aria-label="前の週"
           onClick={() => goToWeek(shiftAnchor("week", anchor, -1))}
-          className="control-focus pressable flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary"
+          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary"
         >
           ←
         </button>
@@ -102,7 +102,7 @@ export function WeekCalendar({
           type="button"
           aria-label="次の週"
           onClick={() => goToWeek(shiftAnchor("week", anchor, 1))}
-          className="control-focus pressable flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary"
+          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary"
         >
           →
         </button>

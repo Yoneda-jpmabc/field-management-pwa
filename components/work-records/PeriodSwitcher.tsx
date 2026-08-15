@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   PERIOD_UNITS,
@@ -21,8 +20,6 @@ type Props = {
 /**
  * 期間の単位切り替えと前後移動。
  * 状態は URL のクエリに持たせるので、リロードや共有でも同じ期間が開く。
- * 遷移は useTransition で包み、待ちの間は前の内容を出したまま
- * パネル全体を薄くして「反応した」ことを指に返す。
  */
 export function PeriodSwitcher({
   unit,
@@ -31,31 +28,23 @@ export function PeriodSwitcher({
   basePath = "/records/summary",
 }: Props) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
 
   const go = (nextUnit: PeriodUnit, nextAnchor: string) => {
-    startTransition(() => {
-      router.push(`${basePath}?unit=${nextUnit}&date=${nextAnchor}`);
-    });
+    router.push(`${basePath}?unit=${nextUnit}&date=${nextAnchor}`);
   };
 
   return (
-    <div
-      className={`mb-4 flex flex-col gap-3 transition-opacity ${
-        pending ? "opacity-50" : ""
-      }`}
-      aria-busy={pending}
-    >
+    <div className="mb-4 flex flex-col gap-3">
       <div className="flex gap-1 rounded-full bg-surface-secondary p-1">
         {PERIOD_UNITS.map((candidate) => (
           <button
             key={candidate}
             type="button"
             onClick={() => go(candidate, anchor)}
-            className={`control-focus pressable min-h-11 flex-1 rounded-full text-center text-[15px] font-medium ${
+            className={`control-focus min-h-11 flex-1 rounded-full text-center text-[15px] font-medium transition-colors ${
               candidate === unit
                 ? "bg-surface text-foreground shadow-[var(--shadow-card)]"
-                : "text-foreground-secondary hover:text-foreground"
+                : "text-foreground-secondary hover:text-foreground active:bg-surface/60"
             }`}
           >
             {PERIOD_UNIT_LABELS[candidate]}ごと
@@ -68,7 +57,7 @@ export function PeriodSwitcher({
           type="button"
           aria-label="前の期間"
           onClick={() => go(unit, shiftAnchor(unit, anchor, -1))}
-          className="control-focus pressable flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary hover:bg-surface-secondary"
+          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary hover:bg-surface-secondary"
         >
           ←
         </button>
@@ -80,7 +69,7 @@ export function PeriodSwitcher({
           <button
             type="button"
             onClick={() => go(unit, todayInTokyo())}
-            className="control-focus pressable rounded-full px-4 py-3.5 text-xs text-accent"
+            className="control-focus rounded-full px-4 py-3.5 text-xs text-accent transition-colors active:bg-surface-secondary"
           >
             今日に戻す
           </button>
@@ -89,7 +78,7 @@ export function PeriodSwitcher({
           type="button"
           aria-label="次の期間"
           onClick={() => go(unit, shiftAnchor(unit, anchor, 1))}
-          className="control-focus pressable flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary hover:bg-surface-secondary"
+          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary hover:bg-surface-secondary"
         >
           →
         </button>
