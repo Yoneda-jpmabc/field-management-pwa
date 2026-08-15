@@ -344,15 +344,14 @@ export function WorkRecordForm({
               <p className="mb-2 text-xs font-medium text-foreground-tertiary">
                 {group.label}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {group.members.map((worker) => (
-                  <Chip
+                  <WorkerChip
                     key={worker.id}
+                    label={worker.label}
                     selected={form.selectedWorkerIds.includes(worker.id)}
                     onClick={() => toggleWorker(worker.id)}
-                  >
-                    {worker.label}
-                  </Chip>
+                  />
                 ))}
               </div>
             </div>
@@ -487,17 +486,22 @@ function Chip({
   selected,
   onClick,
   children,
+  /** レイアウト系クラスの差し替え口。未指定なら内容幅のチップ。 */
+  className,
 }: {
   selected: boolean;
   onClick: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`control-focus pressable min-h-11 select-none rounded-full border px-4 text-[15px] ${
+      className={`control-focus pressable min-h-11 select-none rounded-full border ${
+        className ?? "px-4 text-[15px]"
+      } ${
         selected
           ? "border-accent bg-accent text-accent-foreground"
           : "border-separator-strong text-foreground hover:bg-surface-secondary"
@@ -505,6 +509,40 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * 作業者ボタンはグリッドで全員同じ幅・高さにする。
+ * 名前が長い人はボタンを広げずに、文字を小さく・長体にして収める。
+ */
+function workerLabelClass(label: string): string {
+  const length = [...label].length;
+  if (length <= 5) return "text-[15px]";
+  if (length === 6) return "text-[13px]";
+  if (length === 7) return "inline-block scale-x-90 text-[12px]";
+  return "inline-block scale-x-75 text-[12px]";
+}
+
+function WorkerChip({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Chip
+      selected={selected}
+      onClick={onClick}
+      className="flex h-11 w-full items-center justify-center overflow-hidden px-1"
+    >
+      <span className={`whitespace-nowrap ${workerLabelClass(label)}`}>
+        {label}
+      </span>
+    </Chip>
   );
 }
 
