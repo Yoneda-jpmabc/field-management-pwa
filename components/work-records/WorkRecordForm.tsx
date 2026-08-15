@@ -289,22 +289,18 @@ export function WorkRecordForm({
             作物マスタが空です。登録すればここに一覧が出ます。
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {crops.map((crop) => (
-              <Chip
+              <GridChip
                 key={crop.id}
+                label={crop.label}
+                /* 名前が隣にあるのでアイコンは装飾扱い */
+                icon={<CropIcon name={crop.label} className="size-5" />}
                 selected={form.cropId === crop.id}
                 onClick={() =>
                   update("cropId", form.cropId === crop.id ? null : crop.id)
                 }
-                className="flex items-center gap-1.5 pl-3 pr-4 text-[15px]"
-              >
-                {/* 名前が隣にあるのでアイコンは装飾扱い */}
-                <span aria-hidden className="flex">
-                  <CropIcon name={crop.label} className="size-5 shrink-0" />
-                </span>
-                {crop.label}
-              </Chip>
+              />
             ))}
           </div>
         )}
@@ -352,7 +348,7 @@ export function WorkRecordForm({
               </p>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {group.members.map((worker) => (
-                  <WorkerChip
+                  <GridChip
                     key={worker.id}
                     label={worker.label}
                     selected={form.selectedWorkerIds.includes(worker.id)}
@@ -519,23 +515,27 @@ function Chip({
 }
 
 /**
- * 作業者ボタンはグリッドで全員同じ幅・高さにする。
- * 名前が長い人はボタンを広げずに、文字を小さく・長体にして収める。
+ * グリッドに並べるボタンはすべて同じ幅・高さにする。
+ * 中身が長いときはボタンを広げず、文字を小さく・長体にして収める。
+ * アイコン付きはその分だけ文字に使える幅が狭いので、2文字分多く見積もる。
  */
-function workerLabelClass(label: string): string {
-  const length = [...label].length;
+function gridLabelClass(label: string, hasIcon: boolean): string {
+  const length = [...label].length + (hasIcon ? 2 : 0);
   if (length <= 5) return "text-[15px]";
   if (length === 6) return "text-[13px]";
   if (length === 7) return "inline-block scale-x-90 text-[12px]";
   return "inline-block scale-x-75 text-[12px]";
 }
 
-function WorkerChip({
+function GridChip({
   label,
+  icon,
   selected,
   onClick,
 }: {
   label: string;
+  /** 装飾用アイコン。ラベルと同じ意味なので読み上げ対象から外す。 */
+  icon?: ReactNode;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -543,9 +543,14 @@ function WorkerChip({
     <Chip
       selected={selected}
       onClick={onClick}
-      className="flex h-11 w-full items-center justify-center overflow-hidden px-1"
+      className="flex h-11 w-full items-center justify-center gap-1 overflow-hidden px-1.5"
     >
-      <span className={`whitespace-nowrap ${workerLabelClass(label)}`}>
+      {icon && (
+        <span aria-hidden className="flex shrink-0">
+          {icon}
+        </span>
+      )}
+      <span className={`whitespace-nowrap ${gridLabelClass(label, Boolean(icon))}`}>
         {label}
       </span>
     </Chip>
