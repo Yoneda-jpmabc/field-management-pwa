@@ -37,9 +37,13 @@ function workerGroupLabel(group: string | null): string {
   return WORKER_GROUP_LABELS[group] ?? group;
 }
 
-/** 日付・時刻入力の共通スタイル。幅は用途ごとに外側の label で決める。 */
+/**
+ * 日付・時刻入力の共通スタイル。幅は用途ごとに外側の label で決める。
+ * min-w-0 は必須: ネイティブの日付・時刻入力は中身に応じた最小幅を持つため
+ * （iOS の日本語表示は「午前 8:00」と長い）、これが無いと枠からはみ出す。
+ */
 const dateTimeInputClass =
-  "control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground";
+  "control-focus min-h-12 w-full min-w-0 rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground";
 
 function createInitialState(today: string): WorkRecordFormState {
   return {
@@ -188,10 +192,11 @@ export function WorkRecordForm({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <FormCard title="日時" required>
-        {/* 日付・時刻は中身の幅が決まっているので伸ばさない。
-            画面が狭いときだけ「作業日 / 開始・終了」で折り返す。 */}
-        <div className="flex flex-wrap gap-3">
-          <label className="block w-52">
+        {/* 幅を固定すると端末のロケール次第で中身がはみ出すため、
+            狭い画面は 2 列グリッド（作業日は 2 列ぶん・入力だけ幅を抑える）、
+            広い画面は 3 つを 1 行に並べる。 */}
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+          <label className="col-span-2 block min-w-0 sm:w-56">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               作業日
             </span>
@@ -199,10 +204,10 @@ export function WorkRecordForm({
               type="date"
               value={form.workDate}
               onChange={(event) => update("workDate", event.target.value)}
-              className={dateTimeInputClass}
+              className={`${dateTimeInputClass} max-w-56`}
             />
           </label>
-          <label className="block w-32">
+          <label className="block min-w-0 sm:w-40">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               開始
             </span>
@@ -213,7 +218,7 @@ export function WorkRecordForm({
               className={dateTimeInputClass}
             />
           </label>
-          <label className="block w-32">
+          <label className="block min-w-0 sm:w-40">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               終了
             </span>
