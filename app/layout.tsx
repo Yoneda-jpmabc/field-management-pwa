@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
+import { getCurrentWorker } from "@/lib/auth/session";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -31,11 +32,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ナビゲーションの出し分けに権限が要るので、ここで一度だけ引く。
+  // getCurrentWorker は React の cache 済みなので、各ページが再度呼んでも問い合わせは増えない。
+  const worker = await getCurrentWorker();
+
   return (
     <html
       lang="ja"
@@ -53,7 +58,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <AppShell worker={worker}>{children}</AppShell>
       </body>
     </html>
   );

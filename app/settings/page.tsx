@@ -4,7 +4,13 @@ import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SupabaseHealth } from "@/components/settings/SupabaseHealth";
+import { AccountPanel } from "@/components/settings/AccountPanel";
+import { CropUnitSettings } from "@/components/settings/CropUnitSettings";
+import { FieldSettings } from "@/components/settings/FieldSettings";
 import { checkSupabaseHealth } from "@/lib/supabase/health";
+import { requireWorker } from "@/lib/auth/session";
+import { canEditMasters } from "@/lib/auth/permissions";
+import { fetchFieldSettingsData } from "@/lib/fields/queries";
 
 // 疎通結果を毎回その場で確認するため、この画面はキャッシュしない。
 export const dynamic = "force-dynamic";
@@ -32,16 +38,59 @@ function SettingsRow({
 }
 
 export default async function SettingsPage() {
-  const health = await checkSupabaseHealth();
+  const worker = await requireWorker("/settings");
+
+  const [health, fieldData] = await Promise.all([
+    checkSupabaseHealth(),
+    fetchFieldSettingsData(),
+  ]);
+
+  const canEdit = canEditMasters(worker.permission);
 
   return (
     <>
       <PageHeader
         title="設定"
-        description="表示や同期状況などアプリの設定を確認・変更できます。"
+        description="アカウント・圃場情報・表示などを確認・変更できます。"
       />
 
       <div className="flex flex-col gap-6">
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            アカウント
+          </h2>
+          <Card className="!p-0">
+            <AccountPanel
+              name={worker.name}
+              loginId={worker.loginId}
+              permission={worker.permission}
+            />
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            圃場情報
+          </h2>
+          {fieldData.errorMessage && (
+            <p className="mb-3 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
+              {fieldData.errorMessage}
+            </p>
+          )}
+          <FieldSettings
+            fields={fieldData.fields}
+            crops={fieldData.crops}
+            canEdit={canEdit}
+          />
+        </section>
+
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            収穫量の単位
+          </h2>
+          <CropUnitSettings crops={fieldData.crops} canEdit={canEdit} />
+        </section>
+
         <section>
           <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
             表示

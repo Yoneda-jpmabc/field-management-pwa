@@ -40,3 +40,11 @@ DB の形がずれる。ずれた原因は後から追えないので、追加�
   `work_records` 側に `plan_id` を足す想定。
 - RLS ポリシーは `trial_` 接頭辞のものが試験期間用で、anon（ログインなし）に
   全許可を出している。家族・従業員へ展開する前に認証ベースへ差し替えること。
+- `20260816120000_auth_and_harvest.sql` でログイン（`workers.pin_hash`）と
+  収穫まわり（`field_plantings` / `harvest_records`）を足した。
+  同じマイグレーションで `workers.permission` の中間値を `edit_view` から
+  `allowed` に改名しているので、**このファイルを流す前の `seed.sql` は使えない**
+  （`seed.sql` も同時に更新済み）。
+- ログインの権限判定はアプリ側（Server Action と `lib/auth/`）で行っている。
+  RLS は anon 全許可のままなので、DB へ直接つなげば誰でも書ける。
+  Supabase Auth を入れるときに、この層ごと RLS へ移すこと。

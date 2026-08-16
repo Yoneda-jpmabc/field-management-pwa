@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { IconChevronRight } from "@/components/icons";
 import { WeekCalendar } from "@/components/work-plans/WeekCalendar";
+import { requireWorker } from "@/lib/auth/session";
+import { canEditRecords } from "@/lib/auth/permissions";
 import { fetchFields } from "@/lib/fields/queries";
 import {
   fetchPlanTitleSuggestions,
@@ -26,6 +28,7 @@ export default async function Home({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const worker = await requireWorker("/");
   const params = await searchParams;
 
   // クエリは手で書き換えられるので、想定外の値は今日に落とす。
@@ -62,6 +65,7 @@ export default async function Home({
         crops={masters.crops}
         fields={masters.fields}
         titleSuggestions={titleSuggestions}
+        canEdit={canEditRecords(worker.permission)}
       />
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -115,7 +119,7 @@ export default async function Home({
           <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="text-[17px] font-semibold text-foreground">圃場</h2>
             <Link
-              href="/fields"
+              href="/harvest"
               className="control-focus -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent transition-colors active:bg-surface-secondary"
             >
               すべて見る

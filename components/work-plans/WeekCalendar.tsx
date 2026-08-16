@@ -19,6 +19,8 @@ type Props = {
   crops: MasterOption[];
   fields: MasterOption[];
   titleSuggestions: string[];
+  /** 予定を追加・編集できるか。閲覧のみの人には操作を出さない。 */
+  canEdit: boolean;
 };
 
 /** "2026-08-14" → "8/14"。カレンダーの見出しは月日だけで足りる。 */
@@ -48,6 +50,7 @@ export function WeekCalendar({
   crops,
   fields,
   titleSuggestions,
+  canEdit,
 }: Props) {
   const router = useRouter();
   const [sheet, setSheet] = useState<PlanSheetTarget | null>(null);
@@ -154,39 +157,11 @@ export function WeekCalendar({
               </div>
 
               <div className="flex flex-col gap-1.5 lg:flex-1">
-                {dayPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="flex items-stretch gap-1 rounded-[10px] bg-surface"
-                  >
-                    <button
-                      type="button"
-                      aria-label={
-                        plan.isDone ? "未完了に戻す" : "完了にする"
-                      }
-                      aria-pressed={plan.isDone}
-                      onClick={() => toggleDone(plan)}
-                      className={`control-focus flex min-h-11 w-10 shrink-0 items-center justify-center rounded-l-[10px] text-sm transition-colors ${
-                        plan.isDone
-                          ? "text-success"
-                          : "text-foreground-tertiary active:bg-surface-secondary"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                          plan.isDone
-                            ? "border-success bg-success text-white"
-                            : "border-separator-strong"
-                        }`}
-                      >
-                        {plan.isDone && <span aria-hidden>✓</span>}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSheet({ mode: "edit", plan })}
-                      className="control-focus pressable min-w-0 flex-1 rounded-r-[10px] py-2 pr-2 text-left"
-                    >
+                {dayPlans.map((plan) => {
+                  // 予定の中身は編集可否にかかわらず同じ見た目。
+                  // 押せるかどうかだけを canEdit で切り替える。
+                  const body = (
+                    <>
                       <p
                         className={`truncate text-sm font-medium ${
                           plan.isDone
@@ -203,18 +178,76 @@ export function WeekCalendar({
                             .join(" ・ ")}
                         </p>
                       )}
-                    </button>
-                  </div>
-                ))}
+                    </>
+                  );
 
-                <button
-                  type="button"
-                  onClick={() => setSheet({ mode: "create", planDate: day })}
-                  className="control-focus pressable flex min-h-11 items-center justify-center gap-1 rounded-[10px] border border-dashed border-separator-strong text-sm text-foreground-tertiary lg:mt-auto lg:min-h-9"
-                >
-                  <IconPlus className="h-3.5 w-3.5" />
-                  予定を追加
-                </button>
+                  const checkMark = (
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${
+                        plan.isDone
+                          ? "border-success bg-success text-white"
+                          : "border-separator-strong"
+                      }`}
+                    >
+                      {plan.isDone && <span aria-hidden>✓</span>}
+                    </span>
+                  );
+
+                  return (
+                    <div
+                      key={plan.id}
+                      className="flex items-stretch gap-1 rounded-[10px] bg-surface"
+                    >
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          aria-label={plan.isDone ? "未完了に戻す" : "完了にする"}
+                          aria-pressed={plan.isDone}
+                          onClick={() => toggleDone(plan)}
+                          className={`control-focus flex min-h-11 w-10 shrink-0 items-center justify-center rounded-l-[10px] text-sm transition-colors ${
+                            plan.isDone
+                              ? "text-success"
+                              : "text-foreground-tertiary active:bg-surface-secondary"
+                          }`}
+                        >
+                          {checkMark}
+                        </button>
+                      ) : (
+                        <span
+                          aria-label={plan.isDone ? "完了" : "未完了"}
+                          className={`flex min-h-11 w-10 shrink-0 items-center justify-center text-sm ${
+                            plan.isDone ? "text-success" : "text-foreground-tertiary"
+                          }`}
+                        >
+                          {checkMark}
+                        </span>
+                      )}
+
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => setSheet({ mode: "edit", plan })}
+                          className="control-focus pressable min-w-0 flex-1 rounded-r-[10px] py-2 pr-2 text-left"
+                        >
+                          {body}
+                        </button>
+                      ) : (
+                        <div className="min-w-0 flex-1 py-2 pr-2">{body}</div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setSheet({ mode: "create", planDate: day })}
+                    className="control-focus pressable flex min-h-11 items-center justify-center gap-1 rounded-[10px] border border-dashed border-separator-strong text-sm text-foreground-tertiary lg:mt-auto lg:min-h-9"
+                  >
+                    <IconPlus className="h-3.5 w-3.5" />
+                    予定を追加
+                  </button>
+                )}
               </div>
             </div>
           );

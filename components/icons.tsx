@@ -105,6 +105,27 @@ export function IconSeedling({ className }: IconProps) {
   );
 }
 
+/** 収穫かご。収穫タブのアイコン。 */
+export function IconBasket({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M3.2 10.4h17.6l-1.6 8.2a1.6 1.6 0 0 1-1.6 1.3H6.4a1.6 1.6 0 0 1-1.6-1.3L3.2 10.4Z" />
+      <path d="m8 10.4 2.6-6M16 10.4l-2.6-6" />
+      <path d="M9.4 13.8v3M14.6 13.8v3" />
+    </svg>
+  );
+}
+
+/** 施錠。権限で操作できない項目に添える。 */
+export function IconLock({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="4.8" y="10.5" width="14.4" height="9.7" rx="2" />
+      <path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7" />
+    </svg>
+  );
+}
+
 export function IconNote({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { IconPlus } from "@/components/icons";
+import { requireWorker } from "@/lib/auth/session";
+import { canEditRecords, canViewEveryone } from "@/lib/auth/permissions";
 import { fetchWorkRecords } from "@/lib/work-records/queries";
 import { formatWeekday } from "@/lib/work-records/period";
 import type { WorkRecordListItem } from "@/lib/work-records/queries";
@@ -20,22 +22,34 @@ function groupByDate(items: WorkRecordListItem[]) {
 }
 
 export default async function LogsPage() {
-  const { items, errorMessage } = await fetchWorkRecords();
+  const worker = await requireWorker("/logs");
+
+  // 閲覧のみの人には自分の分だけを見せる。
+  const scopedWorkerId = canViewEveryone(worker.permission)
+    ? undefined
+    : worker.id;
+  const { items, errorMessage } = await fetchWorkRecords(100, scopedWorkerId);
   const grouped = groupByDate(items);
 
   return (
     <>
       <PageHeader
         title="作業記録"
-        description="登録された作業実績を日付ごとに並べています。"
+        description={
+          scopedWorkerId
+            ? "自分の作業実績を日付ごとに並べています。"
+            : "登録された作業実績を日付ごとに並べています。"
+        }
         actions={
-          <Link
-            href="/records"
-            className="control-focus flex items-center gap-1.5 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-hover"
-          >
-            <IconPlus className="h-4 w-4" />
-            記録を追加
-          </Link>
+          canEditRecords(worker.permission) ? (
+            <Link
+              href="/records"
+              className="control-focus flex items-center gap-1.5 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-hover"
+            >
+              <IconPlus className="h-4 w-4" />
+              記録を追加
+            </Link>
+          ) : undefined
         }
       />
 

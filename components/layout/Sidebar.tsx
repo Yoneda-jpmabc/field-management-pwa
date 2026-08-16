@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navItems } from "./nav-items";
+import { visibleNavItems } from "./nav-items";
+import { PERMISSION_LABELS } from "@/lib/auth/permissions";
+import type { SessionWorker } from "@/lib/auth/session";
 import {
+  IconBasket,
   IconChecklist,
   IconGrid,
   IconLeaf,
@@ -14,14 +17,15 @@ import { SyncStatus } from "../SyncStatus";
 
 const icons = {
   "square.grid.2x2": IconGrid,
-  leaf: IconLeaf,
+  basket: IconBasket,
   checklist: IconChecklist,
   "note.text": IconNote,
   gearshape: IconSettings,
 } as const;
 
-export function Sidebar() {
+export function Sidebar({ worker }: { worker: SessionWorker }) {
   const pathname = usePathname();
+  const items = visibleNavItems(worker.permission);
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-separator bg-surface md:flex">
@@ -35,7 +39,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-3">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const Icon = icons[item.icon as keyof typeof icons];
           const active =
             item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -56,7 +60,19 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-separator px-4 py-4">
+      <div className="flex flex-col gap-3 border-t border-separator px-4 py-4">
+        {/* 誰でログインしているかを常に見えるようにする。共用端末で入力する運用のため。 */}
+        <Link
+          href="/settings"
+          className="control-focus flex min-w-0 flex-col rounded-[10px] px-1 py-1 transition-colors hover:bg-surface-secondary"
+        >
+          <span className="truncate text-[15px] font-medium text-foreground">
+            {worker.displayName}
+          </span>
+          <span className="text-xs text-foreground-tertiary">
+            {PERMISSION_LABELS[worker.permission]}
+          </span>
+        </Link>
         <SyncStatus showLabel />
       </div>
     </aside>
