@@ -317,31 +317,25 @@ export function WorkRecordForm({
         )}
       </FormCard>
 
+      {/* 圃場は 16 件あり、1 行 1 件だと縦スクロールが長くなるので
+          作物・作業者と同じグリッドに揃える。 */}
       <FormCard title="圃場" hint="未設定のまま登録できます。">
         {fields.length === 0 ? (
           <p className="text-sm text-foreground-tertiary">
             圃場マスタが空です。登録すればここに一覧が出ます。
           </p>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {fields.map((field) => {
-              const selected = form.fieldId === field.id;
-              return (
-                <button
-                  key={field.id}
-                  type="button"
-                  onClick={() => update("fieldId", selected ? null : field.id)}
-                  className={`control-focus pressable flex min-h-12 items-center justify-between rounded-[10px] border px-3.5 text-left text-[15px] ${
-                    selected
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-separator-strong text-foreground hover:bg-surface-secondary"
-                  }`}
-                >
-                  {field.label}
-                  {selected && <span aria-hidden>✓</span>}
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {fields.map((field) => (
+              <GridChip
+                key={field.id}
+                label={field.label}
+                selected={form.fieldId === field.id}
+                onClick={() =>
+                  update("fieldId", form.fieldId === field.id ? null : field.id)
+                }
+              />
+            ))}
           </div>
         )}
       </FormCard>
