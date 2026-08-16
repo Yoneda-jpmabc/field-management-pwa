@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>圃場管理アプリ 操作マニュアル</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+
+  :root {
+    --accent: #0071e3;
+    --ink: #1c1c1e;
+    --ink-2: #48484a;
+    --ink-3: #8e8e93;
+    --line: #d8d8dd;
+    --line-soft: #ebebef;
+    --tint: #f2f6fc;
+    --warn-bg: #fff6e5;
+    --warn-line: #f0b429;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "IPAPGothic", "IPAGothic", "Noto Sans CJK JP", sans-serif;
+    font-size: 10pt;
+    line-height: 1.75;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---------- 表紙 ---------- */
+  .cover { page-break-after: always; padding-top: 38mm; }
+  .cover .eyebrow {
+    font-size: 10pt; letter-spacing: .18em; color: var(--accent); font-weight: 700;
+  }
+  .cover h1 {
+    margin: 6mm 0 3mm; font-size: 28pt; line-height: 1.3; letter-spacing: .02em;
+  }
+  .cover .sub { font-size: 12pt; color: var(--ink-2); margin: 0; }
+  .cover .rule { height: 3px; width: 46mm; background: var(--accent); margin: 8mm 0; }
+  .cover dl {
+    margin: 12mm 0 0; display: grid; grid-template-columns: 30mm 1fr;
+    row-gap: 2.4mm; font-size: 10pt;
+  }
+  .cover dt { color: var(--ink-3); }
+  .cover dd { margin: 0; color: var(--ink-2); }
+
+  .cover .toc {
+    margin-top: 14mm; border-top: 1px solid var(--line); padding-top: 6mm;
+  }
+  .cover .toc h2 { font-size: 11pt; margin: 0 0 3mm; letter-spacing: .08em; color: var(--ink-3); }
+  .cover .toc ol { margin: 0; padding-left: 5.5mm; columns: 2; column-gap: 10mm; font-size: 10pt; }
+  .cover .toc li { margin-bottom: 1.4mm; break-inside: avoid; }
+
+  /* ---------- 見出し ---------- */
+  h2.sec {
+    font-size: 15pt; margin: 0 0 4mm; padding-bottom: 2mm;
+    border-bottom: 2px solid var(--accent);
+    break-after: avoid;
+  }
+  h2.sec .num {
+    display: inline-block; min-width: 9mm; color: var(--accent); font-weight: 700;
+  }
+  h3 {
+    font-size: 11.5pt; margin: 6mm 0 2.5mm; padding-left: 2.5mm;
+    border-left: 3px solid var(--accent); break-after: avoid;
+  }
+  h4 { font-size: 10.5pt; margin: 4mm 0 1.5mm; color: var(--ink-2); break-after: avoid; }
+
+  section { page-break-before: always; }
+  section:first-of-type { page-break-before: avoid; }
+
+  p { margin: 0 0 2.5mm; }
+  .lead { color: var(--ink-2); margin-bottom: 4mm; }
+
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.2mm; }
+
+  /* ---------- 手順リスト ---------- */
+  ol.steps { list-style: none; padding-left: 0; counter-reset: step; }
+  ol.steps > li {
+    counter-increment: step; position: relative;
+    padding: 0 0 2.5mm 9mm; margin-bottom: 1mm; break-inside: avoid;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 0.6mm;
+    width: 6mm; height: 6mm; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 8.5pt; font-weight: 700; line-height: 6mm; text-align: center;
+  }
+  ol.steps strong { font-weight: 700; }
+
+  /* ---------- 表 ---------- */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 4mm;
+    font-size: 9.5pt; break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid var(--line); padding: 1.8mm 2.5mm; text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--tint); font-weight: 700; color: var(--ink);
+    white-space: nowrap;
+  }
+  td.k { white-space: nowrap; font-weight: 700; width: 34mm; }
+
+  /* ---------- 補足ボックス ---------- */
+  .note, .warn {
+    border-radius: 2mm; padding: 3mm 3.5mm; margin: 0 0 4mm;
+    font-size: 9.5pt; break-inside: avoid;
+  }
+  .note { background: var(--tint); border-left: 3px solid var(--accent); }
+  .warn { background: var(--warn-bg); border-left: 3px solid var(--warn-line); }
+  .note .t, .warn .t { font-weight: 700; display: block; margin-bottom: 1mm; }
+  .note p:last-child, .warn p:last-child, .note ul:last-child { margin-bottom: 0; }
+
+  /* ---------- UIラベル ---------- */
+  .ui {
+    display: inline-block; border: 1px solid var(--line);
+    background: #fff; border-radius: 1.4mm; padding: 0 1.4mm;
+    font-size: 9pt; white-space: nowrap;
+  }
+  .btn {
+    display: inline-block; background: var(--accent); color: #fff;
+    border-radius: 3mm; padding: 0.2mm 2.2mm; font-size: 9pt;
+    white-space: nowrap;
+  }
+  .path { color: var(--ink-3); font-size: 9.5pt; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 7mm; }
+  .avoid { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <p class="eyebrow">FIELD MANAGEMENT APP</p>
+  <h1>圃場管理アプリ<br>操作マニュアル</h1>
+  <div class="rule"></div>
+  <p class="sub">現段階（開発中バージョン）でできる操作をまとめたものです。</p>
+  <dl>
+    <dt>作成日</dt><dd>2026年8月16日</dd>
+    <dt>対象</dt><dd>圃場管理アプリ（スマートフォン・タブレット・パソコン共通）</dd>
+    <dt>画面構成</dt><dd>ダッシュボード／収穫／管理／実績／設定 の5つ</dd>
+    <dt>注意</dt><dd>開発中のため、画面の文言や配置は今後変わることがあります。</dd>
+  </dl>
+
+  <div class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li>はじめに（アプリの起動・共通操作）</li>
+      <li>ダッシュボード（作業予定）</li>
+      <li>実績タブ（登録・確認・集計）</li>
+      <li>収穫タブ（圃場ごと・収穫履歴）</li>
+      <li>管理タブ（毎日のチェック）</li>
+      <li>設定タブ（圃場・管理項目・単位など）</li>
+      <li>現段階でできないこと・注意点</li>
+      <li>困ったときは</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ===================== 1 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">1</span>はじめに（アプリの起動・共通操作）</h2>
+  <p class="lead">このアプリは、圃場ごとの作付・収穫量・毎日の管理項目・作業実績を、その場のスマホから記録するためのものです。インターネット上のデータベース（Supabase）に保存されるので、全員が同じ内容を見ています。</p>
+
+  <h3>1-1. 起動のしかた</h3>
+  <ol class="steps">
+    <li>スマホのブラウザ（iPhone は Safari、Android は Chrome）でアプリの URL を開きます。</li>
+    <li>毎回 URL を入力しなくて済むように、<strong>ホーム画面に追加</strong>しておくと便利です。
+      <ul>
+        <li>iPhone：共有ボタン → 「ホーム画面に追加」</li>
+        <li>Android：メニュー（︙）→ 「アプリをインストール」または「ホーム画面に追加」</li>
+      </ul>
+    </li>
+    <li>追加したアイコンから開くと、ブラウザの枠が出ない全画面表示になります。</li>
+  </ol>
+  <div class="note">
+    <span class="t">ログインは現段階では不要です</span>
+    <p>今は誰でもすべての操作ができます。実際の運用に載せる段階で、作業者ごとのログイン（ID＋暗証番号）と権限の制限を入れる予定です。そのため、記録が誰の分かは <strong>入力画面の「作業者」欄で選んだ人</strong> で決まります。ログインした人＝記録した人、にはまだなりません。</p>
+  </div>
+
+  <h3>1-2. 画面の移動</h3>
+  <table>
+    <tr><th>端末</th><th>操作</th></tr>
+    <tr><td class="k">スマホ</td><td>画面のいちばん下に並ぶ5つのアイコン（ダッシュボード／収穫／管理／実績／設定）をタップして移動します。</td></tr>
+    <tr><td class="k">パソコン・タブレット（横向き）</td><td>画面左のメニューから移動します。</td></tr>
+  </table>
+
+  <h4>5つのタブの役割</h4>
+  <table>
+    <tr><th>タブ</th><th>やること</th></tr>
+    <tr><td class="k">ダッシュボード</td><td>今週の作業予定を立てる・完了にする。直近の作業記録を眺める。</td></tr>
+    <tr><td class="k">収穫</td><td>圃場ごとの作付状況を見て、その場で収穫量を記録する。</td></tr>
+    <tr><td class="k">管理</td><td>作物ごとに、その日確認することをチェックしていく。</td></tr>
+    <tr><td class="k">実績</td><td>誰が・いつ・どの作業をしたかを登録／確認／集計する。</td></tr>
+    <tr><td class="k">設定</td><td>圃場・作付・管理項目・収穫量の単位などを登録する。</td></tr>
+  </table>
+
+  <h3>1-3. どの画面でも共通の操作</h3>
+  <table>
+    <tr><th>見た目</th><th>操作</th></tr>
+    <tr><td class="k"><span class="ui">←</span> <span class="ui">→</span></td><td>期間（日・週・月）を前後に移動します。</td></tr>
+    <tr><td class="k"><span class="ui">日ごと</span> <span class="ui">週ごと</span> <span class="ui">月ごと</span></td><td>集計・一覧の期間の単位を切り替えます。</td></tr>
+    <tr><td class="k"><span class="ui">今日に戻す</span></td><td>移動した期間を今日に戻します。</td></tr>
+    <tr><td class="k">下から出てくる入力画面</td><td>記録や設定の入力はすべてこの形です。閉じるときは <span class="ui">キャンセル</span>、または画面の暗い部分をタップします。</td></tr>
+    <tr><td class="k">丸い <span class="ui">✓</span></td><td>タップで完了／未完了、確認済み／未確認が切り替わります。</td></tr>
+    <tr><td class="k">緑の帯</td><td>「保存しました」などの結果表示です。数秒で自動的に消えます。</td></tr>
+    <tr><td class="k">赤い帯</td><td>保存に失敗したときの表示です。内容を確かめてやり直してください。</td></tr>
+  </table>
+  <div class="note">
+    <span class="t">期間はURLに残ります</span>
+    <p>「8月」「先週」などを開いた状態で画面を再読み込みしても、同じ期間が開きます。その画面のURLをコピーして人に送れば、相手も同じ期間を見られます。</p>
+  </div>
+</section>
+
+<!-- ===================== 2 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">2</span>ダッシュボード（作業予定）</h2>
+  <p class="lead">アプリを開いて最初に出る画面です。上半分が今週の作業予定カレンダー、下半分が最近の作業記録と圃場の一覧です。</p>
+
+  <h3>2-1. 週の移動</h3>
+  <ul>
+    <li><span class="ui">←</span> <span class="ui">→</span> … 前の週・次の週へ移動します。</li>
+    <li><span class="ui">今週</span> … 今週に戻します。</li>
+    <li>今日の日付のカードは青枠になり、<span class="ui">今日</span> の印が付きます。</li>
+  </ul>
+
+  <h3>2-2. 予定を追加する</h3>
+  <ol class="steps">
+    <li>予定を入れたい日のカードにある <span class="ui">＋ 予定を追加</span> を押します。</li>
+    <li><strong>内容</strong>（必須）を入力します。例：「イチゴ 定植」「ハウス片付け」。過去に使った内容が候補として出るので、そこから選べます。</li>
+    <li>必要に応じて <strong>日付・作物・圃場・メモ</strong> を指定します（内容以外は省略できます）。</li>
+    <li><span class="btn">保存</span> を押すと、その日のカードに予定が並びます。</li>
+  </ol>
+
+  <h3>2-3. 予定を完了にする・直す</h3>
+  <ul>
+    <li>予定の左の丸をタップすると <strong>完了</strong>（緑のチェック＋文字に取り消し線）になります。もう一度押すと未完了に戻ります。</li>
+    <li>予定の文字の部分をタップすると編集画面が開き、内容・日付・作物・圃場・メモ・状態を直せます。</li>
+    <li>いらなくなった予定は、編集画面の <span class="ui">削除</span> → <span class="ui">削除する</span> で消せます。</li>
+  </ul>
+
+  <h3>2-4. 下半分の2つのカード</h3>
+  <table>
+    <tr><th>カード</th><th>内容</th></tr>
+    <tr><td class="k">最近の作業記録</td><td>直近5件の作業実績。<span class="ui">すべて見る</span> で実績タブの「確認」へ移動します。</td></tr>
+    <tr><td class="k">圃場</td><td>登録済みの圃場を4件まで表示（作物・面積つき）。<span class="ui">すべて見る</span> で収穫タブへ移動します。</td></tr>
+  </table>
+
+  <div class="note">
+    <span class="t">「予定」と「実績」の違い</span>
+    <p>ダッシュボードの予定は <strong>これからやること</strong> の覚え書きです。誰が何時間やったかという <strong>実際の記録</strong> は、実績タブで別に登録します。予定を完了にしても実績は自動では作られません。</p>
+  </div>
+</section>
+
+<!-- ===================== 3 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">3</span>実績タブ（登録・確認・集計）</h2>
+  <p class="lead">実績タブは上部の3つのボタンで切り替えます。<span class="ui">登録</span>＝入力する、<span class="ui">確認</span>＝一覧で見て直す、<span class="ui">集計</span>＝期間ごとの合計を見る、です。</p>
+
+  <h3>3-1. 「登録」— 作業実績を入力する</h3>
+  <p>上から順に埋めていきます。必須は <strong>日時（作業日）</strong> と <strong>作業者</strong> の2つだけで、他は空欄のままでも登録できます。</p>
+  <ol class="steps">
+    <li><strong>日時</strong>：作業日は今日の日付が最初から入っています。開始・終了の時刻を入れると、集計で作業時間が計算されます。</li>
+    <li><strong>作業種類</strong>：ボタンから選ぶか、下の欄に直接入力します。よく使う言葉が件数つきで候補に出ます。</li>
+    <li><strong>作物</strong>：ボタンをタップして選びます。もう一度タップで解除できます。</li>
+    <li><strong>圃場</strong>：作物と同じくボタンで選びます。未設定のままでも登録できます。</li>
+    <li><strong>作業者</strong>（必須）：チームごとに分かれたボタンから、その作業をした人を <strong>全員</strong> タップします。何人でも選べます。</li>
+    <li><strong>メモ</strong>：必要なら自由に書きます。</li>
+    <li>画面下に固定されている <span class="btn">内容を確認（○件）</span> を押します。</li>
+    <li>確認の内容を見て、問題なければ <span class="btn">確定して登録</span>。直したいときは <span class="ui">戻る</span> でフォームに戻ります。</li>
+  </ol>
+
+  <div class="note">
+    <span class="t">作業者を選んだ人数ぶん、記録が作られます</span>
+    <p>例えば同じ作業に5人を選んで登録すると、<strong>5件の記録</strong>（1人1件）がまとめて作られます。集計で「誰が何時間やったか」を出すためです。「○件」の数字が、これから作られる記録の件数です。</p>
+  </div>
+  <div class="note">
+    <span class="t">入力し直したとき</span>
+    <p>確認を開いたあとに内容を変えると、確認は自動的に閉じます。古い内容のまま登録されることはありません。登録が終わるとフォームは空に戻り、続けて次の作業を入力できます。</p>
+  </div>
+
+  <h3>3-2. 「確認」— 登録した実績を見る・直す</h3>
+  <ol class="steps">
+    <li>上の <span class="ui">日ごと</span>／<span class="ui">週ごと</span>／<span class="ui">月ごと</span> と <span class="ui">←</span> <span class="ui">→</span> で、見たい期間を選びます（最初は今日）。</li>
+    <li>日付ごとにまとまった一覧が出ます。行には作業者・作業種類・作物・圃場・時間が並びます。</li>
+    <li>直したい行をタップすると編集画面が開きます。日時・作業者・作業種類・作物・圃場・メモを変更して <span class="btn">保存</span>。</li>
+    <li>消したいときは <span class="ui">削除</span> → <span class="ui">削除する</span>。</li>
+  </ol>
+
+  <h3>3-3. 「集計」— 期間ごとの合計を見る</h3>
+  <table>
+    <tr><th>区分</th><th>見られる内容</th></tr>
+    <tr><td class="k">期間合計</td><td>のべ作業時間・レコード数・時間未設定の件数。</td></tr>
+    <tr><td class="k">作業者ごと</td><td>1人あたりの作業時間と件数。行をタップすると、その人の作業種類の内訳が開きます。</td></tr>
+    <tr><td class="k">作業ごと</td><td>作業種類ごとの合計時間と件数。棒の長さで多い少ないが分かります。</td></tr>
+  </table>
+  <div class="warn">
+    <span class="t">時間が集計されない場合</span>
+    <p>開始・終了の時刻が入っていない記録、終了が開始より前になっている記録は、作業時間に加えられず「時間未設定」として件数だけ数えます。時間を出したい作業は、開始・終了を必ず入れてください。</p>
+  </div>
+</section>
+
+<!-- ===================== 4 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">4</span>収穫タブ（圃場ごと・収穫履歴）</h2>
+  <p class="lead">上部の <span class="ui">圃場ごと</span>／<span class="ui">収穫履歴</span> で切り替えます。最初は「月ごと」の表示です。</p>
+
+  <h3>4-1. 「圃場ごと」— 現況を見て、その場で記録する</h3>
+  <p>圃場のカードの中に、その圃場の作付（何が植わっているか）が並びます。1つの作付カードに次の内容が出ます。</p>
+  <table>
+    <tr><th>表示</th><th>意味</th></tr>
+    <tr><td class="k">状態のバッジ</td><td>これから／生育中／収穫中／終了。</td></tr>
+    <tr><td class="k">2,000株 ・ 30a ・ 定植日</td><td>作付の規模。設定タブで登録した内容です。</td></tr>
+    <tr><td class="k">大きい数字</td><td>この作付の <strong>累計</strong> 収穫量。</td></tr>
+    <tr><td class="k">バー</td><td>見込み量を登録していれば、それに対する達成度（緑）。見込みが無ければ、画面内で同じ単位のいちばん多い作付を基準にした割合（青）。</td></tr>
+    <tr><td class="k">「8月 ○kg」</td><td>いま選んでいる期間だけの収穫量。</td></tr>
+    <tr><td class="k">最終 8/14</td><td>最後に収穫した日。まだなら「未収穫」。</td></tr>
+  </table>
+
+  <h4>収穫量を記録する</h4>
+  <ol class="steps">
+    <li>記録したい作付カードの <span class="btn">＋ 収穫を記録</span> を押します。</li>
+    <li><strong>収穫量</strong>（必須）を入力します。単位は作物ごとの設定が最初から入りますが、この記録だけ変えることもできます。</li>
+    <li><strong>収穫日</strong>（必須。最初は今日）、<strong>収穫した人</strong>、<strong>メモ</strong>（等級・出荷先など）を必要に応じて入れます。</li>
+    <li><span class="btn">保存</span> を押すと、累計とバーがすぐ更新されます。</li>
+  </ol>
+
+  <h4>圃場を探す</h4>
+  <p>画面上の検索欄に圃場名や作物名を入れると、一致する圃場だけが表示されます。</p>
+
+  <h3>4-2. 「収穫履歴」— 日付順に見る・直す</h3>
+  <ul>
+    <li>期間を選ぶと、その期間の収穫記録が日付順に並びます。</li>
+    <li>行をタップすると編集画面が開き、量・単位・日付・収穫した人・メモを直せます。<span class="ui">削除</span> もここからです。</li>
+  </ul>
+
+  <div class="warn">
+    <span class="t">「作付の登録が無い収穫です」と出たとき</span>
+    <p>設定タブで作付を登録していない作物の収穫は、圃場カードの下に点線の枠で別に表示されます。設定タブでその圃場に作付を登録すると、通常の作付カードにまとまります。</p>
+  </div>
+</section>
+
+<!-- ===================== 5 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">5</span>管理タブ（毎日のチェック）</h2>
+  <p class="lead">作物ごとに「その日確認すること」を一覧で出し、順に潰していく画面です。項目そのものは設定タブで登録します。</p>
+
+  <h3>5-1. 日付を選ぶ</h3>
+  <ul>
+    <li>最初は今日の分が開きます。<span class="ui">←</span> <span class="ui">→</span> で前日・翌日へ移動できます。</li>
+    <li>今日以外を見ているときは <span class="ui">今日に戻す</span> が出ます。</li>
+  </ul>
+
+  <h3>5-2. チェックを付ける</h3>
+  <ol class="steps">
+    <li>作物ごとのカードに、確認することが並びます。右上のバッジは <strong>済んだ数／全部の数</strong> です。</li>
+    <li>左の丸をタップすると確認済みになり、バッジの数字が増えます。もう一度押すと戻せます。</li>
+    <li>すべて済むとバッジが緑になります。</li>
+  </ol>
+
+  <h3>5-3. 気づいたことを書き残す</h3>
+  <ol class="steps">
+    <li>項目名の部分をタップすると、その項目が開いてメモ欄が出ます。</li>
+    <li>気づいたことを入力し、<strong>メモ欄の外をタップ</strong>すると自動的に保存されます（保存ボタンはありません）。</li>
+    <li>メモが入っている項目は、閉じた状態でも「メモ: …」と1行で表示されます。</li>
+  </ol>
+  <div class="note">
+    <span class="t">チェックは日付ごとに別々です</span>
+    <p>今日チェックを付けても、翌日は未確認の状態から始まります。前の日の状態を見たいときは <span class="ui">←</span> で戻ってください。</p>
+  </div>
+  <div class="note">
+    <span class="t">「管理項目がまだ登録されていません」と出たら</span>
+    <p>設定タブの「管理項目」から、作物ごとに毎日確認することを登録してください（次のページ）。</p>
+  </div>
+</section>
+
+<!-- ===================== 6 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">6</span>設定タブ（圃場・管理項目・単位など）</h2>
+  <p class="lead">他のタブで使う「元になる情報」を登録する画面です。ここを整えておくほど、日々の入力が速くなります。</p>
+
+  <h3>6-1. 圃場情報</h3>
+  <h4>圃場を登録・編集する</h4>
+  <ol class="steps">
+    <li>いちばん下の <span class="btn">＋ 圃場を登録</span> を押します。</li>
+    <li><strong>圃場名</strong>（必須。例：第1ハウス／東の畑）、<strong>面積（アール）</strong>、<strong>主な作物（メモ）</strong>、<strong>並び順</strong>、<strong>メモ</strong> を入力して <span class="btn">保存</span>。</li>
+    <li>既存の圃場は、行をタップして開き <span class="ui">圃場を編集</span> から直せます。削除もこの画面からです。</li>
+  </ol>
+  <p class="path">並び順の数字が小さいほど、各画面のリストで上（先頭）に出ます。</p>
+
+  <h4>作付を登録する（収穫タブに出る中身）</h4>
+  <ol class="steps">
+    <li>圃場の行をタップして開き、<span class="ui">＋ 作付を追加</span> を押します。</li>
+    <li><strong>作物</strong>（必須）を選び、<strong>状態</strong>（これから／生育中／収穫中／終了）を指定します。</li>
+    <li><strong>株数・作付面積・定植日・収穫の見込み量・メモ</strong>（品種やハウス番号など）を必要に応じて入力し <span class="btn">保存</span>。</li>
+  </ol>
+  <p>見込み量を入れておくと、収穫タブのバーが「見込みに対して何％」の表示になります。</p>
+
+  <h3>6-2. 管理項目</h3>
+  <ol class="steps">
+    <li>作物ごとの枠にある <span class="ui">＋ 項目を追加</span> を押します。</li>
+    <li><strong>毎日確認すること</strong>（必須。例：潅水量の確認）を入力します。</li>
+    <li><strong>確認のしかた・基準</strong> を入れておくと、管理タブで項目名の下に小さく表示されます。</li>
+    <li><strong>並び順</strong> を指定して <span class="btn">保存</span>。ここで登録した内容が、翌日以降の管理タブに毎日出ます。</li>
+  </ol>
+
+  <h3>6-3. 収穫量の単位</h3>
+  <p>作物ごとに kg・パック・ケースなどを設定します。ここで決めた単位が、収穫を記録するときの初期値になります。</p>
+  <div class="note">
+    <p>単位を変えても、<strong>すでに記録した収穫量は記録した時点の単位のまま</strong>です。過去の数字が勝手に読み替わることはありません。</p>
+  </div>
+
+  <h3>6-4. 表示・同期</h3>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td class="k">外観</td><td>ライトモード／ダークモードを切り替えます。ハウス内や夜間はダークが見やすい場合があります。</td></tr>
+    <tr><td class="k">接続状態</td><td>電源マークが緑＝オンライン、グレー＝オフライン。</td></tr>
+    <tr><td class="k">データベース接続</td><td>マークをタップすると、データベースにつながるかをその場で確認できます。</td></tr>
+  </table>
+
+  <div class="warn">
+    <span class="t">圃場・作付・管理項目・単位は、いずれ管理者だけの操作になります</span>
+    <p>ログインを入れたあとは、この設定タブの登録・編集ができるのは管理者（米田さん）だけになります。他の人は内容の確認だけできる状態になります。</p>
+  </div>
+</section>
+
+<!-- ===================== 7 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">7</span>現段階でできないこと・注意点</h2>
+  <p class="lead">開発中のため、まだ入っていない機能があります。運用を始める前に把握しておいてください。</p>
+
+  <h3>7-1. まだ入っていない機能</h3>
+  <table>
+    <tr><th>項目</th><th>現状</th></tr>
+    <tr><td class="k">ログイン</td><td>未実装。誰でもすべての操作ができます。記録の「誰の分か」は入力時に選んだ作業者で決まります。</td></tr>
+    <tr><td class="k">農薬・肥料の使用履歴</td><td>未実装。作業種類として文字で残すことはできますが、成分・使用基準の管理はまだありません。</td></tr>
+    <tr><td class="k">PDF・Excel出力</td><td>未実装。報告書の書き出しは今後の対応です。</td></tr>
+    <tr><td class="k">写真の添付</td><td>未実装。</td></tr>
+    <tr><td class="k">オフラインでの入力</td><td>未実装。設定画面に「オフライン中の変更は端末に保存される」と書かれていますが、これは今後の仕様です。<strong>現段階では電波の無い場所では保存できません。</strong></td></tr>
+  </table>
+
+  <div class="warn">
+    <span class="t">圏外での入力にご注意ください</span>
+    <p>ハウス内など電波が弱い場所で保存すると、赤い帯（保存失敗）が出ることがあります。その場合は内容が保存されていません。電波の届く場所に移動してから、もう一度入力してください。</p>
+  </div>
+
+  <h3>7-2. 使うときの注意</h3>
+  <ul>
+    <li><strong>削除は元に戻せません。</strong>削除の確認が出たら、内容をよく確かめてから押してください。</li>
+    <li><strong>全員が同じデータを見ています。</strong>自分の端末だけの記録ではありません。他の人の記録も直せてしまうので、修正は自分の分か、頼まれた分だけにしてください。</li>
+    <li><strong>作業時間を集計したい作業は、開始・終了の時刻を必ず入れてください。</strong></li>
+    <li>作業種類の自由入力は表記のゆれ（「防除」「ぼうじょ」など）が出やすいので、なるべく候補のボタンから選んでください。</li>
+  </ul>
+
+  <h3>7-3. 権限について（ログインを入れたあとの予定）</h3>
+  <table>
+    <tr><th>権限</th><th>できること</th></tr>
+    <tr><td class="k">全権限</td><td>すべて。圃場・作付・管理項目・単位を登録・編集できるのはこの権限だけ。</td></tr>
+    <tr><td class="k">登録・編集</td><td>実績・予定・収穫の登録と編集。設定タブの内容は見るだけ。</td></tr>
+    <tr><td class="k">閲覧のみ</td><td>自分に関係する記録を見るだけ。実績の登録・集計は表示されません。</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 8 ===================== -->
+<section>
+  <h2 class="sec"><span class="num">8</span>困ったときは</h2>
+
+  <table>
+    <tr><th>症状</th><th>確認すること</th></tr>
+    <tr><td class="k">保存すると赤い帯が出る</td><td>電波状況を確認してください。設定タブの「データベース接続」をタップすると、つながるかをその場で確かめられます。</td></tr>
+    <tr><td class="k">登録したはずの記録が見当たらない</td><td>実績タブの「確認」で、見ている期間が合っているか確認してください（最初は今日の分だけが出ます）。<span class="ui">←</span> や <span class="ui">月ごと</span> で範囲を広げると見つかります。</td></tr>
+    <tr><td class="k">圃場や作物のボタンが出てこない</td><td>設定タブでその圃場・作物が登録されているか確認してください。登録するとすぐに各画面へ反映されます。</td></tr>
+    <tr><td class="k">管理タブが空</td><td>設定タブの「管理項目」に、その作物の項目が登録されていません。</td></tr>
+    <tr><td class="k">収穫が作付カードにまとまらない</td><td>設定タブで、その圃場にその作物の作付を登録してください。</td></tr>
+    <tr><td class="k">画面が古い内容のまま</td><td>いったん別のタブに移動して戻るか、画面を下に引いて再読み込みしてください。</td></tr>
+  </table>
+
+  <div class="note">
+    <span class="t">改善の要望について</span>
+    <p>「この欄が押しにくい」「この並び順を変えたい」といった気づきは、そのまま伝えてください。日々の入力の速さに直結する部分から順に直していきます。</p>
+  </div>
+
+  <div class="note" style="margin-top:10mm">
+    <span class="t">このマニュアルについて</span>
+    <p>2026年8月16日時点の画面をもとに作成しています。機能を追加したときは、このマニュアルも作り直します。</p>
+  </div>
+</section>
+
+</body>
+</html>
