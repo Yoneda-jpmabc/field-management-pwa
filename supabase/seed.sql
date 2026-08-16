@@ -9,11 +9,11 @@
 insert into public.workers
   (employee_no, login_id, name, employment_type, department, language, permission, display_order)
 values
-  ('001', 'K7X2M9QT', '山田',   '正社員', 'WF', 'ja', 'edit_view',   1),
-  ('002', 'B3F8N5RC', '柿本',   '正社員', 'WF', 'ja', 'edit_view',   2),
-  ('003', 'W6D1P4YK', '川口',   '正社員', 'AA', 'ja', 'edit_view',   3),
-  ('004', 'H9L3X7MQ', '金子',   '正社員', 'AA', 'ja', 'edit_view',   4),
-  ('005', 'T2R8K5VN', '川原',   '正社員', 'AA', 'ja', 'edit_view',   5),
+  ('001', 'K7X2M9QT', '山田',   '正社員', 'WF', 'ja', 'allowed',     1),
+  ('002', 'B3F8N5RC', '柿本',   '正社員', 'WF', 'ja', 'allowed',     2),
+  ('003', 'W6D1P4YK', '川口',   '正社員', 'AA', 'ja', 'allowed',     3),
+  ('004', 'H9L3X7MQ', '金子',   '正社員', 'AA', 'ja', 'allowed',     4),
+  ('005', 'T2R8K5VN', '川原',   '正社員', 'AA', 'ja', 'allowed',     5),
   ('006', 'Q4M7B2XW', '米田',   '正社員', 'WF', 'ja', 'all',         6),
   -- 清水・神田は管理表で No./ID が空欄のため login_id は NULL のままにしている
   (null,  null,       '清水',   null,     null, 'ja', 'view_only',   7),

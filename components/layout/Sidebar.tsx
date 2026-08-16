@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navItems } from "./nav-items";
+import { visibleNavItems } from "./nav-items";
+import type { Permission } from "@/lib/auth/permissions";
 import {
+  IconBasket,
   IconChecklist,
   IconGrid,
   IconLeaf,
@@ -14,14 +16,15 @@ import { SyncStatus } from "../SyncStatus";
 
 const icons = {
   "square.grid.2x2": IconGrid,
-  leaf: IconLeaf,
+  basket: IconBasket,
   checklist: IconChecklist,
   "note.text": IconNote,
   gearshape: IconSettings,
 } as const;
 
-export function Sidebar() {
+export function Sidebar({ permission }: { permission: Permission }) {
   const pathname = usePathname();
+  const items = visibleNavItems(permission);
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-separator bg-surface md:flex">
@@ -35,7 +38,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-3">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const Icon = icons[item.icon as keyof typeof icons];
           const active =
             item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

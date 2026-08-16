@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireRecordEditor } from "@/lib/auth/guards";
 import type { TablesInsert } from "@/lib/supabase/database.types";
 import type {
   CreateWorkRecordsInput,
@@ -30,11 +31,13 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
  *
  * Server Action は UI を経由せず直接 POST できるため、クライアント側の
  * バリデーションとは別にここでも検証している。
- * 認証導入後は、この先頭でセッション確認と created_by の設定を行うこと。
  */
 export async function createWorkRecords(
   input: CreateWorkRecordsInput,
 ): Promise<CreateWorkRecordsResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   if (!DATE_PATTERN.test(input.workDate)) {
     return { ok: false, message: "作業日を選択してください。" };
   }
@@ -85,11 +88,13 @@ function revalidateWorkRecordPages() {
 /**
  * 登録済みレコード 1 件の更新。
  * Server Action は UI を経由せず直接 POST できるため、ここでも検証する。
- * 認証導入後は、この先頭でセッション確認を行うこと。
  */
 export async function updateWorkRecord(
   input: UpdateWorkRecordInput,
 ): Promise<WorkRecordMutationResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   if (!input.id) {
     return { ok: false, message: "対象のレコードが特定できません。" };
   }
@@ -148,6 +153,9 @@ export async function updateWorkRecord(
 export async function deleteWorkRecord(
   id: string,
 ): Promise<WorkRecordMutationResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   if (!id) {
     return { ok: false, message: "対象のレコードが特定できません。" };
   }

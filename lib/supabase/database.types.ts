@@ -25,6 +25,7 @@ export type Database = {
           id: string;
           is_active: boolean;
           name: string;
+          unit: string;
           updated_at: string;
         };
         Insert: {
@@ -35,6 +36,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           name: string;
+          unit?: string;
           updated_at?: string;
         };
         Update: {
@@ -45,9 +47,157 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           name?: string;
+          unit?: string;
           updated_at?: string;
         };
         Relationships: [];
+      };
+      field_plantings: {
+        Row: {
+          area_a: number | null;
+          created_at: string;
+          crop_id: string;
+          deleted_at: string | null;
+          display_order: number;
+          expected_quantity: number | null;
+          field_id: string;
+          id: string;
+          memo: string | null;
+          plant_count: number | null;
+          planted_on: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          area_a?: number | null;
+          created_at?: string;
+          crop_id: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          expected_quantity?: number | null;
+          field_id: string;
+          id?: string;
+          memo?: string | null;
+          plant_count?: number | null;
+          planted_on?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          area_a?: number | null;
+          created_at?: string;
+          crop_id?: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          expected_quantity?: number | null;
+          field_id?: string;
+          id?: string;
+          memo?: string | null;
+          plant_count?: number | null;
+          planted_on?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "field_plantings_crop_id_fkey";
+            columns: ["crop_id"];
+            isOneToOne: false;
+            referencedRelation: "crops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "field_plantings_field_id_fkey";
+            columns: ["field_id"];
+            isOneToOne: false;
+            referencedRelation: "fields";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      harvest_records: {
+        Row: {
+          created_at: string;
+          created_by_worker_id: string | null;
+          crop_id: string;
+          deleted_at: string | null;
+          field_id: string;
+          harvest_date: string;
+          id: string;
+          memo: string | null;
+          planting_id: string | null;
+          quantity: number;
+          unit: string;
+          updated_at: string;
+          worker_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_worker_id?: string | null;
+          crop_id: string;
+          deleted_at?: string | null;
+          field_id: string;
+          harvest_date: string;
+          id?: string;
+          memo?: string | null;
+          planting_id?: string | null;
+          quantity: number;
+          unit: string;
+          updated_at?: string;
+          worker_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by_worker_id?: string | null;
+          crop_id?: string;
+          deleted_at?: string | null;
+          field_id?: string;
+          harvest_date?: string;
+          id?: string;
+          memo?: string | null;
+          planting_id?: string | null;
+          quantity?: number;
+          unit?: string;
+          updated_at?: string;
+          worker_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "harvest_records_created_by_worker_id_fkey";
+            columns: ["created_by_worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "harvest_records_crop_id_fkey";
+            columns: ["crop_id"];
+            isOneToOne: false;
+            referencedRelation: "crops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "harvest_records_field_id_fkey";
+            columns: ["field_id"];
+            isOneToOne: false;
+            referencedRelation: "fields";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "harvest_records_planting_id_fkey";
+            columns: ["planting_id"];
+            isOneToOne: false;
+            referencedRelation: "field_plantings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "harvest_records_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       fields: {
         Row: {
@@ -386,6 +536,17 @@ export type Database = {
       };
     };
     Functions: {
+      harvest_summary_by_planting: {
+        Args: { from_date?: string | null; to_date?: string | null };
+        Returns: {
+          crop_id: string;
+          field_id: string;
+          last_harvested_on: string | null;
+          planting_id: string | null;
+          record_count: number;
+          total_quantity: number;
+        }[];
+      };
       work_summary_by_work_type: {
         Args: { from_date: string; to_date: string };
         Returns: {
