@@ -9,7 +9,6 @@ import {
   IconCalendarCheck,
   IconChecklist,
   IconGrid,
-  IconNote,
   IconSettings,
 } from "../icons";
 
@@ -18,7 +17,6 @@ const icons = {
   basket: IconBasket,
   "calendar.check": IconCalendarCheck,
   checklist: IconChecklist,
-  "note.text": IconNote,
   gearshape: IconSettings,
 } as const;
 

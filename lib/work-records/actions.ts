@@ -82,7 +82,7 @@ function revalidateWorkRecordPages() {
   revalidatePath("/records");
   revalidatePath("/records/list");
   revalidatePath("/records/summary");
-  revalidatePath("/logs");
+  revalidatePath("/");
 }
 
 /**

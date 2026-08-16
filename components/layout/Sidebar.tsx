@@ -10,7 +10,6 @@ import {
   IconChecklist,
   IconGrid,
   IconLeaf,
-  IconNote,
   IconSettings,
 } from "../icons";
 import { SyncStatus } from "../SyncStatus";
@@ -20,7 +19,6 @@ const icons = {
   basket: IconBasket,
   "calendar.check": IconCalendarCheck,
   checklist: IconChecklist,
-  "note.text": IconNote,
   gearshape: IconSettings,
 } as const;
 

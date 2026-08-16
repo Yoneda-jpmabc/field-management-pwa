@@ -263,14 +263,17 @@ export type EditableWorkRecordList = {
 /**
  * 確認タブ用に、指定期間の登録済みレコードを編集可能な形で取得する。
  * ID と表示名の両方を返すので、一覧表示とボトムシートでの編集の両方に使える。
+ *
+ * workerId を渡すと、その作業者の分だけに絞る（閲覧のみの人向け）。
  */
 export async function fetchEditableWorkRecords(
   fromDate: string,
   toDate: string,
+  workerId?: string,
 ): Promise<EditableWorkRecordList> {
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("work_records")
     .select(
       "id, work_date, start_time, end_time, work_type_id, work_type_raw, field_id, crop_id, worker_id, memo, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
@@ -281,6 +284,10 @@ export async function fetchEditableWorkRecords(
     .order("work_date", { ascending: false })
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
+
+  if (workerId) query = query.eq("worker_id", workerId);
+
+  const { data, error } = await query;
 
   return {
     items: (data ?? []).map((row) => ({

@@ -138,16 +138,6 @@ export function IconLock({ className }: IconProps) {
   );
 }
 
-export function IconNote({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M6 3.5h9l3.5 3.5V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" />
-      <path d="M15 3.5V7a1 1 0 0 0 1 1h3.5" />
-      <path d="M8 12h8M8 15.5h8M8 8.5h3" />
-    </svg>
-  );
-}
-
 export function IconChecklist({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

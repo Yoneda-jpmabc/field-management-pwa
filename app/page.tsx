@@ -75,7 +75,7 @@ export default async function Home({
               最近の作業記録
             </h2>
             <Link
-              href="/logs"
+              href="/records/list"
               className="control-focus -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent transition-colors active:bg-surface-secondary"
             >
               すべて見る

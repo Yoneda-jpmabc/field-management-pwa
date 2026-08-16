@@ -12,6 +12,10 @@ type Props = {
   workTypes: MasterOption[];
   fields: MasterOption[];
   crops: MasterOption[];
+  /** 行をタップして修正できるか。閲覧のみの人は一覧を見るだけ。 */
+  canEdit: boolean;
+  /** 空のときの案内文。権限によって「登録タブから追加」と言えないため差し替える。 */
+  emptyHint: string;
 };
 
 function groupByDate(items: EditableWorkRecord[]) {
@@ -43,6 +47,8 @@ export function RecordListPanel({
   workTypes,
   fields,
   crops,
+  canEdit,
+  emptyHint,
 }: Props) {
   const [editing, setEditing] = useState<EditableWorkRecord | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -72,9 +78,7 @@ export function RecordListPanel({
           <p className="text-sm text-foreground-secondary">
             この期間に登録された実績はありません。
           </p>
-          <p className="mt-1.5 text-sm text-foreground-tertiary">
-            上の矢印で期間を移動するか、「登録」タブから追加できます。
-          </p>
+          <p className="mt-1.5 text-sm text-foreground-tertiary">{emptyHint}</p>
         </div>
       ) : (
         grouped.map(([date, records]) => (
@@ -95,13 +99,8 @@ export function RecordListPanel({
                 ]
                   .filter(Boolean)
                   .join(" ・ ");
-                return (
-                  <button
-                    key={record.id}
-                    type="button"
-                    onClick={() => setEditing(record)}
-                    className="control-focus flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-surface-secondary"
-                  >
+                const content = (
+                  <>
                     <div className="min-w-0 flex-1">
                       <p className="text-[15px] font-medium text-foreground">
                         {record.workerName}
@@ -123,9 +122,29 @@ export function RecordListPanel({
                           時間未設定
                         </span>
                       )}
-                      <IconChevronRight className="h-4 w-4 text-foreground-tertiary" />
+                      {canEdit && (
+                        <IconChevronRight className="h-4 w-4 text-foreground-tertiary" />
+                      )}
                     </div>
+                  </>
+                );
+
+                return canEdit ? (
+                  <button
+                    key={record.id}
+                    type="button"
+                    onClick={() => setEditing(record)}
+                    className="control-focus flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-surface-secondary"
+                  >
+                    {content}
                   </button>
+                ) : (
+                  <div
+                    key={record.id}
+                    className="flex min-h-16 w-full items-center gap-3 px-4 py-3"
+                  >
+                    {content}
+                  </div>
                 );
               })}
             </div>
