@@ -37,9 +37,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // ナビゲーションの出し分けに権限が要るので、ここで一度だけ引く。
-  // getCurrentWorker は React の cache 済みなので、各ページが再度呼んでも問い合わせは増えない。
-  const worker = await getCurrentWorker();
+  // ナビゲーションの出し分けに権限が要るので、ここで引く。
+  // ログイン未実装のうちは常に全権限が返る（lib/auth/session.ts）。
+  const { permission } = await getCurrentWorker();
 
   return (
     <html
@@ -58,7 +58,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full">
-        <AppShell worker={worker}>{children}</AppShell>
+        <AppShell permission={permission}>{children}</AppShell>
       </body>
     </html>
   );

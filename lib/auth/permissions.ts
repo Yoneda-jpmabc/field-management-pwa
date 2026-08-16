@@ -17,12 +17,6 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   view_only: "閲覧のみ",
 };
 
-export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
-  all: "圃場・作付・作物マスタの登録編集を含む、すべての操作ができます。",
-  allowed: "実績・予定・収穫の登録編集ができます。マスタの編集はできません。",
-  view_only: "閲覧のみです。自分に関係する記録だけが表示されます。",
-};
-
 /** DB の text 列を Permission に落とす。想定外の値は最も弱い権限に倒す。 */
 export function toPermission(value: string | null | undefined): Permission {
   return (PERMISSIONS as readonly string[]).includes(value ?? "")

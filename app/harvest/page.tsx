@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { HarvestTabs } from "@/components/harvest/HarvestTabs";
 import { HarvestBoard } from "@/components/harvest/HarvestBoard";
-import { requireWorker } from "@/lib/auth/session";
+import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords } from "@/lib/auth/permissions";
 import { fetchHarvestBoard, fetchWorkerOptions } from "@/lib/harvest/queries";
 import {
@@ -19,7 +19,7 @@ export default async function HarvestPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const worker = await requireWorker("/harvest");
+  const worker = await getCurrentWorker();
   const params = await searchParams;
 
   // クエリは手で書き換えられるので、想定外の値は既定に落とす。

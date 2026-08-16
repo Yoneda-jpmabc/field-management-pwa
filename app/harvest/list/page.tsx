@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { HarvestTabs } from "@/components/harvest/HarvestTabs";
 import { HarvestListPanel } from "@/components/harvest/HarvestListPanel";
-import { requireWorker } from "@/lib/auth/session";
+import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords, canViewEveryone } from "@/lib/auth/permissions";
 import { fetchHarvestRecords, fetchWorkerOptions } from "@/lib/harvest/queries";
 import {
@@ -19,7 +19,7 @@ export default async function HarvestListPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const worker = await requireWorker("/harvest/list");
+  const worker = await getCurrentWorker();
   const params = await searchParams;
 
   const unit = isPeriodUnit(params.unit) ? params.unit : "month";
@@ -27,9 +27,11 @@ export default async function HarvestListPage({
   const period = resolvePeriod(unit, anchor);
 
   // 閲覧のみの人には、自分が収穫した分だけを見せる。
-  const scopedWorkerId = canViewEveryone(worker.permission)
-    ? undefined
-    : worker.id;
+  // ログイン未実装のうちは誰の操作か分からないので、絞り込みは効かない。
+  const scopedWorkerId =
+    canViewEveryone(worker.permission) || worker.id === null
+      ? undefined
+      : worker.id;
 
   const [records, workers] = await Promise.all([
     fetchHarvestRecords(period.from, period.to, scopedWorkerId),

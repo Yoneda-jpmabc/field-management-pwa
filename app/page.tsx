@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { IconChevronRight } from "@/components/icons";
 import { WeekCalendar } from "@/components/work-plans/WeekCalendar";
-import { requireWorker } from "@/lib/auth/session";
+import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords } from "@/lib/auth/permissions";
 import { fetchFields } from "@/lib/fields/queries";
 import {
@@ -28,7 +28,7 @@ export default async function Home({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const worker = await requireWorker("/");
+  const worker = await getCurrentWorker();
   const params = await searchParams;
 
   // クエリは手で書き換えられるので、想定外の値は今日に落とす。

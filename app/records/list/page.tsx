@@ -21,7 +21,7 @@ export default async function RecordsListPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireEveryoneViewer("/records/list");
+  await requireEveryoneViewer();
   const params = await searchParams;
 
   // クエリは手で書き換えられるので、想定外の値は既定に落とす。

@@ -456,7 +456,6 @@ export type Database = {
           main_role: string | null;
           name: string;
           permission: string;
-          pin_hash: string | null;
           short_name: string | null;
           updated_at: string;
         };
@@ -475,7 +474,6 @@ export type Database = {
           main_role?: string | null;
           name: string;
           permission?: string;
-          pin_hash?: string | null;
           short_name?: string | null;
           updated_at?: string;
         };
@@ -494,7 +492,6 @@ export type Database = {
           main_role?: string | null;
           name?: string;
           permission?: string;
-          pin_hash?: string | null;
           short_name?: string | null;
           updated_at?: string;
         };

@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { visibleNavItems } from "./nav-items";
-import { PERMISSION_LABELS } from "@/lib/auth/permissions";
-import type { SessionWorker } from "@/lib/auth/session";
+import type { Permission } from "@/lib/auth/permissions";
 import {
   IconBasket,
   IconChecklist,
@@ -23,9 +22,9 @@ const icons = {
   gearshape: IconSettings,
 } as const;
 
-export function Sidebar({ worker }: { worker: SessionWorker }) {
+export function Sidebar({ permission }: { permission: Permission }) {
   const pathname = usePathname();
-  const items = visibleNavItems(worker.permission);
+  const items = visibleNavItems(permission);
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-separator bg-surface md:flex">
@@ -60,19 +59,7 @@ export function Sidebar({ worker }: { worker: SessionWorker }) {
         })}
       </nav>
 
-      <div className="flex flex-col gap-3 border-t border-separator px-4 py-4">
-        {/* 誰でログインしているかを常に見えるようにする。共用端末で入力する運用のため。 */}
-        <Link
-          href="/settings"
-          className="control-focus flex min-w-0 flex-col rounded-[10px] px-1 py-1 transition-colors hover:bg-surface-secondary"
-        >
-          <span className="truncate text-[15px] font-medium text-foreground">
-            {worker.displayName}
-          </span>
-          <span className="text-xs text-foreground-tertiary">
-            {PERMISSION_LABELS[worker.permission]}
-          </span>
-        </Link>
+      <div className="border-t border-separator px-4 py-4">
         <SyncStatus showLabel />
       </div>
     </aside>

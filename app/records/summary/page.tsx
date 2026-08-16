@@ -18,7 +18,7 @@ export default async function RecordsSummaryPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireEveryoneViewer("/records/summary");
+  await requireEveryoneViewer();
   const params = await searchParams;
 
   // クエリは手で書き換えられるので、想定外の値は既定に落とす。

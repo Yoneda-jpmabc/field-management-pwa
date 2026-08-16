@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function RecordsPage() {
-  const worker = await requireEveryoneViewer("/records");
+  const worker = await requireEveryoneViewer();
   // 登録タブは入力専用の画面なので、編集権限が無い人は確認タブへ送る。
   if (!canEditRecords(worker.permission)) redirect("/records/list");
 

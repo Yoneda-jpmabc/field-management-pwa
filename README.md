@@ -24,17 +24,17 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクトの URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase の publishable キー |
-| `SESSION_SECRET` | ログインセッション Cookie の署名鍵。16文字以上のランダムな文字列 |
 
-`SESSION_SECRET` は `openssl rand -base64 32` などで作る。
-値を変えると全員がログアウトされる（発行済みの Cookie の署名が合わなくなるため）。
+## 権限について（ログインは未実装）
 
-## ログインについて
+ログインは実際に運用へ載せる段階で入れる予定で、今は誰でも全操作ができる。
 
-ログインは作業者マスタの `login_id` と暗証番号（PIN）で行う。
-暗証番号が未設定の人は、初回ログイン時に本人が決める。
+判定の形だけは先に通してある。画面の出し分けと、書き込みを行う Server Action の
+権限確認は、すべて `lib/auth/session.ts` の `getCurrentWorker()` の戻り値を見ている。
+今はこれが常に「全権限」を返すだけなので、ログインを実装するときは
+この関数で Cookie のセッションと `workers` を引くように差し替えればよい。
 
-権限は作業者マスタの `permission` で決まる。
+権限は作業者マスタの `permission` で表す。
 
 | 権限 | できること |
 | --- | --- |

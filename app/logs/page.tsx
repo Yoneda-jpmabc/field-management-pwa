@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { IconPlus } from "@/components/icons";
-import { requireWorker } from "@/lib/auth/session";
+import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords, canViewEveryone } from "@/lib/auth/permissions";
 import { fetchWorkRecords } from "@/lib/work-records/queries";
 import { formatWeekday } from "@/lib/work-records/period";
@@ -22,12 +22,14 @@ function groupByDate(items: WorkRecordListItem[]) {
 }
 
 export default async function LogsPage() {
-  const worker = await requireWorker("/logs");
+  const worker = await getCurrentWorker();
 
   // 閲覧のみの人には自分の分だけを見せる。
-  const scopedWorkerId = canViewEveryone(worker.permission)
-    ? undefined
-    : worker.id;
+  // ログイン未実装のうちは誰の操作か分からないので、絞り込みは効かない。
+  const scopedWorkerId =
+    canViewEveryone(worker.permission) || worker.id === null
+      ? undefined
+      : worker.id;
   const { items, errorMessage } = await fetchWorkRecords(100, scopedWorkerId);
   const grouped = groupByDate(items);
 
