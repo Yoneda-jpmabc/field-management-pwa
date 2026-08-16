@@ -116,6 +116,18 @@ export function IconBasket({ className }: IconProps) {
   );
 }
 
+/** 日めくりのチェック。作物ごとの日々の管理タブに使う。 */
+export function IconCalendarCheck({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+      <path d="M3.5 9.6h17" />
+      <path d="M8 3.5V6M16 3.5V6" />
+      <path d="m9.3 14.6 2 2 3.4-3.6" />
+    </svg>
+  );
+}
+
 /** 施錠。権限で操作できない項目に添える。 */
 export function IconLock({ className }: IconProps) {
   return (

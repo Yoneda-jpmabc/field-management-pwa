@@ -6,6 +6,7 @@ import { visibleNavItems } from "./nav-items";
 import type { Permission } from "@/lib/auth/permissions";
 import {
   IconBasket,
+  IconCalendarCheck,
   IconChecklist,
   IconGrid,
   IconLeaf,
@@ -17,6 +18,7 @@ import { SyncStatus } from "../SyncStatus";
 const icons = {
   "square.grid.2x2": IconGrid,
   basket: IconBasket,
+  "calendar.check": IconCalendarCheck,
   checklist: IconChecklist,
   "note.text": IconNote,
   gearshape: IconSettings,
