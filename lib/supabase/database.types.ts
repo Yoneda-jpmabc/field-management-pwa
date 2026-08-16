@@ -52,6 +52,98 @@ export type Database = {
         };
         Relationships: [];
       };
+      crop_check_items: {
+        Row: {
+          created_at: string;
+          crop_id: string;
+          deleted_at: string | null;
+          description: string | null;
+          display_order: number;
+          id: string;
+          is_active: boolean;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          crop_id: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          crop_id?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "crop_check_items_crop_id_fkey";
+            columns: ["crop_id"];
+            isOneToOne: false;
+            referencedRelation: "crops";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      crop_check_records: {
+        Row: {
+          check_date: string;
+          created_at: string;
+          id: string;
+          is_done: boolean;
+          item_id: string;
+          memo: string | null;
+          updated_at: string;
+          worker_id: string | null;
+        };
+        Insert: {
+          check_date: string;
+          created_at?: string;
+          id?: string;
+          is_done?: boolean;
+          item_id: string;
+          memo?: string | null;
+          updated_at?: string;
+          worker_id?: string | null;
+        };
+        Update: {
+          check_date?: string;
+          created_at?: string;
+          id?: string;
+          is_done?: boolean;
+          item_id?: string;
+          memo?: string | null;
+          updated_at?: string;
+          worker_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "crop_check_records_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "crop_check_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "crop_check_records_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       field_plantings: {
         Row: {
           area_a: number | null;
