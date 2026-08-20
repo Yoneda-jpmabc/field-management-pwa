@@ -39,8 +39,15 @@ type Props = {
   onDone: (message: string) => void;
 };
 
-const inputClass =
-  "control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary";
+/** 文字サイズは用途ごとに指定するため、基底クラスには持たせない。 */
+const inputBaseClass =
+  "control-focus min-h-12 rounded-[10px] border border-separator-strong bg-surface px-3 text-foreground placeholder:text-foreground-tertiary";
+
+const inputClass = `${inputBaseClass} w-full text-base`;
+
+/** 数量入力の上下スピナーは幅を食うだけなので隠す。 */
+const noSpinnerClass =
+  "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
 export function HarvestSheet({
   target,
@@ -187,7 +194,7 @@ export function HarvestSheet({
         </div>
 
         <SheetSection title="収穫量" required>
-          <div className="flex gap-2">
+          <div className="flex items-stretch gap-2">
             <input
               type="number"
               inputMode="decimal"
@@ -197,14 +204,14 @@ export function HarvestSheet({
               onChange={(event) => setQuantity(event.target.value)}
               placeholder="0"
               autoFocus={!existing}
-              className={`${inputClass} flex-1 text-right font-mono`}
+              className={`${inputBaseClass} ${noSpinnerClass} min-w-0 flex-1 text-right text-2xl font-semibold tabular-nums`}
             />
             <input
               type="text"
               value={unit}
               onChange={(event) => setUnit(event.target.value)}
               aria-label="単位"
-              className={`${inputClass} w-24 text-center`}
+              className={`${inputBaseClass} w-32 shrink-0 px-2 text-center text-sm text-foreground-secondary`}
             />
           </div>
           <p className="mt-2 text-xs text-foreground-tertiary">
