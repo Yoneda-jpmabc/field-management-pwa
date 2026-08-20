@@ -4,6 +4,10 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { createWorkRecords } from "@/lib/work-records/actions";
+import {
+  snapTimeToStep,
+  TIME_STEP_MINUTES,
+} from "@/lib/work-records/time";
 import type {
   MasterOption,
   WorkerOption,
@@ -188,8 +192,12 @@ export function WorkRecordForm({
             </span>
             <input
               type="time"
+              step={TIME_STEP_MINUTES * 60}
               value={form.startTime}
               onChange={(event) => update("startTime", event.target.value)}
+              onBlur={(event) =>
+                update("startTime", snapTimeToStep(event.target.value))
+              }
               className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
             />
           </label>
@@ -199,8 +207,12 @@ export function WorkRecordForm({
             </span>
             <input
               type="time"
+              step={TIME_STEP_MINUTES * 60}
               value={form.endTime}
               onChange={(event) => update("endTime", event.target.value)}
+              onBlur={(event) =>
+                update("endTime", snapTimeToStep(event.target.value))
+              }
               className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
             />
           </label>
