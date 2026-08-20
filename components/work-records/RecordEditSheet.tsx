@@ -8,6 +8,10 @@ import {
 } from "@/components/ui/BottomSheet";
 import { deleteWorkRecord, updateWorkRecord } from "@/lib/work-records/actions";
 import type { EditableWorkRecord, MasterOption } from "@/lib/work-records/types";
+import {
+  snapTimeToStep,
+  TIME_STEP_MINUTES,
+} from "@/lib/work-records/time";
 
 type Props = {
   record: EditableWorkRecord;
@@ -185,8 +189,12 @@ export function RecordEditSheet({
               </span>
               <input
                 type="time"
+                step={TIME_STEP_MINUTES * 60}
                 value={startTime}
                 onChange={(event) => setStartTime(event.target.value)}
+                onBlur={(event) =>
+                  setStartTime(snapTimeToStep(event.target.value))
+                }
                 className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
               />
             </label>
@@ -196,8 +204,12 @@ export function RecordEditSheet({
               </span>
               <input
                 type="time"
+                step={TIME_STEP_MINUTES * 60}
                 value={endTime}
                 onChange={(event) => setEndTime(event.target.value)}
+                onBlur={(event) =>
+                  setEndTime(snapTimeToStep(event.target.value))
+                }
                 className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
               />
             </label>
