@@ -213,11 +213,17 @@ function buildTimeLabel(start: string | null, end: string | null): string | null
   return null;
 }
 
-/** 一覧表示用に、作業者・圃場・作業種類の名前を引き当てて返す。 */
-export async function fetchWorkRecords(limit = 100): Promise<WorkRecordList> {
+/**
+ * 一覧表示用に、作業者・圃場・作業種類の名前を引き当てて返す。
+ * workerId を渡すと、その作業者の分だけに絞る（閲覧のみの人向け）。
+ */
+export async function fetchWorkRecords(
+  limit = 100,
+  workerId?: string,
+): Promise<WorkRecordList> {
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("work_records")
     .select(
       "id, work_date, start_time, end_time, memo, work_type_raw, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
@@ -226,6 +232,10 @@ export async function fetchWorkRecords(limit = 100): Promise<WorkRecordList> {
     .order("work_date", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (workerId) query = query.eq("worker_id", workerId);
+
+  const { data, error } = await query;
 
   return {
     items: (data ?? []).map((row) => ({
@@ -253,14 +263,17 @@ export type EditableWorkRecordList = {
 /**
  * 確認タブ用に、指定期間の登録済みレコードを編集可能な形で取得する。
  * ID と表示名の両方を返すので、一覧表示とボトムシートでの編集の両方に使える。
+ *
+ * workerId を渡すと、その作業者の分だけに絞る（閲覧のみの人向け）。
  */
 export async function fetchEditableWorkRecords(
   fromDate: string,
   toDate: string,
+  workerId?: string,
 ): Promise<EditableWorkRecordList> {
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("work_records")
     .select(
       "id, work_date, start_time, end_time, work_type_id, work_type_raw, field_id, crop_id, worker_id, memo, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
@@ -271,6 +284,10 @@ export async function fetchEditableWorkRecords(
     .order("work_date", { ascending: false })
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
+
+  if (workerId) query = query.eq("worker_id", workerId);
+
+  const { data, error } = await query;
 
   return {
     items: (data ?? []).map((row) => ({

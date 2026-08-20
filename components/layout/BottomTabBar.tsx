@@ -2,29 +2,31 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navItems } from "./nav-items";
+import { visibleNavItems } from "./nav-items";
+import type { Permission } from "@/lib/auth/permissions";
 import {
+  IconBasket,
+  IconCalendarCheck,
   IconChecklist,
   IconGrid,
-  IconLeaf,
-  IconNote,
   IconSettings,
 } from "../icons";
 
 const icons = {
   "square.grid.2x2": IconGrid,
-  leaf: IconLeaf,
+  basket: IconBasket,
+  "calendar.check": IconCalendarCheck,
   checklist: IconChecklist,
-  "note.text": IconNote,
   gearshape: IconSettings,
 } as const;
 
-export function BottomTabBar() {
+export function BottomTabBar({ permission }: { permission: Permission }) {
   const pathname = usePathname();
+  const items = visibleNavItems(permission);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-separator bg-surface/90 pb-[max(env(safe-area-inset-bottom),0.5rem)] backdrop-blur-lg md:hidden">
-      {navItems.map((item) => {
+      {items.map((item) => {
         const Icon = icons[item.icon as keyof typeof icons];
         const active =
           item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

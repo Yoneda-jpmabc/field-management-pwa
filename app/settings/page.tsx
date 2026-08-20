@@ -4,7 +4,14 @@ import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SupabaseHealth } from "@/components/settings/SupabaseHealth";
+import { CropUnitSettings } from "@/components/settings/CropUnitSettings";
+import { FieldSettings } from "@/components/settings/FieldSettings";
+import { CheckItemSettings } from "@/components/settings/CheckItemSettings";
 import { checkSupabaseHealth } from "@/lib/supabase/health";
+import { getCurrentWorker } from "@/lib/auth/session";
+import { canEditMasters } from "@/lib/auth/permissions";
+import { fetchFieldSettingsData } from "@/lib/fields/queries";
+import { fetchCheckItemSettings } from "@/lib/crop-checks/queries";
 
 // 疎通結果を毎回その場で確認するため、この画面はキャッシュしない。
 export const dynamic = "force-dynamic";
@@ -32,16 +39,62 @@ function SettingsRow({
 }
 
 export default async function SettingsPage() {
-  const health = await checkSupabaseHealth();
+  const worker = await getCurrentWorker();
+
+  const [health, fieldData, checkItemData] = await Promise.all([
+    checkSupabaseHealth(),
+    fetchFieldSettingsData(),
+    fetchCheckItemSettings(),
+  ]);
+
+  const canEdit = canEditMasters(worker.permission);
 
   return (
     <>
       <PageHeader
         title="設定"
-        description="表示や同期状況などアプリの設定を確認・変更できます。"
+        description="圃場情報・表示・同期状況を確認・変更できます。"
       />
 
       <div className="flex flex-col gap-6">
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            圃場情報
+          </h2>
+          {fieldData.errorMessage && (
+            <p className="mb-3 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
+              {fieldData.errorMessage}
+            </p>
+          )}
+          <FieldSettings
+            fields={fieldData.fields}
+            crops={fieldData.crops}
+            canEdit={canEdit}
+          />
+        </section>
+
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            管理項目
+          </h2>
+          <p className="mb-2.5 text-sm text-foreground-secondary">
+            作物ごとに、管理タブで毎日確認することを登録します。
+          </p>
+          {checkItemData.errorMessage && (
+            <p className="mb-3 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
+              {checkItemData.errorMessage}
+            </p>
+          )}
+          <CheckItemSettings groups={checkItemData.groups} canEdit={canEdit} />
+        </section>
+
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            収穫量の単位
+          </h2>
+          <CropUnitSettings crops={fieldData.crops} canEdit={canEdit} />
+        </section>
+
         <section>
           <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
             表示

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireRecordEditor } from "@/lib/auth/guards";
 import type {
   CreateWorkPlanInput,
   UpdateWorkPlanInput,
@@ -22,7 +23,7 @@ function revalidatePlanPages() {
 /**
  * 入力の共通検証。
  * Server Action は UI を経由せず直接 POST できるため、クライアント側とは別にここでも見る。
- * 認証導入後は、各アクションの先頭でセッション確認と created_by の設定を行うこと。
+ * 権限の確認は各アクション先頭の requireRecordEditor で行う。
  */
 function validate(input: CreateWorkPlanInput): string | null {
   if (!DATE_PATTERN.test(input.planDate)) return "日付を選択してください。";
@@ -33,6 +34,9 @@ function validate(input: CreateWorkPlanInput): string | null {
 export async function createWorkPlan(
   input: CreateWorkPlanInput,
 ): Promise<WorkPlanMutationResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   const invalid = validate(input);
   if (invalid) return { ok: false, message: invalid };
 
@@ -56,6 +60,9 @@ export async function createWorkPlan(
 export async function updateWorkPlan(
   input: UpdateWorkPlanInput,
 ): Promise<WorkPlanMutationResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   if (!input.id) {
     return { ok: false, message: "対象の予定が特定できません。" };
   }
@@ -96,6 +103,9 @@ export async function toggleWorkPlanDone(
   id: string,
   isDone: boolean,
 ): Promise<WorkPlanMutationResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   if (!id) return { ok: false, message: "対象の予定が特定できません。" };
 
   const supabase = await createSupabaseServerClient();
@@ -117,6 +127,9 @@ export async function toggleWorkPlanDone(
 export async function deleteWorkPlan(
   id: string,
 ): Promise<WorkPlanMutationResult> {
+  const auth = await requireRecordEditor();
+  if (!auth.ok) return auth;
+
   if (!id) return { ok: false, message: "対象の予定が特定できません。" };
 
   const supabase = await createSupabaseServerClient();

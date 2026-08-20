@@ -40,3 +40,17 @@ DB の形がずれる。ずれた原因は後から追えないので、追加�
   `work_records` 側に `plan_id` を足す想定。
 - RLS ポリシーは `trial_` 接頭辞のものが試験期間用で、anon（ログインなし）に
   全許可を出している。家族・従業員へ展開する前に認証ベースへ差し替えること。
+- `20260816120000_harvest_and_plantings.sql` で収穫まわり
+  （`field_plantings` / `harvest_records`）を足した。
+  同じマイグレーションで `workers.permission` の中間値を `edit_view` から
+  `allowed` に改名しているので、**このファイルを流す前の `seed.sql` は使えない**
+  （`seed.sql` も同時に更新済み）。
+- ログイン（`login_id` + 暗証番号）は未実装。実装するときは暗証番号の保存先を
+  新しいマイグレーションで `workers` に足すこと。
+- `20260816140000_crop_check_items.sql` で作物ごとの管理項目
+  （`crop_check_items`）と、その日々の確認記録（`crop_check_records`）を足した。
+  確認記録だけは `deleted_at` を持たない。チェックを外すのは削除ではなく
+  「未確認に戻す」状態変化なので `is_done` で表し、そのぶん
+  `(item_id, check_date)` に一意制約を張って upsert 1 回で書けるようにしている。
+- 管理項目の中身（何をどう確認するか）は業務側で決めるもの。
+  マイグレーションには入れず、設定画面から登録する。

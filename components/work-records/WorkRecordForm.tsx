@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { CropIcon } from "@/components/icons";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import {
   snapTimeToStep,
@@ -26,6 +27,27 @@ type Props = {
 };
 
 type Feedback = { tone: "success" | "danger"; message: string };
+
+/**
+ * 見出しに出す区分名の言い換え。DB の employment_type はそのまま（雇用区分としての意味を保つ）で、
+ * 画面上の呼び名だけを現場の呼称に合わせる。
+ */
+const WORKER_GROUP_LABELS: Record<string, string> = {
+  実習生: "Iチーム",
+};
+
+function workerGroupLabel(group: string | null): string {
+  if (!group) return "その他";
+  return WORKER_GROUP_LABELS[group] ?? group;
+}
+
+/**
+ * 日付・時刻入力の共通スタイル。幅は用途ごとに外側の label で決める。
+ * min-w-0 は必須: ネイティブの日付・時刻入力は中身に応じた最小幅を持つため
+ * （iOS の日本語表示は「午前 8:00」と長い）、これが無いと枠からはみ出す。
+ */
+const dateTimeInputClass =
+  "control-focus min-h-12 w-full min-w-0 rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground";
 
 function createInitialState(today: string): WorkRecordFormState {
   return {
@@ -69,7 +91,7 @@ export function WorkRecordForm({
   const workerGroups = useMemo(() => {
     const groups: { label: string; members: WorkerOption[] }[] = [];
     for (const worker of workers) {
-      const label = worker.group ?? "その他";
+      const label = workerGroupLabel(worker.group);
       const last = groups[groups.length - 1];
       if (last && last.label === label) {
         last.members.push(worker);
@@ -174,19 +196,22 @@ export function WorkRecordForm({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <FormCard title="日時" required>
-        <label className="block">
-          <span className="mb-1.5 block text-sm text-foreground-secondary">
-            作業日
-          </span>
-          <input
-            type="date"
-            value={form.workDate}
-            onChange={(event) => update("workDate", event.target.value)}
-            className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
-          />
-        </label>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <label className="block">
+        {/* 幅を固定すると端末のロケール次第で中身がはみ出すため、
+            狭い画面は 2 列グリッド（作業日は 2 列ぶん・入力だけ幅を抑える）、
+            広い画面は 3 つを 1 行に並べる。 */}
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+          <label className="col-span-2 block min-w-0 sm:w-56">
+            <span className="mb-1.5 block text-sm text-foreground-secondary">
+              作業日
+            </span>
+            <input
+              type="date"
+              value={form.workDate}
+              onChange={(event) => update("workDate", event.target.value)}
+              className={`${dateTimeInputClass} max-w-56`}
+            />
+          </label>
+          <label className="block min-w-0 sm:w-40">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               開始
             </span>
@@ -198,10 +223,10 @@ export function WorkRecordForm({
               onBlur={(event) =>
                 update("startTime", snapTimeToStep(event.target.value))
               }
-              className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
+              className={dateTimeInputClass}
             />
           </label>
-          <label className="block">
+          <label className="block min-w-0 sm:w-40">
             <span className="mb-1.5 block text-sm text-foreground-secondary">
               終了
             </span>
@@ -213,7 +238,7 @@ export function WorkRecordForm({
               onBlur={(event) =>
                 update("endTime", snapTimeToStep(event.target.value))
               }
-              className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground"
+              className={dateTimeInputClass}
             />
           </label>
         </div>
@@ -287,47 +312,42 @@ export function WorkRecordForm({
             作物マスタが空です。登録すればここに一覧が出ます。
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {crops.map((crop) => (
-              <Chip
+              <GridChip
                 key={crop.id}
+                label={crop.label}
+                /* 名前が隣にあるのでアイコンは装飾扱い */
+                icon={<CropIcon name={crop.label} className="size-5" />}
                 selected={form.cropId === crop.id}
                 onClick={() =>
                   update("cropId", form.cropId === crop.id ? null : crop.id)
                 }
-              >
-                {crop.label}
-              </Chip>
+              />
             ))}
           </div>
         )}
       </FormCard>
 
+      {/* 圃場は 16 件あり、1 行 1 件だと縦スクロールが長くなるので
+          作物・作業者と同じグリッドに揃える。 */}
       <FormCard title="圃場" hint="未設定のまま登録できます。">
         {fields.length === 0 ? (
           <p className="text-sm text-foreground-tertiary">
             圃場マスタが空です。登録すればここに一覧が出ます。
           </p>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {fields.map((field) => {
-              const selected = form.fieldId === field.id;
-              return (
-                <button
-                  key={field.id}
-                  type="button"
-                  onClick={() => update("fieldId", selected ? null : field.id)}
-                  className={`control-focus pressable flex min-h-12 items-center justify-between rounded-[10px] border px-3.5 text-left text-[15px] ${
-                    selected
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-separator-strong text-foreground hover:bg-surface-secondary"
-                  }`}
-                >
-                  {field.label}
-                  {selected && <span aria-hidden>✓</span>}
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {fields.map((field) => (
+              <GridChip
+                key={field.id}
+                label={field.label}
+                selected={form.fieldId === field.id}
+                onClick={() =>
+                  update("fieldId", form.fieldId === field.id ? null : field.id)
+                }
+              />
+            ))}
           </div>
         )}
       </FormCard>
@@ -343,15 +363,14 @@ export function WorkRecordForm({
               <p className="mb-2 text-xs font-medium text-foreground-tertiary">
                 {group.label}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {group.members.map((worker) => (
-                  <Chip
+                  <GridChip
                     key={worker.id}
+                    label={worker.label}
                     selected={form.selectedWorkerIds.includes(worker.id)}
                     onClick={() => toggleWorker(worker.id)}
-                  >
-                    {worker.label}
-                  </Chip>
+                  />
                 ))}
               </div>
             </div>
@@ -486,17 +505,22 @@ function Chip({
   selected,
   onClick,
   children,
+  /** レイアウト系クラスの差し替え口。未指定なら内容幅のチップ。 */
+  className,
 }: {
   selected: boolean;
   onClick: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`control-focus pressable min-h-11 select-none rounded-full border px-4 text-[15px] ${
+      className={`control-focus pressable min-h-11 select-none rounded-full border ${
+        className ?? "px-4 text-[15px]"
+      } ${
         selected
           ? "border-accent bg-accent text-accent-foreground"
           : "border-separator-strong text-foreground hover:bg-surface-secondary"
@@ -504,6 +528,49 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * グリッドに並べるボタンはすべて同じ幅・高さにする。
+ * 中身が長いときはボタンを広げず、文字を小さく・長体にして収める。
+ * アイコン付きはその分だけ文字に使える幅が狭いので、2文字分多く見積もる。
+ */
+function gridLabelClass(label: string, hasIcon: boolean): string {
+  const length = [...label].length + (hasIcon ? 2 : 0);
+  if (length <= 5) return "text-[15px]";
+  if (length === 6) return "text-[13px]";
+  if (length === 7) return "inline-block scale-x-90 text-[12px]";
+  return "inline-block scale-x-75 text-[12px]";
+}
+
+function GridChip({
+  label,
+  icon,
+  selected,
+  onClick,
+}: {
+  label: string;
+  /** 装飾用アイコン。ラベルと同じ意味なので読み上げ対象から外す。 */
+  icon?: ReactNode;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Chip
+      selected={selected}
+      onClick={onClick}
+      className="flex h-11 w-full items-center justify-center gap-1 overflow-hidden px-1.5"
+    >
+      {icon && (
+        <span aria-hidden className="flex shrink-0">
+          {icon}
+        </span>
+      )}
+      <span className={`whitespace-nowrap ${gridLabelClass(label, Boolean(icon))}`}>
+        {label}
+      </span>
+    </Chip>
   );
 }
 

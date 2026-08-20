@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
+import { getCurrentWorker } from "@/lib/auth/session";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -31,11 +32,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ナビゲーションの出し分けに権限が要るので、ここで引く。
+  // ログイン未実装のうちは常に全権限が返る（lib/auth/session.ts）。
+  const { permission } = await getCurrentWorker();
+
   return (
     <html
       lang="ja"
@@ -53,7 +58,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <AppShell permission={permission}>{children}</AppShell>
       </body>
     </html>
   );
