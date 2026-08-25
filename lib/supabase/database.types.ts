@@ -16,42 +16,6 @@ export type Database = {
   };
   public: {
     Tables: {
-      crops: {
-        Row: {
-          created_at: string;
-          crop_code: string;
-          deleted_at: string | null;
-          display_order: number;
-          id: string;
-          is_active: boolean;
-          name: string;
-          unit: string;
-          updated_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          crop_code: string;
-          deleted_at?: string | null;
-          display_order?: number;
-          id?: string;
-          is_active?: boolean;
-          name: string;
-          unit?: string;
-          updated_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          crop_code?: string;
-          deleted_at?: string | null;
-          display_order?: number;
-          id?: string;
-          is_active?: boolean;
-          name?: string;
-          unit?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
       crop_check_items: {
         Row: {
           created_at: string;
@@ -144,6 +108,42 @@ export type Database = {
           },
         ];
       };
+      crops: {
+        Row: {
+          created_at: string;
+          crop_code: string;
+          deleted_at: string | null;
+          display_order: number;
+          id: string;
+          is_active: boolean;
+          name: string;
+          unit: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          crop_code: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          unit?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          crop_code?: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          unit?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       field_plantings: {
         Row: {
           area_a: number | null;
@@ -206,6 +206,45 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      fields: {
+        Row: {
+          area_a: number | null;
+          created_at: string;
+          crop: string | null;
+          deleted_at: string | null;
+          display_order: number;
+          id: string;
+          is_active: boolean;
+          memo: string | null;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          area_a?: number | null;
+          created_at?: string;
+          crop?: string | null;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          memo?: string | null;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          area_a?: number | null;
+          created_at?: string;
+          crop?: string | null;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          is_active?: boolean;
+          memo?: string | null;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       harvest_records: {
         Row: {
@@ -291,40 +330,31 @@ export type Database = {
           },
         ];
       };
-      fields: {
+      work_category_master: {
         Row: {
-          area_a: number | null;
           created_at: string;
-          crop: string | null;
           deleted_at: string | null;
           display_order: number;
           id: string;
           is_active: boolean;
-          memo: string | null;
           name: string;
           updated_at: string;
         };
         Insert: {
-          area_a?: number | null;
           created_at?: string;
-          crop?: string | null;
           deleted_at?: string | null;
           display_order?: number;
           id?: string;
           is_active?: boolean;
-          memo?: string | null;
           name: string;
           updated_at?: string;
         };
         Update: {
-          area_a?: number | null;
           created_at?: string;
-          crop?: string | null;
           deleted_at?: string | null;
           display_order?: number;
           id?: string;
           is_active?: boolean;
-          memo?: string | null;
           name?: string;
           updated_at?: string;
         };
@@ -475,6 +505,7 @@ export type Database = {
       };
       work_type_master: {
         Row: {
+          category_id: string | null;
           created_at: string;
           deleted_at: string | null;
           display_order: number;
@@ -484,6 +515,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          category_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           display_order?: number;
@@ -493,6 +525,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          category_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           display_order?: number;
@@ -501,7 +534,15 @@ export type Database = {
           name?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "work_type_master_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "work_category_master";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       work_type_raw_mapping: {
         Row: {
@@ -633,8 +674,8 @@ export type Database = {
         Returns: {
           crop_id: string;
           field_id: string;
-          last_harvested_on: string | null;
-          planting_id: string | null;
+          last_harvested_on: string;
+          planting_id: string;
           record_count: number;
           total_quantity: number;
         }[];
@@ -679,14 +720,125 @@ export type Database = {
   };
 };
 
-type DefaultSchema = Database["public"];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
-  Name extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"]),
-> = (DefaultSchema["Tables"] & DefaultSchema["Views"])[Name]["Row"];
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
 
-export type TablesInsert<Name extends keyof DefaultSchema["Tables"]> =
-  DefaultSchema["Tables"][Name]["Insert"];
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
 
-export type TablesUpdate<Name extends keyof DefaultSchema["Tables"]> =
-  DefaultSchema["Tables"][Name]["Update"];
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const;
