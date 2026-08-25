@@ -76,9 +76,9 @@ export default async function RecordsListPage({
       <RecordListPanel
         items={records.items}
         workers={formData.workers}
+        workCategories={formData.workCategories}
         workTypes={formData.workTypes}
         fields={formData.fields}
-        crops={formData.crops}
         canEdit={canEdit}
         emptyHint={
           canEdit

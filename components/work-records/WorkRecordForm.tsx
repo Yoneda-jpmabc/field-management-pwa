@@ -11,6 +11,7 @@ import {
 } from "@/lib/work-records/time";
 import type {
   MasterOption,
+  WorkCategoryOption,
   WorkerOption,
   WorkRecordFormState,
   WorkTypeOption,
@@ -21,9 +22,9 @@ type Props = {
   /** サーバー側で Asia/Tokyo として求めた今日の日付（YYYY-MM-DD）。 */
   today: string;
   workers: WorkerOption[];
+  workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
-  crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
 };
 
@@ -58,6 +59,7 @@ function createInitialState(today: string): WorkRecordFormState {
     workTypeId: null,
     workTypeRaw: "",
     fieldId: null,
+    categoryId: null,
     cropId: null,
     selectedWorkerIds: [],
     memo: "",
@@ -67,9 +69,9 @@ function createInitialState(today: string): WorkRecordFormState {
 export function WorkRecordForm({
   today,
   workers,
+  workCategories,
   workTypes,
   fields,
-  crops,
   workTypeSuggestions,
 }: Props) {
   const [form, setForm] = useState<WorkRecordFormState>(() =>
@@ -132,15 +134,28 @@ export function WorkRecordForm({
     [workers, form.selectedWorkerIds],
   );
 
-  // 作物を選ぶとその作物に対応する作業区分だけに絞る。「その他」（cropId が
-  // null）は特定の作物に紐づかないため、どの作物を選んでいても常に出す。
-  // 未選択のうちは絞り込まず全件を出す。
+  // 区分を選ぶと、その区分に対応する作物（無ければ null）を crop_id 用に
+  // 一緒に確定させる。区分を切り替えたら、別区分の作業種類が選ばれたままに
+  // ならないよう workTypeId もクリアする。
+  const selectCategory = (categoryId: string | null) => {
+    const category = categoryId
+      ? (workCategories.find((c) => c.id === categoryId) ?? null)
+      : null;
+    setForm((prev) => ({
+      ...prev,
+      categoryId,
+      cropId: category?.cropId ?? null,
+      workTypeId: null,
+    }));
+    setConfirming(false);
+    setFeedback(null);
+  };
+
+  // 区分未選択のうちは何も出さない。選んだ区分に属する作業種類だけを出す。
   const visibleWorkTypes = useMemo(() => {
-    if (!form.cropId) return workTypes;
-    return workTypes.filter(
-      (type) => type.cropId === null || type.cropId === form.cropId,
-    );
-  }, [workTypes, form.cropId]);
+    if (!form.categoryId) return [];
+    return workTypes.filter((type) => type.categoryId === form.categoryId);
+  }, [workTypes, form.categoryId]);
 
   const workTypeLabel = useMemo(() => {
     const fromMaster = workTypes.find((type) => type.id === form.workTypeId);
@@ -153,7 +168,9 @@ export function WorkRecordForm({
   const fieldLabel =
     fields.find((field) => field.id === form.fieldId)?.label ?? null;
 
-  const cropLabel = crops.find((crop) => crop.id === form.cropId)?.label ?? null;
+  const categoryLabel =
+    workCategories.find((category) => category.id === form.categoryId)
+      ?.label ?? null;
 
   const timeLabel =
     form.startTime && form.endTime
@@ -166,7 +183,7 @@ export function WorkRecordForm({
 
   const missing = [
     timeLabel ? null : "時間",
-    cropLabel ? null : "作物",
+    categoryLabel ? null : "区分",
     workTypeLabel ? null : "作業種類",
     fieldLabel ? null : "圃場",
     form.memo.trim() ? null : "メモ",
@@ -281,22 +298,24 @@ export function WorkRecordForm({
         </div>
       </FormCard>
 
-      <FormCard title="作物" hint="タップで選択。もう一度タップで解除できます。">
-        {crops.length === 0 ? (
+      <FormCard title="区分" hint="タップで選択。もう一度タップで解除できます。">
+        {workCategories.length === 0 ? (
           <p className="text-sm text-foreground-tertiary">
-            作物マスタが空です。登録すればここに一覧が出ます。
+            作業区分マスタが空です。登録すればここに一覧が出ます。
           </p>
         ) : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {crops.map((crop) => (
+            {workCategories.map((category) => (
               <GridChip
-                key={crop.id}
-                label={crop.label}
+                key={category.id}
+                label={category.label}
                 /* 名前が隣にあるのでアイコンは装飾扱い */
-                icon={<CropIcon name={crop.label} className="size-5" />}
-                selected={form.cropId === crop.id}
+                icon={<CropIcon name={category.label} className="size-5" />}
+                selected={form.categoryId === category.id}
                 onClick={() =>
-                  update("cropId", form.cropId === crop.id ? null : crop.id)
+                  selectCategory(
+                    form.categoryId === category.id ? null : category.id,
+                  )
                 }
               />
             ))}
@@ -307,9 +326,9 @@ export function WorkRecordForm({
       <FormCard
         title="作業種類"
         hint={
-          form.cropId
-            ? "選んだ作物に合わせて表示しています。マスタに無ければ自由入力できます。"
-            : "作物を選ぶと種類を絞り込みます。マスタが揃うまでは自由入力で構いません。"
+          form.categoryId
+            ? "選んだ区分に合わせて表示しています。マスタに無ければ自由入力できます。"
+            : "区分を選ぶと作業種類が表示されます。"
         }
       >
         {visibleWorkTypes.length > 0 && (
@@ -434,7 +453,7 @@ export function WorkRecordForm({
           <dl className="mt-3 flex flex-col gap-2 text-sm">
             <SummaryRow label="作業日" value={form.workDate} />
             <SummaryRow label="時間" value={timeLabel} />
-            <SummaryRow label="作物" value={cropLabel} />
+            <SummaryRow label="区分" value={categoryLabel} />
             <SummaryRow label="作業種類" value={workTypeLabel} />
             <SummaryRow label="圃場" value={fieldLabel} />
             <SummaryRow

@@ -16,11 +16,20 @@ export type WorkerOption = MasterOption & {
 };
 
 /**
- * 作業種別チップ用。所属する作業区分が紐づく作物（cropId）を持ち、
- * 作物選択に応じた絞り込みに使う。null は特定の作物に紐づかない区分（その他）。
+ * 作業区分チップ用（work_category_master）。「作物」の代わりに区分そのものを
+ * 選ばせる入口。cropId は登録時に work_records.crop_id へ流し込む値
+ * （「その他」など特定の作物に紐づかない区分は null）。
+ */
+export type WorkCategoryOption = MasterOption & {
+  cropId: string | null;
+};
+
+/**
+ * 作業種別チップ用。所属する作業区分（categoryId）を持ち、
+ * 区分選択に応じた絞り込みに使う。
  */
 export type WorkTypeOption = MasterOption & {
-  cropId: string | null;
+  categoryId: string | null;
 };
 
 /** work_type_raw のサジェスト候補（過去の入力を頻度順に並べたもの）。 */
@@ -40,6 +49,9 @@ export type WorkRecordFormState = {
   /** 試験期間中のフリーテキスト作業種類。 */
   workTypeRaw: string;
   fieldId: string | null;
+  /** 選んだ作業区分（work_category_master）。作業種類の絞り込みに使う UI 用の値。 */
+  categoryId: string | null;
+  /** 選んだ区分に紐づく作物。work_records.crop_id にそのまま入る。 */
   cropId: string | null;
   selectedWorkerIds: string[];
   memo: string;

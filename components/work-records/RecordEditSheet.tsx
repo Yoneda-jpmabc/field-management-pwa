@@ -10,6 +10,7 @@ import { deleteWorkRecord, updateWorkRecord } from "@/lib/work-records/actions";
 import type {
   EditableWorkRecord,
   MasterOption,
+  WorkCategoryOption,
   WorkTypeOption,
 } from "@/lib/work-records/types";
 import {
@@ -20,9 +21,9 @@ import {
 type Props = {
   record: EditableWorkRecord;
   workers: MasterOption[];
+  workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
-  crops: MasterOption[];
   onClose: () => void;
   onSaved: () => void;
   onDeleted: () => void;
@@ -47,9 +48,9 @@ function withCurrentOption(
 export function RecordEditSheet({
   record,
   workers,
+  workCategories,
   workTypes,
   fields,
-  crops,
   onClose,
   onSaved,
   onDeleted,
@@ -60,30 +61,51 @@ export function RecordEditSheet({
   const [workTypeId, setWorkTypeId] = useState(record.workTypeId);
   const [workTypeRaw, setWorkTypeRaw] = useState(record.workTypeRaw);
   const [fieldId, setFieldId] = useState(record.fieldId);
-  const [cropId, setCropId] = useState(record.cropId);
+  // 区分は保存していないので、元の作業種類が属す区分（無ければ元の作物に
+  // 対応する区分）から逆算する。どちらも無ければ未選択のまま。
+  const [categoryId, setCategoryId] = useState(
+    () =>
+      workTypes.find((type) => type.id === record.workTypeId)?.categoryId ??
+      workCategories.find((category) => category.cropId === record.cropId)
+        ?.id ??
+      null,
+  );
   const [workerId, setWorkerId] = useState(record.workerId);
   const [memo, setMemo] = useState(record.memo);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // 区分を切り替えたら、別区分の作業種類が選ばれたままにならないようにする。
+  const selectCategory = (id: string | null) => {
+    setCategoryId(id);
+    setWorkTypeId(null);
+  };
+
+  const cropId =
+    workCategories.find((category) => category.id === categoryId)?.cropId ??
+    null;
+
   const workerOptions = withCurrentOption(
     workers,
     record.workerId,
     record.workerName,
   );
-  // 作物を選んでいれば対応する作業区分（「その他」＝cropId null は常に含む）
-  // だけに絞る。未選択なら全件のまま。
-  const filteredWorkTypes = cropId
-    ? workTypes.filter((type) => type.cropId === null || type.cropId === cropId)
-    : workTypes;
+  // 区分未選択なら何も出さない。選んだ区分に属する作業種類だけを出す。
+  const filteredWorkTypes = categoryId
+    ? workTypes.filter((type) => type.categoryId === categoryId)
+    : [];
   const workTypeOptions = withCurrentOption(
     filteredWorkTypes,
     record.workTypeId,
     record.workTypeLabel,
   );
   const fieldOptions = withCurrentOption(fields, record.fieldId, record.fieldName);
-  const cropOptions = withCurrentOption(crops, record.cropId, record.cropName);
+  const categoryOptions = withCurrentOption(
+    workCategories,
+    categoryId,
+    record.cropName,
+  );
 
   const timeOrderWarning =
     startTime !== "" && endTime !== "" && endTime <= startTime;
@@ -244,20 +266,22 @@ export function RecordEditSheet({
           </div>
         </SheetSection>
 
-        <SheetSection title="作物">
-          {cropOptions.length === 0 ? (
+        <SheetSection title="区分">
+          {categoryOptions.length === 0 ? (
             <p className="text-sm text-foreground-tertiary">
-              作物マスタが空です。
+              作業区分マスタが空です。
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {cropOptions.map((crop) => (
+              {categoryOptions.map((category) => (
                 <SheetChip
-                  key={crop.id}
-                  selected={cropId === crop.id}
-                  onClick={() => setCropId(cropId === crop.id ? null : crop.id)}
+                  key={category.id}
+                  selected={categoryId === category.id}
+                  onClick={() =>
+                    selectCategory(categoryId === category.id ? null : category.id)
+                  }
                 >
-                  {crop.label}
+                  {category.label}
                 </SheetChip>
               ))}
             </div>

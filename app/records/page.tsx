@@ -15,8 +15,14 @@ export default async function RecordsPage() {
   // 登録タブは入力専用の画面なので、編集権限が無い人は確認タブへ送る。
   if (!canEditRecords(worker.permission)) redirect("/records/list");
 
-  const { workers, workTypes, fields, crops, workTypeSuggestions, errorMessage } =
-    await fetchWorkRecordFormData();
+  const {
+    workers,
+    workCategories,
+    workTypes,
+    fields,
+    workTypeSuggestions,
+    errorMessage,
+  } = await fetchWorkRecordFormData();
 
   return (
     <>
@@ -35,9 +41,9 @@ export default async function RecordsPage() {
       <WorkRecordForm
         today={todayInTokyo()}
         workers={workers}
+        workCategories={workCategories}
         workTypes={workTypes}
         fields={fields}
-        crops={crops}
         workTypeSuggestions={workTypeSuggestions}
       />
     </>

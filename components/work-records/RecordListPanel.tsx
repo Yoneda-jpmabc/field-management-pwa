@@ -6,6 +6,7 @@ import { formatDayLabel } from "@/lib/work-records/period";
 import type {
   EditableWorkRecord,
   MasterOption,
+  WorkCategoryOption,
   WorkTypeOption,
 } from "@/lib/work-records/types";
 import { RecordEditSheet } from "./RecordEditSheet";
@@ -13,9 +14,9 @@ import { RecordEditSheet } from "./RecordEditSheet";
 type Props = {
   items: EditableWorkRecord[];
   workers: MasterOption[];
+  workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
-  crops: MasterOption[];
   /** 行をタップして修正できるか。閲覧のみの人は一覧を見るだけ。 */
   canEdit: boolean;
   /** 空のときの案内文。権限によって「登録タブから追加」と言えないため差し替える。 */
@@ -48,9 +49,9 @@ function buildTimeLabel(record: EditableWorkRecord): string | null {
 export function RecordListPanel({
   items,
   workers,
+  workCategories,
   workTypes,
   fields,
-  crops,
   canEdit,
   emptyHint,
 }: Props) {
@@ -161,9 +162,9 @@ export function RecordListPanel({
           key={editing.id}
           record={editing}
           workers={workers}
+          workCategories={workCategories}
           workTypes={workTypes}
           fields={fields}
-          crops={crops}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);

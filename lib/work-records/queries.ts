@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   EditableWorkRecord,
   MasterOption,
+  WorkCategoryOption,
   WorkerOption,
   WorkTypeOption,
   WorkTypeSuggestion,
@@ -13,8 +14,10 @@ import type {
  */
 export type WorkRecordFormData = {
   workers: WorkerOption[];
+  workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
+  /** 作業予定（work-plans）側の作物ピッカーがそのまま使うので残してある。 */
   crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
   /** マスタ取得に失敗した場合のメッセージ。null なら成功。 */
@@ -26,6 +29,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
 
   const [
     workersResult,
+    workCategoriesResult,
     workTypesResult,
     fieldsResult,
     cropsResult,
@@ -39,8 +43,15 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         .order("display_order")
         .order("name"),
       supabase
+        .from("work_category_master")
+        .select("id, name, crop_id")
+        .is("deleted_at", null)
+        .eq("is_active", true)
+        .order("display_order")
+        .order("name"),
+      supabase
         .from("work_type_master")
-        .select("id, name, work_category_master(crop_id)")
+        .select("id, name, category_id")
         .is("deleted_at", null)
         .eq("is_active", true)
         .order("display_order")
@@ -68,6 +79,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
 
   const failure =
     workersResult.error ??
+    workCategoriesResult.error ??
     workTypesResult.error ??
     fieldsResult.error ??
     cropsResult.error ??
@@ -79,10 +91,15 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
       label: row.short_name ?? row.name,
       group: row.employment_type,
     })),
+    workCategories: (workCategoriesResult.data ?? []).map((row) => ({
+      id: row.id,
+      label: row.name,
+      cropId: row.crop_id,
+    })),
     workTypes: (workTypesResult.data ?? []).map((row) => ({
       id: row.id,
       label: row.name,
-      cropId: row.work_category_master?.crop_id ?? null,
+      categoryId: row.category_id,
     })),
     fields: (fieldsResult.data ?? []).map((row) => ({
       id: row.id,
