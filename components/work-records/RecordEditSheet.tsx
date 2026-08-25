@@ -7,7 +7,11 @@ import {
   SheetSection,
 } from "@/components/ui/BottomSheet";
 import { deleteWorkRecord, updateWorkRecord } from "@/lib/work-records/actions";
-import type { EditableWorkRecord, MasterOption } from "@/lib/work-records/types";
+import type {
+  EditableWorkRecord,
+  MasterOption,
+  WorkTypeOption,
+} from "@/lib/work-records/types";
 import {
   snapTimeToStep,
   TIME_STEP_MINUTES,
@@ -16,7 +20,7 @@ import {
 type Props = {
   record: EditableWorkRecord;
   workers: MasterOption[];
-  workTypes: MasterOption[];
+  workTypes: WorkTypeOption[];
   fields: MasterOption[];
   crops: MasterOption[];
   onClose: () => void;
@@ -68,8 +72,13 @@ export function RecordEditSheet({
     record.workerId,
     record.workerName,
   );
+  // 作物を選んでいれば対応する作業区分（「その他」＝cropId null は常に含む）
+  // だけに絞る。未選択なら全件のまま。
+  const filteredWorkTypes = cropId
+    ? workTypes.filter((type) => type.cropId === null || type.cropId === cropId)
+    : workTypes;
   const workTypeOptions = withCurrentOption(
-    workTypes,
+    filteredWorkTypes,
     record.workTypeId,
     record.workTypeLabel,
   );
@@ -235,6 +244,26 @@ export function RecordEditSheet({
           </div>
         </SheetSection>
 
+        <SheetSection title="作物">
+          {cropOptions.length === 0 ? (
+            <p className="text-sm text-foreground-tertiary">
+              作物マスタが空です。
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {cropOptions.map((crop) => (
+                <SheetChip
+                  key={crop.id}
+                  selected={cropId === crop.id}
+                  onClick={() => setCropId(cropId === crop.id ? null : crop.id)}
+                >
+                  {crop.label}
+                </SheetChip>
+              ))}
+            </div>
+          )}
+        </SheetSection>
+
         <SheetSection title="作業種類">
           {workTypeOptions.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
@@ -258,26 +287,6 @@ export function RecordEditSheet({
             placeholder="その他（自由入力）"
             className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
           />
-        </SheetSection>
-
-        <SheetSection title="作物">
-          {cropOptions.length === 0 ? (
-            <p className="text-sm text-foreground-tertiary">
-              作物マスタが空です。
-            </p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {cropOptions.map((crop) => (
-                <SheetChip
-                  key={crop.id}
-                  selected={cropId === crop.id}
-                  onClick={() => setCropId(cropId === crop.id ? null : crop.id)}
-                >
-                  {crop.label}
-                </SheetChip>
-              ))}
-            </div>
-          )}
         </SheetSection>
 
         <SheetSection title="圃場">

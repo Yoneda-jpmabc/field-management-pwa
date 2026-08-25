@@ -3,6 +3,7 @@ import type {
   EditableWorkRecord,
   MasterOption,
   WorkerOption,
+  WorkTypeOption,
   WorkTypeSuggestion,
 } from "./types";
 
@@ -12,7 +13,7 @@ import type {
  */
 export type WorkRecordFormData = {
   workers: WorkerOption[];
-  workTypes: MasterOption[];
+  workTypes: WorkTypeOption[];
   fields: MasterOption[];
   crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
@@ -39,7 +40,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         .order("name"),
       supabase
         .from("work_type_master")
-        .select("id, name")
+        .select("id, name, work_category_master(crop_id)")
         .is("deleted_at", null)
         .eq("is_active", true)
         .order("display_order")
@@ -81,6 +82,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     workTypes: (workTypesResult.data ?? []).map((row) => ({
       id: row.id,
       label: row.name,
+      cropId: row.work_category_master?.crop_id ?? null,
     })),
     fields: (fieldsResult.data ?? []).map((row) => ({
       id: row.id,

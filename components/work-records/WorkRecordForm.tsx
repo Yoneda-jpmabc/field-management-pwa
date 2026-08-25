@@ -13,6 +13,7 @@ import type {
   MasterOption,
   WorkerOption,
   WorkRecordFormState,
+  WorkTypeOption,
   WorkTypeSuggestion,
 } from "@/lib/work-records/types";
 
@@ -20,7 +21,7 @@ type Props = {
   /** サーバー側で Asia/Tokyo として求めた今日の日付（YYYY-MM-DD）。 */
   today: string;
   workers: WorkerOption[];
-  workTypes: MasterOption[];
+  workTypes: WorkTypeOption[];
   fields: MasterOption[];
   crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
@@ -131,6 +132,16 @@ export function WorkRecordForm({
     [workers, form.selectedWorkerIds],
   );
 
+  // 作物を選ぶとその作物に対応する作業区分だけに絞る。「その他」（cropId が
+  // null）は特定の作物に紐づかないため、どの作物を選んでいても常に出す。
+  // 未選択のうちは絞り込まず全件を出す。
+  const visibleWorkTypes = useMemo(() => {
+    if (!form.cropId) return workTypes;
+    return workTypes.filter(
+      (type) => type.cropId === null || type.cropId === form.cropId,
+    );
+  }, [workTypes, form.cropId]);
+
   const workTypeLabel = useMemo(() => {
     const fromMaster = workTypes.find((type) => type.id === form.workTypeId);
     const raw = form.workTypeRaw.trim();
@@ -155,8 +166,8 @@ export function WorkRecordForm({
 
   const missing = [
     timeLabel ? null : "時間",
-    workTypeLabel ? null : "作業種類",
     cropLabel ? null : "作物",
+    workTypeLabel ? null : "作業種類",
     fieldLabel ? null : "圃場",
     form.memo.trim() ? null : "メモ",
   ].filter((item): item is string => item !== null);
@@ -245,12 +256,65 @@ export function WorkRecordForm({
       </FormCard>
 
       <FormCard
-        title="作業種類"
-        hint="マスタが揃うまでは自由入力で構いません。表記ゆれは後でまとめて正規化します。"
+        title="作業者"
+        required
+        hint="選んだ人数分のレコードをまとめて登録します。"
       >
-        {workTypes.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {workerGroups.map((group) => (
+            <div key={group.label}>
+              <p className="mb-2 text-xs font-medium text-foreground-tertiary">
+                {group.label}
+              </p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {group.members.map((worker) => (
+                  <GridChip
+                    key={worker.id}
+                    label={worker.label}
+                    selected={form.selectedWorkerIds.includes(worker.id)}
+                    onClick={() => toggleWorker(worker.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </FormCard>
+
+      <FormCard title="作物" hint="タップで選択。もう一度タップで解除できます。">
+        {crops.length === 0 ? (
+          <p className="text-sm text-foreground-tertiary">
+            作物マスタが空です。登録すればここに一覧が出ます。
+          </p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {crops.map((crop) => (
+              <GridChip
+                key={crop.id}
+                label={crop.label}
+                /* 名前が隣にあるのでアイコンは装飾扱い */
+                icon={<CropIcon name={crop.label} className="size-5" />}
+                selected={form.cropId === crop.id}
+                onClick={() =>
+                  update("cropId", form.cropId === crop.id ? null : crop.id)
+                }
+              />
+            ))}
+          </div>
+        )}
+      </FormCard>
+
+      <FormCard
+        title="作業種類"
+        hint={
+          form.cropId
+            ? "選んだ作物に合わせて表示しています。マスタに無ければ自由入力できます。"
+            : "作物を選ぶと種類を絞り込みます。マスタが揃うまでは自由入力で構いません。"
+        }
+      >
+        {visibleWorkTypes.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
-            {workTypes.map((type) => (
+            {visibleWorkTypes.map((type) => (
               <Chip
                 key={type.id}
                 selected={form.workTypeId === type.id}
@@ -272,7 +336,9 @@ export function WorkRecordForm({
           value={form.workTypeRaw}
           onChange={(event) => update("workTypeRaw", event.target.value)}
           placeholder={
-            workTypes.length > 0 ? "その他（自由入力）" : "例: 防除 / 施肥 / 収穫"
+            visibleWorkTypes.length > 0
+              ? "その他（自由入力）"
+              : "例: 防除 / 施肥 / 収穫"
           }
           className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
         />
@@ -306,29 +372,6 @@ export function WorkRecordForm({
         )}
       </FormCard>
 
-      <FormCard title="作物" hint="タップで選択。もう一度タップで解除できます。">
-        {crops.length === 0 ? (
-          <p className="text-sm text-foreground-tertiary">
-            作物マスタが空です。登録すればここに一覧が出ます。
-          </p>
-        ) : (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {crops.map((crop) => (
-              <GridChip
-                key={crop.id}
-                label={crop.label}
-                /* 名前が隣にあるのでアイコンは装飾扱い */
-                icon={<CropIcon name={crop.label} className="size-5" />}
-                selected={form.cropId === crop.id}
-                onClick={() =>
-                  update("cropId", form.cropId === crop.id ? null : crop.id)
-                }
-              />
-            ))}
-          </div>
-        )}
-      </FormCard>
-
       {/* 圃場は 16 件あり、1 行 1 件だと縦スクロールが長くなるので
           作物・作業者と同じグリッドに揃える。 */}
       <FormCard title="圃場" hint="未設定のまま登録できます。">
@@ -350,32 +393,6 @@ export function WorkRecordForm({
             ))}
           </div>
         )}
-      </FormCard>
-
-      <FormCard
-        title="作業者"
-        required
-        hint="選んだ人数分のレコードをまとめて登録します。"
-      >
-        <div className="flex flex-col gap-4">
-          {workerGroups.map((group) => (
-            <div key={group.label}>
-              <p className="mb-2 text-xs font-medium text-foreground-tertiary">
-                {group.label}
-              </p>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {group.members.map((worker) => (
-                  <GridChip
-                    key={worker.id}
-                    label={worker.label}
-                    selected={form.selectedWorkerIds.includes(worker.id)}
-                    onClick={() => toggleWorker(worker.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
       </FormCard>
 
       <FormCard title="メモ">
@@ -417,8 +434,8 @@ export function WorkRecordForm({
           <dl className="mt-3 flex flex-col gap-2 text-sm">
             <SummaryRow label="作業日" value={form.workDate} />
             <SummaryRow label="時間" value={timeLabel} />
-            <SummaryRow label="作業種類" value={workTypeLabel} />
             <SummaryRow label="作物" value={cropLabel} />
+            <SummaryRow label="作業種類" value={workTypeLabel} />
             <SummaryRow label="圃場" value={fieldLabel} />
             <SummaryRow
               label="作業者"

@@ -15,6 +15,14 @@ export type WorkerOption = MasterOption & {
   group: string | null;
 };
 
+/**
+ * 作業種別チップ用。所属する作業区分が紐づく作物（cropId）を持ち、
+ * 作物選択に応じた絞り込みに使う。null は特定の作物に紐づかない区分（その他）。
+ */
+export type WorkTypeOption = MasterOption & {
+  cropId: string | null;
+};
+
 /** work_type_raw のサジェスト候補（過去の入力を頻度順に並べたもの）。 */
 export type WorkTypeSuggestion = {
   value: string;

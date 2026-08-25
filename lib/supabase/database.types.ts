@@ -333,6 +333,7 @@ export type Database = {
       work_category_master: {
         Row: {
           created_at: string;
+          crop_id: string | null;
           deleted_at: string | null;
           display_order: number;
           id: string;
@@ -342,6 +343,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          crop_id?: string | null;
           deleted_at?: string | null;
           display_order?: number;
           id?: string;
@@ -351,6 +353,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          crop_id?: string | null;
           deleted_at?: string | null;
           display_order?: number;
           id?: string;
@@ -358,7 +361,15 @@ export type Database = {
           name?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "work_category_master_crop_id_fkey";
+            columns: ["crop_id"];
+            isOneToOne: false;
+            referencedRelation: "crops";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       work_plans: {
         Row: {

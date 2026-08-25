@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import { IconChevronRight } from "@/components/icons";
 import { formatDayLabel } from "@/lib/work-records/period";
-import type { EditableWorkRecord, MasterOption } from "@/lib/work-records/types";
+import type {
+  EditableWorkRecord,
+  MasterOption,
+  WorkTypeOption,
+} from "@/lib/work-records/types";
 import { RecordEditSheet } from "./RecordEditSheet";
 
 type Props = {
   items: EditableWorkRecord[];
   workers: MasterOption[];
-  workTypes: MasterOption[];
+  workTypes: WorkTypeOption[];
   fields: MasterOption[];
   crops: MasterOption[];
   /** 行をタップして修正できるか。閲覧のみの人は一覧を見るだけ。 */
