@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { IconChevronRight } from "@/components/icons";
 import { WeekCalendar } from "@/components/work-plans/WeekCalendar";
+import { DilutionCalculatorPanel } from "@/components/pesticide/DilutionCalculatorPanel";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords } from "@/lib/auth/permissions";
 import { fetchFields } from "@/lib/fields/queries";
@@ -14,6 +15,7 @@ import {
   fetchWorkRecordFormData,
   fetchWorkRecords,
 } from "@/lib/work-records/queries";
+import { fetchDilutionRecords } from "@/lib/pesticide/queries";
 import {
   enumerateDays,
   isIsoDate,
@@ -35,13 +37,14 @@ export default async function Home({
   const anchor = isIsoDate(params.week) ? params.week : todayInTokyo();
   const week = resolvePeriod("week", anchor);
 
-  const [plans, titleSuggestions, masters, recent, fieldList] =
+  const [plans, titleSuggestions, masters, recent, fieldList, dilutions] =
     await Promise.all([
       fetchWorkPlans(week.from, week.to),
       fetchPlanTitleSuggestions(),
       fetchWorkRecordFormData(),
       fetchWorkRecords(5),
       fetchFields(4),
+      fetchDilutionRecords(5),
     ]);
 
   return (
@@ -151,6 +154,33 @@ export default async function Home({
           )}
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-[17px] font-semibold text-foreground">
+            農薬 希釈計算
+          </h2>
+          <Link
+            href="/pesticide"
+            className="control-focus -mr-2 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-3 text-sm font-medium text-accent transition-colors active:bg-surface-secondary"
+          >
+            すべて見る
+            <IconChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {dilutions.errorMessage && (
+          <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
+            {dilutions.errorMessage}
+          </p>
+        )}
+
+        <DilutionCalculatorPanel
+          items={dilutions.items}
+          today={todayInTokyo()}
+          canEdit={canEditRecords(worker.permission)}
+        />
+      </Card>
     </>
   );
 }
