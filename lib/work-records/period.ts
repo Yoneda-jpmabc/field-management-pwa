@@ -154,6 +154,24 @@ export function formatDayLabel(iso: string): string {
   return `${date.getUTCMonth() + 1}/${date.getUTCDate()}(${weekday})`;
 }
 
+/**
+ * プリセット（日/週/月/年）に当てはまらない、ユーザー指定の任意期間を組み立てる。
+ * from > to で渡された場合も、入れ替えて解釈する。
+ */
+export function resolveCustomRange(from: string, to: string): PeriodRange {
+  const [start, end] = from <= to ? [from, to] : [to, from];
+  return {
+    unit: "day",
+    anchor: start,
+    from: start,
+    to: end,
+    label:
+      start === end
+        ? formatDayLabel(start)
+        : `${formatDayLabel(start)} 〜 ${formatDayLabel(end)}`,
+  };
+}
+
 /** 分を「7.5時間」形式に整える。集計は分で持ち、表示だけ時間に直す。 */
 export function formatHours(minutes: number): string {
   if (minutes === 0) return "0時間";
