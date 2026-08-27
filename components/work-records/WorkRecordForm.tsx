@@ -7,6 +7,7 @@ import { CropIcon } from "@/components/icons";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import {
   snapTimeToStep,
+  spansLunchBreak,
   TIME_STEP_MINUTES,
 } from "@/lib/work-records/time";
 import type {
@@ -63,6 +64,7 @@ function createInitialState(today: string): WorkRecordFormState {
     cropId: null,
     selectedWorkerIds: [],
     memo: "",
+    worksThroughLunch: false,
   };
 }
 
@@ -270,6 +272,25 @@ export function WorkRecordForm({
             />
           </label>
         </div>
+        {spansLunchBreak(form.startTime, form.endTime) && (
+          <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
+            <input
+              type="checkbox"
+              checked={form.worksThroughLunch}
+              onChange={(event) =>
+                update("worksThroughLunch", event.target.checked)
+              }
+              className="control-focus mt-0.5 size-5 shrink-0 rounded border-separator-strong"
+            />
+            <span>
+              休憩を含まない（12:00〜13:00をまたいでも休憩なしで作業した）
+              <br />
+              <span className="text-foreground-tertiary">
+                未チェックの場合、12:00〜13:00の1時間を集計から差し引きます。
+              </span>
+            </span>
+          </label>
+        )}
       </FormCard>
 
       <FormCard
@@ -453,6 +474,12 @@ export function WorkRecordForm({
           <dl className="mt-3 flex flex-col gap-2 text-sm">
             <SummaryRow label="作業日" value={form.workDate} />
             <SummaryRow label="時間" value={timeLabel} />
+            {spansLunchBreak(form.startTime, form.endTime) && (
+              <SummaryRow
+                label="休憩"
+                value={form.worksThroughLunch ? "含まない" : "含む（-1時間）"}
+              />
+            )}
             <SummaryRow label="区分" value={categoryLabel} />
             <SummaryRow label="作業種類" value={workTypeLabel} />
             <SummaryRow label="圃場" value={fieldLabel} />

@@ -26,3 +26,16 @@ export function snapTimeToStep(
   const snappedMinutes = snapped % 60;
   return `${String(snappedHours).padStart(2, "0")}:${String(snappedMinutes).padStart(2, "0")}`;
 }
+
+/**
+ * 開始〜終了が 12:00〜13:00 をまるごと含むか（＝昼休憩をまたぐ入力か）。
+ * DB 側の work_record_durations ビューの判定条件と合わせている。
+ */
+export function spansLunchBreak(startTime: string, endTime: string): boolean {
+  return (
+    startTime !== "" &&
+    endTime !== "" &&
+    startTime <= "12:00" &&
+    endTime >= "13:00"
+  );
+}

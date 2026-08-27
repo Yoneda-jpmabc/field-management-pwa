@@ -62,6 +62,7 @@ export async function createWorkRecords(
     crop_id: input.cropId,
     memo: toTextOrNull(input.memo),
     batch_id: batchId,
+    worked_through_lunch: input.worksThroughLunch,
   }));
 
   const supabase = await createSupabaseServerClient();
@@ -127,6 +128,7 @@ export async function updateWorkRecord(
       field_id: input.fieldId,
       crop_id: input.cropId,
       memo: toTextOrNull(input.memo),
+      worked_through_lunch: input.worksThroughLunch,
     })
     .eq("id", input.id)
     .is("deleted_at", null)

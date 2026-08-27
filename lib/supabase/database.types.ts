@@ -500,6 +500,7 @@ export type Database = {
           work_date: string;
           work_type_id: string | null;
           work_type_raw: string | null;
+          worked_through_lunch: boolean;
           worker_id: string;
         };
         Insert: {
@@ -517,6 +518,7 @@ export type Database = {
           work_date: string;
           work_type_id?: string | null;
           work_type_raw?: string | null;
+          worked_through_lunch?: boolean;
           worker_id: string;
         };
         Update: {
@@ -534,6 +536,7 @@ export type Database = {
           work_date?: string;
           work_type_id?: string | null;
           work_type_raw?: string | null;
+          worked_through_lunch?: boolean;
           worker_id?: string;
         };
         Relationships: [

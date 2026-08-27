@@ -15,6 +15,7 @@ import type {
 } from "@/lib/work-records/types";
 import {
   snapTimeToStep,
+  spansLunchBreak,
   TIME_STEP_MINUTES,
 } from "@/lib/work-records/time";
 
@@ -72,6 +73,9 @@ export function RecordEditSheet({
   );
   const [workerId, setWorkerId] = useState(record.workerId);
   const [memo, setMemo] = useState(record.memo);
+  const [worksThroughLunch, setWorksThroughLunch] = useState(
+    record.worksThroughLunch,
+  );
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -126,6 +130,7 @@ export function RecordEditSheet({
         cropId,
         workerId,
         memo,
+        worksThroughLunch,
       });
       if (result.ok) {
         onSaved();
@@ -249,6 +254,23 @@ export function RecordEditSheet({
             <p className="mt-2 text-sm text-warning">
               終了が開始以前のため、集計では時間に計上されません。
             </p>
+          )}
+          {spansLunchBreak(startTime, endTime) && (
+            <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
+              <input
+                type="checkbox"
+                checked={worksThroughLunch}
+                onChange={(event) => setWorksThroughLunch(event.target.checked)}
+                className="control-focus mt-0.5 size-5 shrink-0 rounded border-separator-strong"
+              />
+              <span>
+                休憩を含まない（12:00〜13:00をまたいでも休憩なしで作業した）
+                <br />
+                <span className="text-foreground-tertiary">
+                  未チェックの場合、12:00〜13:00の1時間を集計から差し引きます。
+                </span>
+              </span>
+            </label>
           )}
         </SheetSection>
 
