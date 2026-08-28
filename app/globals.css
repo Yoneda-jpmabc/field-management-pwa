@@ -92,8 +92,16 @@
   }
 }
 
-html {
-  scroll-padding-top: 64px;
+html,
+body {
+  height: 100%;
+  /* スクロールするのは <main id="app-scroll"> だけ。ページ自体は動かさない */
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.app-scroll {
+  scroll-padding-top: 1rem;
 }
 
 body {
@@ -145,20 +153,6 @@ summary {
   .pressable:active {
     transform: scale(0.96);
     opacity: 0.75;
-  }
-
-  /*
-   * 下部タブバーを避けるための余白。
-   * タブバーの実高さ（約 3.25rem）＋ホームインジケータ領域を足す。
-   * iPhone の safe-area を数えないと、コンテンツ末尾がタブバーの裏に潜る。
-   */
-  .pb-tabbar {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
-  }
-  @media (min-width: 768px) {
-    .pb-tabbar {
-      padding-bottom: 2.5rem;
-    }
   }
 
   /*

@@ -526,7 +526,7 @@ export function WorkRecordForm({
             setConfirming(true);
           }}
           disabled={!canSubmit}
-          className="control-focus pressable sticky bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] min-h-13 rounded-full bg-accent px-4 text-base font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:opacity-40 md:bottom-4"
+          className="control-focus pressable sticky bottom-4 min-h-13 rounded-full bg-accent px-4 text-base font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:opacity-40"
         >
           {canSubmit
             ? `内容を確認（${form.selectedWorkerIds.length}件）`
