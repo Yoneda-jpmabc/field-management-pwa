@@ -55,6 +55,11 @@ export type WorkRecordFormState = {
   cropId: string | null;
   selectedWorkerIds: string[];
   memo: string;
+  /**
+   * 12:00〜13:00をまたぐ時間入力でも休憩を取らず作業した場合に true。
+   * true の場合、集計で昼休憩の1時間を差し引かない。
+   */
+  worksThroughLunch: boolean;
 };
 
 /** Server Action へ渡す入力。フォーム状態と同型だが、境界を明示するため別名にしている。 */
@@ -85,6 +90,7 @@ export type EditableWorkRecord = {
   workTypeLabel: string | null;
   fieldName: string | null;
   cropName: string | null;
+  worksThroughLunch: boolean;
 };
 
 /** 1 レコードの更新入力。 */
@@ -99,6 +105,7 @@ export type UpdateWorkRecordInput = {
   cropId: string | null;
   workerId: string;
   memo: string;
+  worksThroughLunch: boolean;
 };
 
 export type WorkRecordMutationResult =

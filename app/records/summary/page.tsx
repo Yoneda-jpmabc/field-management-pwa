@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader";
+import { CustomRangePicker } from "@/components/work-records/CustomRangePicker";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { RecordsTabs } from "@/components/work-records/RecordsTabs";
 import { SummaryPanels } from "@/components/work-records/SummaryPanels";
@@ -7,9 +8,12 @@ import { fetchWorkSummary } from "@/lib/work-records/queries";
 import {
   isIsoDate,
   isPeriodUnit,
+  resolveCustomRange,
   resolvePeriod,
   todayInTokyo,
 } from "@/lib/work-records/period";
+
+const SUMMARY_PATH = "/records/summary";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +29,11 @@ export default async function RecordsSummaryPage({
   const unit = isPeriodUnit(params.unit) ? params.unit : "day";
   const anchor = isIsoDate(params.date) ? params.date : todayInTokyo();
 
-  const period = resolvePeriod(unit, anchor);
+  // from/to が両方そろっていれば、日/週/月/年のプリセットより優先して任意期間として扱う。
+  const isCustomRange = isIsoDate(params.from) && isIsoDate(params.to);
+  const period = isCustomRange
+    ? resolveCustomRange(params.from as string, params.to as string)
+    : resolvePeriod(unit, anchor);
   const summary = await fetchWorkSummary(period.from, period.to);
 
   return (
@@ -35,7 +43,29 @@ export default async function RecordsSummaryPage({
         description="期間ごとに、誰がどの作業に何時間かけたかを確認できます。"
       />
       <RecordsTabs permission={worker.permission} />
-      <PeriodSwitcher unit={unit} anchor={anchor} label={period.label} />
+      {isCustomRange ? (
+        <>
+          <p className="mb-2 text-[15px] font-semibold text-foreground">
+            {period.label}
+          </p>
+          <CustomRangePicker
+            basePath={SUMMARY_PATH}
+            defaultFrom={period.from}
+            defaultTo={period.to}
+            active
+          />
+        </>
+      ) : (
+        <>
+          <PeriodSwitcher unit={unit} anchor={anchor} label={period.label} />
+          <CustomRangePicker
+            basePath={SUMMARY_PATH}
+            defaultFrom={period.from}
+            defaultTo={period.to}
+            active={false}
+          />
+        </>
+      )}
 
       {summary.errorMessage && (
         <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">

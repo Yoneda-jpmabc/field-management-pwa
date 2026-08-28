@@ -330,6 +330,59 @@ export type Database = {
           },
         ];
       };
+      pesticide_dilutions: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          dilution_ratio: number;
+          id: string;
+          memo: string | null;
+          pesticide_name: string;
+          stock_volume_ml: number;
+          target_volume_l: number;
+          updated_at: string;
+          used_on: string;
+          water_volume_l: number;
+          worker_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          dilution_ratio: number;
+          id?: string;
+          memo?: string | null;
+          pesticide_name: string;
+          stock_volume_ml: number;
+          target_volume_l: number;
+          updated_at?: string;
+          used_on: string;
+          water_volume_l: number;
+          worker_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          dilution_ratio?: number;
+          id?: string;
+          memo?: string | null;
+          pesticide_name?: string;
+          stock_volume_ml?: number;
+          target_volume_l?: number;
+          updated_at?: string;
+          used_on?: string;
+          water_volume_l?: number;
+          worker_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pesticide_dilutions_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       work_category_master: {
         Row: {
           created_at: string;
@@ -447,6 +500,7 @@ export type Database = {
           work_date: string;
           work_type_id: string | null;
           work_type_raw: string | null;
+          worked_through_lunch: boolean;
           worker_id: string;
         };
         Insert: {
@@ -464,6 +518,7 @@ export type Database = {
           work_date: string;
           work_type_id?: string | null;
           work_type_raw?: string | null;
+          worked_through_lunch?: boolean;
           worker_id: string;
         };
         Update: {
@@ -481,6 +536,7 @@ export type Database = {
           work_date?: string;
           work_type_id?: string | null;
           work_type_raw?: string | null;
+          worked_through_lunch?: boolean;
           worker_id?: string;
         };
         Relationships: [
