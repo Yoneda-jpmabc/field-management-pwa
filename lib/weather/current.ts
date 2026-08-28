@@ -2,10 +2,16 @@
 
 import type { WeatherLocation } from "./locations";
 
-export type CurrentTemperature = {
+export type CurrentWeather = {
   locationId: string;
   /** 摂氏。Open-Meteo の temperature_2m（地上 2m 気温）。 */
   celsius: number;
+  /** WMO 天気コード。表記は wmo.ts の weatherLabel を通す。 */
+  weatherCode: number;
+  /** 昼夜。快晴・晴れのアイコンを太陽と月で出し分けるのに使う。 */
+  isDay: boolean;
+  /** 今の時間帯の降水確率(%)。取れなかったときは null。 */
+  precipitationChance: number | null;
   /** 取得した時刻（epoch ms）。 */
   fetchedAt: number;
 };
@@ -16,31 +22,40 @@ export const STALE_AFTER_MS = 15 * 60 * 1000;
 const CACHE_KEY_PREFIX = "weather-current:";
 
 /**
- * 直近の気温は端末に残しておく。
+ * 直近の天気は端末に残しておく。
  * 圃場では電波が届かないことがあるので、オフラインでも
  * 最後に取れた値をそのまま出せるようにする（接続状態はヘッダーの電源マークで分かる）。
  */
-function readCache(locationId: string): CurrentTemperature | null {
+function readCache(locationId: string): CurrentWeather | null {
   try {
     const raw = window.localStorage.getItem(CACHE_KEY_PREFIX + locationId);
     if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
+    const value: unknown = JSON.parse(raw);
     if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      typeof (parsed as CurrentTemperature).celsius === "number" &&
-      typeof (parsed as CurrentTemperature).fetchedAt === "number"
+      typeof value === "object" &&
+      value !== null &&
+      typeof (value as CurrentWeather).celsius === "number" &&
+      typeof (value as CurrentWeather).weatherCode === "number" &&
+      typeof (value as CurrentWeather).fetchedAt === "number"
     ) {
-      const value = parsed as CurrentTemperature;
-      return { locationId, celsius: value.celsius, fetchedAt: value.fetchedAt };
+      const cached = value as CurrentWeather;
+      return {
+        locationId,
+        celsius: cached.celsius,
+        weatherCode: cached.weatherCode,
+        isDay: cached.isDay !== false,
+        precipitationChance:
+          typeof cached.precipitationChance === "number" ? cached.precipitationChance : null,
+        fetchedAt: cached.fetchedAt,
+      };
     }
   } catch {
-    // 壊れた値は無視して取り直せばよい。
+    // 壊れた値・古い形式は無視して取り直せばよい。
   }
   return null;
 }
 
-function writeCache(value: CurrentTemperature) {
+function writeCache(value: CurrentWeather) {
   try {
     window.localStorage.setItem(CACHE_KEY_PREFIX + value.locationId, JSON.stringify(value));
   } catch {
@@ -55,7 +70,7 @@ function writeCache(value: CurrentTemperature) {
  * localStorage から読んだ値をそのまま描画に使いたいため。
  * effect で setState すると、キャッシュがあっても一瞬プレースホルダが出る。
  */
-const values = new Map<string, CurrentTemperature | null>();
+const values = new Map<string, CurrentWeather | null>();
 const listeners = new Set<() => void>();
 
 function subscribe(callback: () => void) {
@@ -66,53 +81,87 @@ function subscribe(callback: () => void) {
 }
 
 /** 同じ値なら同じ参照を返す（useSyncExternalStore の再描画ループを避けるため）。 */
-function getFor(locationId: string): CurrentTemperature | null {
+function getFor(locationId: string): CurrentWeather | null {
   if (!values.has(locationId)) values.set(locationId, readCache(locationId));
   return values.get(locationId) ?? null;
 }
 
-function getServerSnapshot(): CurrentTemperature | null {
+function getServerSnapshot(): CurrentWeather | null {
   return null;
 }
 
-/**
- * Open-Meteo から現在の気温を取る。
- * API キー不要・CORS 許可済みなので、サーバーを経由せず端末から直接引く
- * （Vercel の関数を挟むより速く、こちらの実行時間も使わない）。
- */
-async function fetchTemperature(
-  location: WeatherLocation,
-  signal: AbortSignal,
-): Promise<CurrentTemperature> {
-  const url =
-    "https://api.open-meteo.com/v1/forecast" +
-    `?latitude=${location.latitude}&longitude=${location.longitude}` +
-    "&current=temperature_2m&timezone=Asia%2FTokyo";
+const ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error(`Open-Meteo が ${response.status} を返しました`);
-  }
+function query(location: WeatherLocation) {
+  return `latitude=${location.latitude}&longitude=${location.longitude}&timezone=Asia%2FTokyo`;
+}
+
+/**
+ * 気温と天気。
+ *
+ * models=jma_seamless は気象庁 MSM/GSM で、既定の best_match より格子が細かい
+ * （天草市内の 3 地点が別々の格子に入る程度）。無料枠のままで使える。
+ */
+async function fetchConditions(location: WeatherLocation, signal: AbortSignal) {
+  const response = await fetch(
+    `${ENDPOINT}?${query(location)}&current=temperature_2m,weather_code,is_day&models=jma_seamless`,
+    { signal },
+  );
+  if (!response.ok) throw new Error(`Open-Meteo が ${response.status} を返しました`);
 
   const data: unknown = await response.json();
-  const celsius = (data as { current?: { temperature_2m?: unknown } })?.current?.temperature_2m;
-  if (typeof celsius !== "number") {
-    throw new Error("Open-Meteo の応答に気温が含まれていません");
+  const current = (data as { current?: Record<string, unknown> })?.current;
+  const celsius = current?.temperature_2m;
+  const code = current?.weather_code;
+  if (typeof celsius !== "number" || typeof code !== "number") {
+    throw new Error("Open-Meteo の応答に気温・天気が含まれていません");
   }
-  return { locationId: location.id, celsius, fetchedAt: Date.now() };
+  return { celsius, weatherCode: code, isDay: current?.is_day !== 0 };
+}
+
+/**
+ * 今の時間帯の降水確率。
+ *
+ * 降水確率はアンサンブル予報から作られる値で、jma_seamless からは返ってこない
+ * （指定しても null で埋まる）。そのため既定モデルへ別に投げている。
+ * forecast_hours=1 は「今の時刻を含む 1 時間」だけを返す。
+ */
+async function fetchPrecipitationChance(location: WeatherLocation, signal: AbortSignal) {
+  const response = await fetch(
+    `${ENDPOINT}?${query(location)}&hourly=precipitation_probability&forecast_hours=1`,
+    { signal },
+  );
+  if (!response.ok) return null;
+
+  const data: unknown = await response.json();
+  const values = (data as { hourly?: { precipitation_probability?: unknown } })?.hourly
+    ?.precipitation_probability;
+  const first = Array.isArray(values) ? values[0] : null;
+  return typeof first === "number" ? first : null;
 }
 
 /**
  * 値が無いか古ければ取り直す。取れなければ何もしない（古い値をそのまま出す）。
- * 取得に失敗しても画面に出さないのは、気温は作業の判断材料であって
+ * 取得に失敗しても画面に出さないのは、天気は作業の判断材料であって
  * エラーを見せても利用者にできることが無いため。
  */
-export async function refreshTemperature(location: WeatherLocation, signal: AbortSignal) {
+export async function refreshWeather(location: WeatherLocation, signal: AbortSignal) {
   const current = getFor(location.id);
   if (current && Date.now() - current.fetchedAt <= STALE_AFTER_MS) return;
 
   try {
-    const value = await fetchTemperature(location, signal);
+    // 降水確率が取れなくても気温と天気は出したいので、こちらだけ握りつぶす。
+    const [conditions, precipitationChance] = await Promise.all([
+      fetchConditions(location, signal),
+      fetchPrecipitationChance(location, signal).catch(() => null),
+    ]);
+
+    const value: CurrentWeather = {
+      locationId: location.id,
+      ...conditions,
+      precipitationChance,
+      fetchedAt: Date.now(),
+    };
     writeCache(value);
     values.set(location.id, value);
     listeners.forEach((notify) => notify());
@@ -121,4 +170,8 @@ export async function refreshTemperature(location: WeatherLocation, signal: Abor
   }
 }
 
-export { subscribe as subscribeTemperature, getFor as getTemperatureFor, getServerSnapshot as getServerTemperatureSnapshot };
+export {
+  subscribe as subscribeWeather,
+  getFor as getWeatherFor,
+  getServerSnapshot as getServerWeatherSnapshot,
+};

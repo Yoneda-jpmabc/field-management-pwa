@@ -107,8 +107,8 @@ export default async function SettingsPage() {
               control={<ThemeToggle />}
             />
             <SettingsRow
-              title="気温の地点"
-              description="画面上部に出す気温をどの地点で見るかを選びます。この端末だけの設定です。"
+              title="天気の地点"
+              description="画面上部に出す天気・気温・降水確率をどの地点で見るかを選びます。この端末だけの設定です。"
               control={<WeatherLocationSettings />}
             />
           </Card>

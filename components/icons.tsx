@@ -1,3 +1,5 @@
+import { weatherKind } from "@/lib/weather/wmo";
+
 type IconProps = {
   className?: string;
 };
@@ -244,4 +246,98 @@ export function IconSettings({ className }: IconProps) {
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   );
+}
+
+/* ---- 天気（ヘッダーの WeatherIcon から使う） ---- */
+
+export function IconCloud({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M7 18.5a4 4 0 0 1-.3-8A5.5 5.5 0 0 1 17.4 11a3.75 3.75 0 0 1-.4 7.5Z" />
+    </svg>
+  );
+}
+
+export function IconCloudSun({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="8" cy="7.5" r="3" />
+      <path d="M8 1.8v1.4M8 11.8v1.4M2.3 7.5h1.4M12.3 7.5h1.4M3.9 3.4l1 1M11.1 10.6l1 1M3.9 11.6l1-1M11.1 4.4l1-1" />
+      <path d="M11.5 19.5a3.5 3.5 0 0 1-.3-7 4.8 4.8 0 0 1 9.1 1.1 3.2 3.2 0 0 1-.4 5.9Z" />
+    </svg>
+  );
+}
+
+export function IconCloudRain({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M7 15a4 4 0 0 1-.3-8A5.5 5.5 0 0 1 17.4 7.5 3.75 3.75 0 0 1 17 15Z" />
+      <path d="M8.5 18v2.5M12 17.5v3M15.5 18v2.5" />
+    </svg>
+  );
+}
+
+export function IconCloudSnow({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M7 15a4 4 0 0 1-.3-8A5.5 5.5 0 0 1 17.4 7.5 3.75 3.75 0 0 1 17 15Z" />
+      <path d="M8.5 19h.01M12 20.5h.01M15.5 19h.01M12 17.5h.01" />
+    </svg>
+  );
+}
+
+export function IconFog({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M7 13.5a4 4 0 0 1-.3-8A5.5 5.5 0 0 1 17.4 6 3.75 3.75 0 0 1 17 13.5Z" />
+      <path d="M5 17h14M7 20.5h10" />
+    </svg>
+  );
+}
+
+export function IconThunder({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M7 15a4 4 0 0 1-.3-8A5.5 5.5 0 0 1 17.4 7.5 3.75 3.75 0 0 1 17 15Z" />
+      <path d="m13 16-3 3.5h3.5L11 23" />
+    </svg>
+  );
+}
+
+/** 降水確率の見出しに添える傘。 */
+export function IconUmbrella({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M3 12.5a9 9 0 0 1 18 0Z" />
+      <path d="M12 12.5v6.5a2 2 0 0 1-4 0" />
+      <path d="M12 2.5v1.4" />
+    </svg>
+  );
+}
+
+/**
+ * 天気コードに対応するアイコン。
+ * 快晴・晴れは夜だと太陽が出ていておかしいので、is_day で月に差し替える。
+ */
+export function WeatherIcon({
+  code,
+  isDay,
+  className,
+}: IconProps & { code: number; isDay: boolean }) {
+  switch (weatherKind(code)) {
+    case "clear":
+      return isDay ? <IconSun className={className} /> : <IconMoon className={className} />;
+    case "partly":
+      return isDay ? <IconCloudSun className={className} /> : <IconCloud className={className} />;
+    case "cloudy":
+      return <IconCloud className={className} />;
+    case "fog":
+      return <IconFog className={className} />;
+    case "snow":
+      return <IconCloudSnow className={className} />;
+    case "thunder":
+      return <IconThunder className={className} />;
+    default:
+      return <IconCloudRain className={className} />;
+  }
 }

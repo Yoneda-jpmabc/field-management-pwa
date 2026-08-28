@@ -3,15 +3,11 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * ヘッダーに出す気温の観測地点。
+ * ヘッダーに出す天気の観測地点。
  *
  * Open-Meteo は緯度経度でしか引けないので、選べる地点をここに固定で持つ。
  * 増やすときはこの配列に足すだけでよい（設定画面と保存値は id で紐づく）。
- *
- * TODO: 座標は市街地のおおよその位置で入れた暫定値。
- *   正確な座標が分かったら差し替えること。
- *   なお Open-Meteo の予報格子は約 11km 四方なので、
- *   近い地点どうしは同じ気温になることがある。
+ * 座標は度分秒で受け取ったものを十進度へ直した値（コメントに元の値を残す）。
  */
 export type WeatherLocation = {
   id: string;
@@ -21,9 +17,12 @@ export type WeatherLocation = {
 };
 
 export const WEATHER_LOCATIONS: readonly WeatherLocation[] = [
-  { id: "saitsu", label: "天草市佐伊津町", latitude: 32.479, longitude: 130.172 },
-  { id: "honmachi", label: "天草市本町", latitude: 32.438, longitude: 130.238 },
-  { id: "goryo", label: "天草市御領", latitude: 32.532, longitude: 130.279 },
+  // 32°28'54.4"N 130°10'32.3"E
+  { id: "saitsu", label: "天草市佐伊津町", latitude: 32.4818, longitude: 130.1756 },
+  // 32°28'13.7"N 130°09'55.4"E
+  { id: "honmachi", label: "天草市本町", latitude: 32.4705, longitude: 130.1654 },
+  // 32°31'09.4"N 130°11'25.3"E
+  { id: "goryo", label: "天草市御領", latitude: 32.5193, longitude: 130.1904 },
 ];
 
 export const DEFAULT_LOCATION_ID = WEATHER_LOCATIONS[0].id;
