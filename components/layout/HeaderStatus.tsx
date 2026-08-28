@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { findLocation, useLocationId } from "@/lib/weather/locations";
 import {
+  PRECIPITATION_HOURS,
   STALE_AFTER_MS,
   getServerWeatherSnapshot,
   getWeatherFor,
@@ -71,9 +72,13 @@ export function HeaderStatus() {
           aria-label={`${location.label}の天気 ${weatherLabel(weather.weatherCode)}、気温 ${weather.celsius} 度${
             weather.precipitationChance === null
               ? ""
-              : `、降水確率 ${weather.precipitationChance} パーセント`
+              : `、これから${PRECIPITATION_HOURS}時間の降水確率 最大 ${weather.precipitationChance} パーセント`
           }`}
-          title={`${location.label}｜${weatherLabel(weather.weatherCode)}`}
+          title={`${location.label}｜${weatherLabel(weather.weatherCode)}${
+            weather.precipitationChance === null
+              ? ""
+              : `｜これから${PRECIPITATION_HOURS}時間の降水確率 最大${weather.precipitationChance}%`
+          }`}
           className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-foreground-secondary"
         >
           <WeatherIcon
@@ -85,6 +90,8 @@ export function HeaderStatus() {
           {weather.precipitationChance !== null && (
             <>
               <IconUmbrella className="ml-0.5 h-[15px] w-[15px] shrink-0" />
+              {/* 「今」ではなく「これから」の値だと分かるように、先の長さを添える。 */}
+              <span className="text-[11px] text-foreground-tertiary">{PRECIPITATION_HOURS}h</span>
               <span className="tabular-nums">{weather.precipitationChance}%</span>
             </>
           )}

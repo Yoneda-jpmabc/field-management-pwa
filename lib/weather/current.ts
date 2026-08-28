@@ -10,7 +10,7 @@ export type CurrentWeather = {
   weatherCode: number;
   /** 昼夜。快晴・晴れのアイコンを太陽と月で出し分けるのに使う。 */
   isDay: boolean;
-  /** 今の時間帯の降水確率(%)。取れなかったときは null。 */
+  /** これから PRECIPITATION_HOURS 時間のうち、いちばん高い降水確率(%)。取れなければ null。 */
   precipitationChance: number | null;
   /** 取得した時刻（epoch ms）。 */
   fetchedAt: number;
@@ -18,6 +18,14 @@ export type CurrentWeather = {
 
 /** この時間を過ぎたら取り直す。Open-Meteo 側の更新間隔（15 分）に合わせている。 */
 export const STALE_AFTER_MS = 15 * 60 * 1000;
+
+/**
+ * 降水確率を見る先の長さ。
+ * 今降っているかは天気アイコンで分かるので、知りたいのは「これから降るか」。
+ * 半日先まで見ると常に高い値が出て意味を成さないので、
+ * ひと仕事の区切りとして 6 時間先までにしている。
+ */
+export const PRECIPITATION_HOURS = 6;
 
 const CACHE_KEY_PREFIX = "weather-current:";
 
@@ -120,24 +128,29 @@ async function fetchConditions(location: WeatherLocation, signal: AbortSignal) {
 }
 
 /**
- * 今の時間帯の降水確率。
+ * これから数時間のうち、いちばん高い降水確率。
+ *
+ * 時間ごとの値を並べても狭いヘッダーには置けないので、最大値だけを出す。
+ * 「60%」と出ていれば、その先どこかで降るかもしれない、と読めればよい。
  *
  * 降水確率はアンサンブル予報から作られる値で、jma_seamless からは返ってこない
  * （指定しても null で埋まる）。そのため既定モデルへ別に投げている。
- * forecast_hours=1 は「今の時刻を含む 1 時間」だけを返す。
+ * forecast_hours は次の正時から数えた時間数を返す。
  */
 async function fetchPrecipitationChance(location: WeatherLocation, signal: AbortSignal) {
   const response = await fetch(
-    `${ENDPOINT}?${query(location)}&hourly=precipitation_probability&forecast_hours=1`,
+    `${ENDPOINT}?${query(location)}&hourly=precipitation_probability&forecast_hours=${PRECIPITATION_HOURS}`,
     { signal },
   );
   if (!response.ok) return null;
 
   const data: unknown = await response.json();
-  const values = (data as { hourly?: { precipitation_probability?: unknown } })?.hourly
+  const hourly = (data as { hourly?: { precipitation_probability?: unknown } })?.hourly
     ?.precipitation_probability;
-  const first = Array.isArray(values) ? values[0] : null;
-  return typeof first === "number" ? first : null;
+  if (!Array.isArray(hourly)) return null;
+
+  const chances = hourly.filter((value): value is number => typeof value === "number");
+  return chances.length > 0 ? Math.max(...chances) : null;
 }
 
 /**
