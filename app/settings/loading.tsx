@@ -1,16 +1,15 @@
 import {
-  SkeletonAnnounce,
   SkeletonBar,
   SkeletonBlockCard,
   SkeletonPageHeader,
+  SkeletonScreen,
 } from "@/components/ui/Skeleton";
 
 /** 設定タブ（圃場情報・管理項目・単位・表示・同期）の骨組み。 */
 export default function Loading() {
   return (
-    <>
-      <SkeletonAnnounce />
-      <div aria-hidden className="flex flex-col gap-6">
+    <SkeletonScreen>
+      <div className="flex flex-col gap-6">
         <SkeletonPageHeader />
         {[3, 2, 2, 1, 2].map((cards, section) => (
           <section key={section}>
@@ -23,6 +22,6 @@ export default function Loading() {
           </section>
         ))}
       </div>
-    </>
+    </SkeletonScreen>
   );
 }

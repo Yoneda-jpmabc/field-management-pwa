@@ -1,7 +1,7 @@
 import {
-  SkeletonAnnounce,
   SkeletonBlockCard,
   SkeletonPageHeader,
+  SkeletonScreen,
 } from "@/components/ui/Skeleton";
 
 /**
@@ -11,12 +11,9 @@ import {
  */
 export default function Loading() {
   return (
-    <>
-      <SkeletonAnnounce />
-      <div aria-hidden>
-        <SkeletonPageHeader />
-        <SkeletonBlockCard className="h-96" />
-      </div>
-    </>
+    <SkeletonScreen>
+      <SkeletonPageHeader />
+      <SkeletonBlockCard className="h-96" />
+    </SkeletonScreen>
   );
 }

@@ -13,6 +13,29 @@
  * すべて Server Component のまま（クライアント JS を増やさない）。
  */
 
+import type { ReactNode } from "react";
+import { PERIOD_UNITS } from "@/lib/work-records/period";
+
+/**
+ * loading.tsx の外枠。各 loading.tsx はこれで中身を包むこと。
+ *
+ * ・骨組み全体を 0.6 秒遅らせて出す（.skeleton-screen / globals.css）。
+ *   応答が速いときは一度も見えないので、ちらつかない。
+ * ・骨組みは装飾なので aria-hidden にし、読み上げ用の文言を 1 つだけ添える。
+ */
+export function SkeletonScreen({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <span className="sr-only" role="status">
+        読み込み中
+      </span>
+      <div aria-hidden className="skeleton-screen">
+        {children}
+      </div>
+    </>
+  );
+}
+
 /** 単色の板。幅は呼び出し側が className で決める。 */
 export function SkeletonBar({
   className = "",
@@ -43,18 +66,27 @@ export function SkeletonTabs({ count }: { count: number }) {
   );
 }
 
-/** PeriodSwitcher（単位ピル＋前後の矢印）と同じ骨組み。 */
-export function SkeletonPeriodSwitcher({ units }: { units: number }) {
+/**
+ * PeriodSwitcher（単位ピル＋前後の矢印）と同じ骨組み。
+ *
+ * ピルの数は PERIOD_UNITS から取るので、単位を増減しても勝手に追従する。
+ * 中央は期間名と「今日に戻す」の 2 段。片方だけにすると本文が届いた瞬間に
+ * 高さが変わって画面が飛ぶ。
+ */
+export function SkeletonPeriodSwitcher() {
   return (
     <div className="mb-4 flex flex-col gap-3">
       <div className="flex gap-1 rounded-full bg-surface-secondary p-1">
-        {Array.from({ length: units }, (_, i) => (
-          <div key={i} className="min-h-11 flex-1 rounded-full" />
+        {PERIOD_UNITS.map((unit) => (
+          <div key={unit} className="min-h-11 flex-1 rounded-full" />
         ))}
       </div>
       <div className="flex items-center justify-between gap-2">
         <SkeletonBar className="h-11 w-14 !rounded-full" />
-        <SkeletonBar className="h-[19px] w-32" />
+        <div className="flex min-w-0 flex-1 flex-col items-center">
+          <SkeletonBar className="h-[19px] w-32" />
+          <SkeletonBar className="my-3.5 h-[15px] w-20" />
+        </div>
         <SkeletonBar className="h-11 w-14 !rounded-full" />
       </div>
     </div>
@@ -101,16 +133,4 @@ export function SkeletonListCard({
 /** 中身の形が決まっていない領域用の、のっぺりしたカード。 */
 export function SkeletonBlockCard({ className = "" }: { className?: string }) {
   return <div className={`surface-card ${className}`} />;
-}
-
-/**
- * 読み上げ用。スケルトンそのものは装飾なので、
- * 画面全体を aria-hidden にしたうえでこれを 1 つだけ添える。
- */
-export function SkeletonAnnounce() {
-  return (
-    <span className="sr-only" role="status">
-      読み込み中
-    </span>
-  );
 }

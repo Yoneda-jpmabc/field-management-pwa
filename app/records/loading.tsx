@@ -1,7 +1,7 @@
 import {
-  SkeletonAnnounce,
   SkeletonBlockCard,
   SkeletonPageHeader,
+  SkeletonScreen,
   SkeletonTabs,
 } from "@/components/ui/Skeleton";
 
@@ -15,17 +15,14 @@ import {
  */
 export default function Loading() {
   return (
-    <>
-      <SkeletonAnnounce />
-      <div aria-hidden>
-        <SkeletonPageHeader />
-        <SkeletonTabs count={3} />
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }, (_, i) => (
-            <SkeletonBlockCard key={i} className="h-24" />
-          ))}
-        </div>
+    <SkeletonScreen>
+      <SkeletonPageHeader />
+      <SkeletonTabs count={3} />
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 5 }, (_, i) => (
+          <SkeletonBlockCard key={i} className="h-24" />
+        ))}
       </div>
-    </>
+    </SkeletonScreen>
   );
 }
