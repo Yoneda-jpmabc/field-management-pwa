@@ -25,7 +25,7 @@ export function BottomTabBar({ permission }: { permission: Permission }) {
   const items = visibleNavItems(permission);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-separator bg-surface/90 pb-[max(env(safe-area-inset-bottom),0.5rem)] backdrop-blur-lg md:hidden">
+    <nav className="z-20 flex shrink-0 border-t border-separator bg-surface pb-[max(env(safe-area-inset-bottom),0.5rem)] md:hidden">
       {items.map((item) => {
         const Icon = icons[item.icon as keyof typeof icons];
         const active =

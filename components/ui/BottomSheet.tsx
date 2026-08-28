@@ -26,10 +26,12 @@ export function BottomSheet({
 }: Props) {
   // シート表示中は背面のスクロールを止める（iOS Safari のスクロール抜け対策）。
   useEffect(() => {
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const scroller = document.getElementById("app-scroll");
+    if (!scroller) return;
+    const previous = scroller.style.overflow;
+    scroller.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = previous;
+      scroller.style.overflow = previous;
     };
   }, []);
 
