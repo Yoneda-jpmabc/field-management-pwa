@@ -304,17 +304,6 @@ export function IconThunder({ className }: IconProps) {
   );
 }
 
-/** 降水確率の見出しに添える傘。 */
-export function IconUmbrella({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M3 12.5a9 9 0 0 1 18 0Z" />
-      <path d="M12 12.5v6.5a2 2 0 0 1-4 0" />
-      <path d="M12 2.5v1.4" />
-    </svg>
-  );
-}
-
 /**
  * 天気コードに対応するアイコン。
  * 快晴・晴れは夜だと太陽が出ていておかしいので、is_day で月に差し替える。

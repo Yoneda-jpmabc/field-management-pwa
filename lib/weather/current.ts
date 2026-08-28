@@ -12,6 +12,8 @@ export type CurrentWeather = {
   isDay: boolean;
   /** これから PRECIPITATION_HOURS 時間のうち、いちばん高い降水確率(%)。取れなければ null。 */
   precipitationChance: number | null;
+  /** これから PRECIPITATION_HOURS 時間の合計降水量(mm)。取れなければ null。 */
+  precipitationMm: number | null;
   /** 取得した時刻（epoch ms）。 */
   fetchedAt: number;
 };
@@ -54,6 +56,8 @@ function readCache(locationId: string): CurrentWeather | null {
         isDay: cached.isDay !== false,
         precipitationChance:
           typeof cached.precipitationChance === "number" ? cached.precipitationChance : null,
+        precipitationMm:
+          typeof cached.precipitationMm === "number" ? cached.precipitationMm : null,
         fetchedAt: cached.fetchedAt,
       };
     }
@@ -105,14 +109,18 @@ function query(location: WeatherLocation) {
 }
 
 /**
- * 気温と天気。
+ * 気温・天気と、これからの降水量。
  *
  * models=jma_seamless は気象庁 MSM/GSM で、既定の best_match より格子が細かい
  * （天草市内の 3 地点が別々の格子に入る程度）。無料枠のままで使える。
+ *
+ * 降水量をここでまとめて取っているのは、天気アイコンと同じモデルに揃えるため。
+ * 別モデルから取ると「快晴なのに雨」といった食い違いが表に出る。
  */
 async function fetchConditions(location: WeatherLocation, signal: AbortSignal) {
   const response = await fetch(
-    `${ENDPOINT}?${query(location)}&current=temperature_2m,weather_code,is_day&models=jma_seamless`,
+    `${ENDPOINT}?${query(location)}&current=temperature_2m,weather_code,is_day` +
+      `&hourly=precipitation&forecast_hours=${PRECIPITATION_HOURS}&models=jma_seamless`,
     { signal },
   );
   if (!response.ok) throw new Error(`Open-Meteo が ${response.status} を返しました`);
@@ -124,7 +132,22 @@ async function fetchConditions(location: WeatherLocation, signal: AbortSignal) {
   if (typeof celsius !== "number" || typeof code !== "number") {
     throw new Error("Open-Meteo の応答に気温・天気が含まれていません");
   }
-  return { celsius, weatherCode: code, isDay: current?.is_day !== 0 };
+
+  // mm は「この先合計で何ミリ降るか」。時間ごとの強さより、合計のほうが
+  // 防除や収穫を今やるかの判断に直結する。
+  const hourly = (data as { hourly?: { precipitation?: unknown } })?.hourly?.precipitation;
+  const millimeters = Array.isArray(hourly)
+    ? hourly
+        .filter((value): value is number => typeof value === "number")
+        .reduce((total, value) => total + value, 0)
+    : null;
+
+  return {
+    celsius,
+    weatherCode: code,
+    isDay: current?.is_day !== 0,
+    precipitationMm: millimeters,
+  };
 }
 
 /**

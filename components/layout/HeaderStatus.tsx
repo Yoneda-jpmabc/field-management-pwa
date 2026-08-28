@@ -9,9 +9,10 @@ import {
   getWeatherFor,
   refreshWeather,
   subscribeWeather,
+  type CurrentWeather,
 } from "@/lib/weather/current";
 import { weatherLabel } from "@/lib/weather/wmo";
-import { IconUmbrella, WeatherIcon } from "../icons";
+import { WeatherIcon } from "../icons";
 
 /**
  * 日付は必ず日本時間で出す。
@@ -25,7 +26,17 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   weekday: "short",
 });
 
-/** ヘッダーの「今日の日付・今の天気・気温・降水確率」。 */
+/**
+ * 「6h 38%/0.0mm」＝これから 6 時間の、最大降水確率と合計降水量。
+ * 確率と量の両方を出すのは、確率が 0.1mm 超を降ったと数える緩い基準で、
+ * 「確率は高いが実際はほとんど降らない」ことがよくあるため。
+ */
+function rainText(weather: CurrentWeather): string | null {
+  if (weather.precipitationChance === null || weather.precipitationMm === null) return null;
+  return `${PRECIPITATION_HOURS}h ${weather.precipitationChance}%/${weather.precipitationMm.toFixed(1)}mm`;
+}
+
+/** ヘッダーの「今日の日付・今の天気・気温・これからの雨」。 */
 export function HeaderStatus() {
   const location = findLocation(useLocationId());
 
@@ -70,15 +81,11 @@ export function HeaderStatus() {
         <div
           // 何の値なのかはアイコンだけだと伝わらないので、まとめて読み上げ文にする。
           aria-label={`${location.label}の天気 ${weatherLabel(weather.weatherCode)}、気温 ${weather.celsius} 度${
-            weather.precipitationChance === null
-              ? ""
-              : `、これから${PRECIPITATION_HOURS}時間の降水確率 最大 ${weather.precipitationChance} パーセント`
+            rainText(weather)
+              ? `、これから${PRECIPITATION_HOURS}時間の降水確率 最大 ${weather.precipitationChance} パーセント、降水量 ${weather.precipitationMm?.toFixed(1)} ミリ`
+              : ""
           }`}
-          title={`${location.label}｜${weatherLabel(weather.weatherCode)}${
-            weather.precipitationChance === null
-              ? ""
-              : `｜これから${PRECIPITATION_HOURS}時間の降水確率 最大${weather.precipitationChance}%`
-          }`}
+          title={`${location.label}｜${weatherLabel(weather.weatherCode)}`}
           className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-foreground-secondary"
         >
           <WeatherIcon
@@ -87,13 +94,13 @@ export function HeaderStatus() {
             className="h-[17px] w-[17px] shrink-0"
           />
           <span className="tabular-nums">{Math.round(weather.celsius * 10) / 10}°C</span>
-          {weather.precipitationChance !== null && (
-            <>
-              <IconUmbrella className="ml-0.5 h-[15px] w-[15px] shrink-0" />
+          {rainText(weather) && (
+            <span className="min-w-0 truncate">
+              {/* 画面がごく狭い端末では見出しを畳む。数字が切れるより読める。 */}
+              <span className="hidden text-foreground-tertiary min-[360px]:inline">降水確率 </span>
               {/* 「今」ではなく「これから」の値だと分かるように、先の長さを添える。 */}
-              <span className="text-[11px] text-foreground-tertiary">{PRECIPITATION_HOURS}h</span>
-              <span className="tabular-nums">{weather.precipitationChance}%</span>
-            </>
+              <span className="tabular-nums">{rainText(weather)}</span>
+            </span>
           )}
         </div>
       ) : (
