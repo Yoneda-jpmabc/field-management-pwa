@@ -7,6 +7,7 @@ import { SupabaseHealth } from "@/components/settings/SupabaseHealth";
 import { CropUnitSettings } from "@/components/settings/CropUnitSettings";
 import { FieldSettings } from "@/components/settings/FieldSettings";
 import { CheckItemSettings } from "@/components/settings/CheckItemSettings";
+import { WeatherLocationSettings } from "@/components/settings/WeatherLocationSettings";
 import { checkSupabaseHealth } from "@/lib/supabase/health";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditMasters } from "@/lib/auth/permissions";
@@ -104,6 +105,11 @@ export default async function SettingsPage() {
               title="外観"
               description="ライトモード・ダークモードを切り替えます。"
               control={<ThemeToggle />}
+            />
+            <SettingsRow
+              title="気温の地点"
+              description="画面上部に出す気温をどの地点で見るかを選びます。この端末だけの設定です。"
+              control={<WeatherLocationSettings />}
             />
           </Card>
         </section>
