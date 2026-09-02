@@ -5,6 +5,9 @@
 -- 増えないうえに平文保存のリスクだけが残るため。認証は Supabase Auth で
 -- 実装し、パスワードはそちらでハッシュ管理する。login_id はそのときの
 -- 突き合わせに使う。
+--
+-- auth_user_id / auth_email はここでは入れない。Supabase Auth 側にユーザーを
+-- 作ってからでないと値が決まらないため、作成後に別途埋める運用にしている。
 
 insert into public.workers
   (employee_no, login_id, name, employment_type, department, language, permission, display_order)
@@ -15,9 +18,9 @@ values
   ('004', 'H9L3X7MQ', '金子',   '正社員', 'AA', 'ja', 'allowed',     4),
   ('005', 'T2R8K5VN', '川原',   '正社員', 'AA', 'ja', 'allowed',     5),
   ('006', 'Q4M7B2XW', '米田',   '正社員', 'WF', 'ja', 'all',         6),
-  -- 清水・神田は管理表で No./ID が空欄のため login_id は NULL のままにしている
-  (null,  null,       '清水',   null,     null, 'ja', 'view_only',   7),
-  (null,  null,       '神田',   null,     null, 'ja', 'view_only',   8),
+  -- 清水・神田は管理表で No. が空欄。login_id は Supabase Auth 導入時に採番した。
+  (null,  'P5V8T3ZW', '清水',   null,     null, 'ja', 'view_only',   7),
+  (null,  'G6C9J4XR', '神田',   null,     null, 'ja', 'view_only',   8),
   ('101', 'J8N3H6RT', '原田',   'パート', 'WF', 'ja', 'view_only', 101),
   ('102', 'X5K9D2MP', '野崎',   'パート', 'WF', 'ja', 'view_only', 102),
   ('103', 'V7Q4W8LN', '大西',   'パート', 'WF', 'ja', 'view_only', 103),

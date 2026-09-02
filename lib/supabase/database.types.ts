@@ -642,6 +642,7 @@ export type Database = {
       };
       workers: {
         Row: {
+          auth_email: string | null;
           auth_user_id: string | null;
           created_at: string;
           deleted_at: string | null;
@@ -660,6 +661,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          auth_email?: string | null;
           auth_user_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
@@ -678,6 +680,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          auth_email?: string | null;
           auth_user_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
