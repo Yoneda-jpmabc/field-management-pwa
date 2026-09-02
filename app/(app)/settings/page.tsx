@@ -11,7 +11,7 @@ import { WeatherLocationSettings } from "@/components/settings/WeatherLocationSe
 import { SignOutButton } from "@/components/settings/SignOutButton";
 import { checkSupabaseHealth } from "@/lib/supabase/health";
 import { getCurrentWorker } from "@/lib/auth/session";
-import { canEditMasters, PERMISSION_LABELS } from "@/lib/auth/permissions";
+import { canEditMasters } from "@/lib/auth/permissions";
 import { fetchFieldSettingsData } from "@/lib/fields/queries";
 import { fetchCheckItemSettings } from "@/lib/crop-checks/queries";
 
@@ -122,7 +122,7 @@ export default async function SettingsPage() {
           <Card className="divide-y divide-separator !p-0">
             <SettingsRow
               title={worker.name}
-              description={`権限: ${PERMISSION_LABELS[worker.permission]}`}
+              description="この端末でログインしている人です。"
               control={<SignOutButton />}
             />
           </Card>

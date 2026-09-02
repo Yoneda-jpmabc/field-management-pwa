@@ -19,9 +19,10 @@ const FAILED = "ログインIDまたはパスワードが違います。";
  * login_id → workers.auth_email を引いてから渡す。auth.users は anon から
  * 読めないため、メールは workers 側に控えてある（20260902141658 のマイグレーション）。
  *
- * この workers の参照だけはログイン前＝未認証の状態で走る。RLS を締めるときも、
- * login_id / auth_email / is_active / deleted_at の参照は anon に残すか、
- * SECURITY DEFINER の関数に逃がすこと。ここが読めないとログインできなくなる。
+ * この参照だけはログイン前＝未認証で走るので、workers を直接は引けない
+ * （anon には権限が無い）。login_email_for() は SECURITY DEFINER で、
+ * 「ID を 1 つ渡すとメールが 1 つ返るだけ」の窓口として anon に開けてある。
+ * 無効な作業者・未登録IDには NULL が返る。
  */
 export async function signInWithLoginId(
   _prevState: LoginState,
@@ -39,22 +40,13 @@ export async function signInWithLoginId(
 
   const supabase = await createSupabaseServerClient();
 
-  const { data: worker } = await supabase
-    .from("workers")
-    .select("auth_email, is_active, deleted_at")
-    .eq("login_id", loginId)
-    .maybeSingle();
-
-  if (
-    !worker?.auth_email ||
-    !worker.is_active ||
-    worker.deleted_at !== null
-  ) {
-    return { message: FAILED };
-  }
+  const { data: email } = await supabase.rpc("login_email_for", {
+    p_login_id: loginId,
+  });
+  if (!email) return { message: FAILED };
 
   const { error } = await supabase.auth.signInWithPassword({
-    email: worker.auth_email,
+    email,
     password,
   });
   if (error) return { message: FAILED };

@@ -739,6 +739,9 @@ export type Database = {
       };
     };
     Functions: {
+      can_edit_masters: { Args: never; Returns: boolean };
+      can_edit_records: { Args: never; Returns: boolean };
+      current_worker_permission: { Args: never; Returns: string };
       harvest_summary_by_planting: {
         Args: { from_date?: string | null; to_date?: string | null };
         Returns: {
@@ -750,6 +753,8 @@ export type Database = {
           total_quantity: number;
         }[];
       };
+      is_active_worker: { Args: never; Returns: boolean };
+      login_email_for: { Args: { p_login_id: string }; Returns: string };
       work_summary_by_work_type: {
         Args: { from_date: string; to_date: string };
         Returns: {

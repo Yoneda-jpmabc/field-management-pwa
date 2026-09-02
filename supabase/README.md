@@ -39,7 +39,12 @@ DB の形がずれる。ずれた原因は後から追えないので、追加�
   今のところ相互参照はしていない。予定を実績に変換したくなったら
   `work_records` 側に `plan_id` を足す想定。
 - RLS ポリシーは `trial_` 接頭辞のものが試験期間用で、anon（ログインなし）に
-  全許可を出している。家族・従業員へ展開する前に認証ベースへ差し替えること。
+  全許可を出していた。`20260902150506_rls_by_worker_permission.sql` で
+  `workers.permission` ベースへ差し替え済み（判定は `lib/auth/permissions.ts`
+  と同じ対応: all=マスタも記録も / allowed=記録だけ / view_only=読むだけ）。
+  読み取りはログイン中の有効な作業者なら全行見える。閲覧のみの人に自分の記録
+  だけを見せているのは画面側の絞り込みで、DB では絞っていない（他人の行を
+  隠すと管理タブの確認状況や収穫ボードの集計が欠けるため）。
 - `20260816120000_harvest_and_plantings.sql` で収穫まわり
   （`field_plantings` / `harvest_records`）を足した。
   同じマイグレーションで `workers.permission` の中間値を `edit_view` から

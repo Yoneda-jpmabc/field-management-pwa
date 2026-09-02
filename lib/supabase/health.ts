@@ -33,7 +33,9 @@ export async function checkSupabaseHealth(): Promise<SupabaseHealth> {
     };
   }
 
-  const { error } = await supabase.from(PROBE_TABLE).select("*").limit(1);
+  // `select("*")` は使わない。workers の login_id / auth_email は列単位で
+  // 権限を落としてあるので、* だと疎通確認そのものが権限エラーで落ちる。
+  const { error } = await supabase.from(PROBE_TABLE).select("id").limit(1);
 
   if (!error) {
     return { ok: true, message: "Supabase に接続できました。" };
