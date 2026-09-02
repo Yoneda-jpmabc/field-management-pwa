@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
-import { AppShell } from "@/components/layout/AppShell";
-import { getCurrentWorker } from "@/lib/auth/session";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -32,15 +30,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+/**
+ * ここは <html> の組み立てとテーマの確定だけを持つ。
+ *
+ * サイドバーやタブバーはログイン後の画面にしか出さないので、AppShell は
+ * app/(app)/layout.tsx へ移した。/login はこのレイアウトの直下に置かれ、
+ * ナビゲーションのない素の画面になる。
+ */
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // ナビゲーションの出し分けに権限が要るので、ここで引く。
-  // ログイン未実装のうちは常に全権限が返る（lib/auth/session.ts）。
-  const { permission } = await getCurrentWorker();
-
   return (
     <html
       lang="ja"
@@ -57,9 +58,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="h-full overflow-hidden">
-        <AppShell permission={permission}>{children}</AppShell>
-      </body>
+      <body className="h-full overflow-hidden">{children}</body>
     </html>
   );
 }

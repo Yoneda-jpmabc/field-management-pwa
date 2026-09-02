@@ -1,29 +1,71 @@
 import "server-only";
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
-import { canViewEveryone, type Permission } from "./permissions";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { canViewEveryone, toPermission, type Permission } from "./permissions";
 
 /**
  * 「今は誰が操作しているか」を返す層。
  *
- * ログイン（作業者マスタの login_id + 暗証番号）はまだ入れていない。
- * 実際に運用へ載せる段階で実装する予定で、それまでは誰が操作しているかを
- * 判定できないため、全員が全権限を持つ扱いにしている（従来どおりの挙動）。
+ * ログインは login_id + パスワード。Supabase Auth 自体はメールしか受け付けないので、
+ * workers.auth_email を経由してサインインし（lib/auth/actions.ts）、
+ * ここでは逆に auth ユーザー → workers を引き直して作業者を特定する。
  *
  * 画面の出し分け（canEditMasters など）と Server Action の権限確認は、
- * すべてこの関数の戻り値を見るように配線してある。ログインを入れるときは
- * ここで Cookie のセッションと workers を引くように差し替えれば、
- * 呼び出し側を触らずに権限が効くようになる。
+ * すべてこの関数の戻り値を見るように配線してある。
  */
 
 export type CurrentWorker = {
-  /** ログイン未実装のうちは null（誰の操作か特定できない）。 */
-  id: string | null;
+  id: string;
+  name: string;
   permission: Permission;
 };
 
+/**
+ * ログインしていれば作業者を、していなければ null を返す。
+ *
+ * 1 リクエスト中に何度も呼ばれる（レイアウト + ページ + Server Action の
+ * 権限確認）ので cache でまとめる。auth.getUser() は毎回 Supabase まで
+ * 問い合わせに行くため、素で呼ぶと同じ検証を何度も走らせることになる。
+ */
+export const findCurrentWorker = cache(
+  async (): Promise<CurrentWorker | null> => {
+    const supabase = await createSupabaseServerClient();
+
+    // getSession() は Cookie の中身をそのまま信じるので使わない。
+    // getUser() は Supabase 側で署名を検証してから返す。
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data } = await supabase
+      .from("workers")
+      .select("id, name, permission, is_active, deleted_at")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+    // auth アカウントが生きていても、作業者として無効なら通さない。
+    // 退職者の Auth ユーザーを消し忘れても、workers 側を落とせば止まる。
+    if (!data || !data.is_active || data.deleted_at !== null) return null;
+
+    return {
+      id: data.id,
+      name: data.name,
+      permission: toPermission(data.permission),
+    };
+  },
+);
+
+/**
+ * ログイン必須の画面・処理で使う。未ログインなら /login へ送る。
+ * 呼び出し側は常に「誰か」が確定している前提で書ける。
+ */
 export async function getCurrentWorker(): Promise<CurrentWorker> {
-  return { id: null, permission: "all" };
+  const worker = await findCurrentWorker();
+  if (!worker) redirect("/login");
+  return worker;
 }
 
 /**

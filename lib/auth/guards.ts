@@ -9,12 +9,12 @@ import { canEditMasters, canEditRecords } from "./permissions";
  * 画面側でもボタンを出し分けているが、Server Action は UI を経由せず直接 POST できる。
  * 「隠してあるから安全」にはならないので、書き込みを行うアクションは必ずここを通すこと。
  *
- * ログインを入れるまでは getCurrentWorker が全権限を返すため、実際には素通りする。
- * 判定の形だけ先に通しておき、ログイン導入時に session.ts を差し替えれば効くようにしている。
+ * 未ログインの場合は getCurrentWorker の中で /login へリダイレクトされるので、
+ * ここまで来た時点で操作者は確定している。
  */
 
 export type GuardResult =
-  | { ok: true; workerId: string | null }
+  | { ok: true; workerId: string }
   | { ok: false; message: string };
 
 /** 実績・予定・収穫の登録編集ができるか（all / allowed）。 */

@@ -45,8 +45,15 @@ DB の形がずれる。ずれた原因は後から追えないので、追加�
   同じマイグレーションで `workers.permission` の中間値を `edit_view` から
   `allowed` に改名しているので、**このファイルを流す前の `seed.sql` は使えない**
   （`seed.sql` も同時に更新済み）。
-- ログイン（`login_id` + 暗証番号）は未実装。実装するときは暗証番号の保存先を
-  新しいマイグレーションで `workers` に足すこと。
+- ログインは `login_id` + パスワード。パスワードは `workers` には持たせず、
+  Supabase Auth 側でハッシュ管理している。`signInWithPassword` はメールしか
+  受け付けないため、`20260902141658_link_workers_to_auth_users.sql` で
+  `workers.auth_email` を足し、`login_id` → `auth_email` → サインイン、
+  という順で引いている（`lib/auth/actions.ts`）。
+  作業者の追加時は Auth にユーザーを作ったうえで、その `id` と `email` を
+  `workers.auth_user_id` / `auth_email` に、`login_id` とあわせて入れること。
+  なお `login_id` の参照はログイン前＝未認証で走るので、RLS を締めるときは
+  この参照経路を必ず残すこと（残さないと誰もログインできなくなる）。
 - `20260816140000_crop_check_items.sql` で作物ごとの管理項目
   （`crop_check_items`）と、その日々の確認記録（`crop_check_records`）を足した。
   確認記録だけは `deleted_at` を持たない。チェックを外すのは削除ではなく

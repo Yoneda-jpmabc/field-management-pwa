@@ -8,9 +8,10 @@ import { CropUnitSettings } from "@/components/settings/CropUnitSettings";
 import { FieldSettings } from "@/components/settings/FieldSettings";
 import { CheckItemSettings } from "@/components/settings/CheckItemSettings";
 import { WeatherLocationSettings } from "@/components/settings/WeatherLocationSettings";
+import { SignOutButton } from "@/components/settings/SignOutButton";
 import { checkSupabaseHealth } from "@/lib/supabase/health";
 import { getCurrentWorker } from "@/lib/auth/session";
-import { canEditMasters } from "@/lib/auth/permissions";
+import { canEditMasters, PERMISSION_LABELS } from "@/lib/auth/permissions";
 import { fetchFieldSettingsData } from "@/lib/fields/queries";
 import { fetchCheckItemSettings } from "@/lib/crop-checks/queries";
 
@@ -110,6 +111,19 @@ export default async function SettingsPage() {
               title="天気の地点"
               description="画面上部に出す天気・気温・降水確率をどの地点で見るかを選びます。この端末だけの設定です。"
               control={<WeatherLocationSettings />}
+            />
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+            アカウント
+          </h2>
+          <Card className="divide-y divide-separator !p-0">
+            <SettingsRow
+              title={worker.name}
+              description={`権限: ${PERMISSION_LABELS[worker.permission]}`}
+              control={<SignOutButton />}
             />
           </Card>
         </section>

@@ -31,11 +31,9 @@ export default async function RecordsListPage({
   const anchor = isIsoDate(params.date) ? params.date : todayInTokyo();
 
   // 閲覧のみの人には自分の分だけを見せる。
-  // ログイン未実装のうちは誰の操作か分からないので、絞り込みは効かない。
-  const scopedWorkerId =
-    canViewEveryone(worker.permission) || worker.id === null
-      ? undefined
-      : worker.id;
+  const scopedWorkerId = canViewEveryone(worker.permission)
+    ? undefined
+    : worker.id;
 
   const period = resolvePeriod(unit, anchor);
   // 一覧本体と、編集シートで使うマスタ類を並列に取る。

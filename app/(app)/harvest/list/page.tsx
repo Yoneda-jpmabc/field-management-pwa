@@ -27,11 +27,9 @@ export default async function HarvestListPage({
   const period = resolvePeriod(unit, anchor);
 
   // 閲覧のみの人には、自分が収穫した分だけを見せる。
-  // ログイン未実装のうちは誰の操作か分からないので、絞り込みは効かない。
-  const scopedWorkerId =
-    canViewEveryone(worker.permission) || worker.id === null
-      ? undefined
-      : worker.id;
+  const scopedWorkerId = canViewEveryone(worker.permission)
+    ? undefined
+    : worker.id;
 
   const [records, workers] = await Promise.all([
     fetchHarvestRecords(period.from, period.to, scopedWorkerId),
