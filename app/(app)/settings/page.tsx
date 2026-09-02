@@ -9,6 +9,7 @@ import { FieldSettings } from "@/components/settings/FieldSettings";
 import { CheckItemSettings } from "@/components/settings/CheckItemSettings";
 import { WeatherLocationSettings } from "@/components/settings/WeatherLocationSettings";
 import { SignOutButton } from "@/components/settings/SignOutButton";
+import { PermissionPreview } from "@/components/settings/PermissionPreview";
 import { checkSupabaseHealth } from "@/lib/supabase/health";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditMasters } from "@/lib/auth/permissions";
@@ -125,6 +126,23 @@ export default async function SettingsPage() {
               description="この端末でログインしている人です。"
               control={<SignOutButton />}
             />
+            {/*
+              権限プレビューは全権限の人だけに出す。ここは「他の人にどう
+              見えるか」を確かめるためのもので、権限そのものは変わらない。
+            */}
+            {worker.realPermission === "all" && (
+              <div className="px-5 py-4">
+                <p className="text-[15px] font-medium text-foreground">
+                  権限の見え方を確認
+                </p>
+                <p className="mt-0.5 mb-3 text-sm text-foreground-secondary">
+                  他の権限の人に画面がどう見えるかを、ログインし直さずに
+                  確かめられます。確認中は登録・編集ができなくなりますが、
+                  権限そのものは変わりません。
+                </p>
+                <PermissionPreview current={worker.permission} />
+              </div>
+            )}
           </Card>
         </section>
 

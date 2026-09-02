@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { getCurrentWorker } from "@/lib/auth/session";
+import { getCurrentWorker, isPreviewingPermission } from "@/lib/auth/session";
 
 /**
  * ログインが要る画面すべての親。
@@ -18,7 +18,14 @@ export default async function AppLayout({
 }>) {
   // ナビゲーションの出し分けに権限が要るので、ここで引く。
   // 同じリクエスト内の各ページからの呼び出しは React の cache で共有される。
-  const { permission } = await getCurrentWorker();
+  const worker = await getCurrentWorker();
 
-  return <AppShell permission={permission}>{children}</AppShell>;
+  return (
+    <AppShell
+      permission={worker.permission}
+      previewing={isPreviewingPermission(worker)}
+    >
+      {children}
+    </AppShell>
+  );
 }

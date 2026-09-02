@@ -1,9 +1,11 @@
 import "server-only";
 
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { canViewEveryone, toPermission, type Permission } from "./permissions";
+import { effectivePermission, PREVIEW_COOKIE } from "./preview";
 
 /**
  * 「今は誰が操作しているか」を返す層。
@@ -19,8 +21,19 @@ import { canViewEveryone, toPermission, type Permission } from "./permissions";
 export type CurrentWorker = {
   id: string;
   name: string;
+  /**
+   * 画面の出し分けと権限確認が従う権限。
+   * 権限プレビュー中（lib/auth/preview.ts）は、選んだ権限がここに入る。
+   */
   permission: Permission;
+  /** workers に入っている本当の権限。プレビュー中かどうかの判定に使う。 */
+  realPermission: Permission;
 };
+
+/** 権限プレビューで、本来より低い権限の見え方を確認している最中か。 */
+export function isPreviewingPermission(worker: CurrentWorker): boolean {
+  return worker.permission !== worker.realPermission;
+}
 
 /**
  * ログインしていれば作業者を、していなければ null を返す。
@@ -50,10 +63,14 @@ export const findCurrentWorker = cache(
     // 退職者の Auth ユーザーを消し忘れても、workers 側を落とせば止まる。
     if (!data || !data.is_active || data.deleted_at !== null) return null;
 
+    const realPermission = toPermission(data.permission);
+    const preview = (await cookies()).get(PREVIEW_COOKIE)?.value;
+
     return {
       id: data.id,
       name: data.name,
-      permission: toPermission(data.permission),
+      permission: effectivePermission(realPermission, preview),
+      realPermission,
     };
   },
 );

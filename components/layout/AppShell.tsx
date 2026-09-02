@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { BottomTabBar } from "./BottomTabBar";
 import { MobileHeader } from "./MobileHeader";
+import { PreviewBanner } from "./PreviewBanner";
 import { ScrollReset } from "./ScrollReset";
 import type { Permission } from "@/lib/auth/permissions";
 
@@ -15,9 +16,13 @@ import type { Permission } from "@/lib/auth/permissions";
  */
 export function AppShell({
   permission,
+  previewing = false,
   children,
 }: {
+  /** 画面が従う権限。権限プレビュー中は、確認したい方の権限が入る。 */
   permission: Permission;
+  /** 権限プレビュー中か。true なら本文の上に確認中の帯を出す。 */
+  previewing?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -25,6 +30,7 @@ export function AppShell({
       <Sidebar permission={permission} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <MobileHeader />
+        {previewing && <PreviewBanner permission={permission} />}
         <main
           id="app-scroll"
           className="app-scroll flex-1 overflow-y-auto overscroll-contain px-4 pt-6 pb-8 md:px-10 md:pt-10 md:pb-10"

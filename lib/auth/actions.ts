@@ -1,8 +1,12 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { findCurrentWorker } from "./session";
+import { PREVIEW_COOKIE } from "./preview";
+import { PERMISSIONS, type Permission } from "./permissions";
 
 export type LoginState = { message: string } | null;
 
@@ -57,10 +61,46 @@ export async function signInWithLoginId(
   redirect("/");
 }
 
+/**
+ * 権限プレビューの切り替え。null を渡すと解除して本来の権限に戻る。
+ *
+ * 効くのは画面と Server Action の権限確認まで。DB の RLS は本人の
+ * workers.permission を見ているので、プレビュー中でも DB 側の許可は変わらない。
+ *
+ * Cookie は手で書けるので、ここで必ず本人の本当の権限を確かめる。
+ * 全権限の人しか使えず、しかも下げる方向にしか効かない。
+ */
+export async function setPreviewPermission(
+  next: Permission | null,
+): Promise<void> {
+  const worker = await findCurrentWorker();
+  if (worker?.realPermission !== "all") return;
+
+  const store = await cookies();
+  if (next === null || next === "all") {
+    store.delete(PREVIEW_COOKIE);
+  } else if ((PERMISSIONS as readonly string[]).includes(next)) {
+    store.set(PREVIEW_COOKIE, next, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      // 消し忘れたまま翌日を迎えても、開き直せば本来の権限に戻る。
+      maxAge: 60 * 60 * 12,
+    });
+  }
+
+  // 権限は全画面の出し分けに効くので、レイアウトごと引き直す。
+  revalidatePath("/", "layout");
+}
+
 /** ログアウトして /login へ戻す。 */
 export async function signOut(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
+
+  // 権限プレビューを残したままにすると、次にログインした人の画面が
+  // 前の人の確認状態のまま始まってしまう。
+  (await cookies()).delete(PREVIEW_COOKIE);
 
   // 前の人の画面が Router Cache に残ったままにならないよう捨てる。
   revalidatePath("/", "layout");
