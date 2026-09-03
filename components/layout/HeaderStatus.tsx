@@ -9,6 +9,7 @@ import {
   refreshWeather,
   subscribeWeather,
 } from "@/lib/weather/current";
+import { WeatherIcon } from "../icons";
 
 /**
  * 日付は必ず日本時間で出す。
@@ -22,14 +23,27 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   weekday: "short",
 });
 
+/** ヘッダー左側の「今日の日付」。単独の要素にしているのは、右側の天気・同期状態と役割が違うため。 */
+export function HeaderDate() {
+  return (
+    // 日付をまたいだ直後だけサーバーと 1 日ずれうるので、警告は抑える。
+    <span
+      suppressHydrationWarning
+      className="shrink-0 text-[15px] font-semibold tracking-tight text-foreground"
+    >
+      {dateFormatter.format(new Date())}
+    </span>
+  );
+}
+
 /**
- * ヘッダーの「今日の日付・今の気温」。
+ * ヘッダー右側、同期状態アイコンの左に置く「天気アイコン＋今の気温」。
  *
- * 天気と降水確率もまとめて取ってあるが（lib/weather/current.ts）、
- * ここには出さない。ヘッダーは作業中に一瞬見る場所なので、
- * 数字を並べるほど読み取りに時間がかかる。細かい予報は別の画面で出す。
+ * 降水確率もまとめて取ってあるが（lib/weather/current.ts）、ここには出さない。
+ * ヘッダーは作業中に一瞬見る場所なので、数字を並べるほど読み取りに時間がかかる。
+ * 細かい予報は別の画面で出す。
  */
-export function HeaderStatus() {
+export function HeaderWeather() {
   const location = findLocation(useLocationId());
 
   const weather = useSyncExternalStore(
@@ -59,28 +73,19 @@ export function HeaderStatus() {
     };
   }, [location]);
 
-  return (
-    <div className="flex min-w-0 items-baseline gap-2">
-      {/* 日付をまたいだ直後だけサーバーと 1 日ずれうるので、警告は抑える。 */}
-      <span
-        suppressHydrationWarning
-        className="shrink-0 text-[15px] font-semibold tracking-tight text-foreground"
-      >
-        {dateFormatter.format(new Date())}
-      </span>
+  if (!weather) {
+    // 取得できるまでは幅だけ確保して、値が入ったときに隣の同期アイコンが動かないようにする。
+    return <span aria-hidden className="inline-block h-3 w-12 rounded-full bg-surface-secondary" />;
+  }
 
-      {weather ? (
-        <span
-          title={`${location.label}の気温`}
-          className="truncate text-[13px] font-medium tabular-nums text-foreground-secondary"
-        >
-          {Math.round(weather.celsius * 10) / 10}°C
-          <span className="sr-only">（{location.label}の気温）</span>
-        </span>
-      ) : (
-        // 取得できるまでは幅だけ確保して、値が入ったときに日付がずれないようにする。
-        <span aria-hidden className="inline-block h-3 w-10 rounded-full bg-surface-secondary" />
-      )}
+  return (
+    <div
+      title={`${location.label}の気温`}
+      className="flex shrink-0 items-center gap-1 text-[13px] font-medium tabular-nums text-foreground-secondary"
+    >
+      <WeatherIcon code={weather.weatherCode} isDay={weather.isDay} className="h-4 w-4 shrink-0" />
+      {Math.round(weather.celsius * 10) / 10}°C
+      <span className="sr-only">（{location.label}の気温）</span>
     </div>
   );
 }
