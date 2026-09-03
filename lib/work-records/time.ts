@@ -1,6 +1,6 @@
-export const TIME_STEP_MINUTES = 10;
+export const TIME_STEP_MINUTES = 30;
 
-/** HH:mm を 10 分単位に丸める。空文字や不正値はそのまま返す。 */
+/** HH:mm を 30 分単位に丸める。空文字や不正値はそのまま返す。 */
 export function snapTimeToStep(
   value: string,
   stepMinutes: number = TIME_STEP_MINUTES,
