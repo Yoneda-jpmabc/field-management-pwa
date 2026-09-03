@@ -37,7 +37,12 @@ export function AppShell({
           className="app-scroll flex-1 overflow-y-auto overscroll-contain px-4 pt-6 pb-8 md:px-10 md:pt-10 md:pb-10"
         >
           <ScrollReset />
-          <div className="mx-auto w-full max-w-5xl">{children}</div>
+          {/*
+            h-full は、画面の高さぴったりに収めたい本文（実績登録の横スライド）
+            のためのもの。中身がこれより高いページは、これまでどおり <main> 側に
+            はみ出して縦に転がるだけで、見た目は変わらない。
+          */}
+          <div className="mx-auto h-full w-full max-w-5xl">{children}</div>
         </main>
         <SubTabBar permission={permission} />
         <BottomTabBar permission={permission} />

@@ -104,6 +104,18 @@ body {
   scroll-padding-top: 1rem;
 }
 
+/*
+ * 横スライドのつまみは出さない。どこにいるかは下のドットで示しており、
+ * つまみが出ると本文の下に細い線が1本増えて、ボタン列と紛らわしくなる。
+ */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

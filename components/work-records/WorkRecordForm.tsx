@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CropIcon } from "@/components/icons";
+import { CropIcon, IconChevronRight } from "@/components/icons";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import {
   snapTimeToStep,
@@ -52,6 +52,18 @@ function workerGroupLabel(group: string | null): string {
 const dateTimeInputClass =
   "control-focus min-h-12 w-full min-w-0 rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground";
 
+/**
+ * 横スライドの並び順。実際のカードの並びと 1 対 1 で対応させること
+ * （目印のドットと ←→ ボタンの端の判定がこれを見ている）。
+ */
+const STEP_TITLES = ["日時", "作業者", "区分", "作業種類", "圃場", "メモ"];
+
+/** 今どのカードが正面に来ているか。端は必ず 0 と最後に丸める。 */
+function nearestStep(track: HTMLElement): number {
+  const raw = Math.round(track.scrollLeft / track.clientWidth);
+  return Math.min(Math.max(raw, 0), STEP_TITLES.length - 1);
+}
+
 function createInitialState(today: string): WorkRecordFormState {
   return {
     workDate: today,
@@ -84,12 +96,59 @@ export function WorkRecordForm({
   const [pending, startTransition] = useTransition();
   const confirmRef = useRef<HTMLDivElement>(null);
 
+  // モバイルは 6 枚のカードを横スライドで見せる。今どの枚目かは、指での
+  // スワイプと ←→ ボタンで食い違わないよう、実際のスクロール位置から求める。
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
+  // ←→ ボタンの起点。step は滑っている最中の通過点でも動くので、
+  // それを起点にすると連打が 1 枚ぶんしか進まない。指なりボタンなりで
+  // 止まったところだけをここに入れる。
+  const settledStep = useRef(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // 確認サマリーはフォーム末尾に出るため、開いたら見える位置まで運ぶ
   useEffect(() => {
     if (confirming) {
       confirmRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [confirming]);
+
+  useEffect(
+    () => () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    },
+    [],
+  );
+
+  // md 以上では横スクロールしない（overflow が visible）ので scrollLeft は
+  // 常に 0 のまま。0 枚目を指し続けるだけで、矢印もドットも出ない。
+  const handleTrackScroll = () => {
+    const track = trackRef.current;
+    if (!track || track.clientWidth === 0) return;
+    setStep((prev) => {
+      const next = nearestStep(track);
+      return prev === next ? prev : next;
+    });
+    // 動きが止まってから起点を更新する。
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      const settled = trackRef.current;
+      if (settled && settled.clientWidth > 0) {
+        settledStep.current = nearestStep(settled);
+      }
+    }, 120);
+  };
+
+  const goToStep = (index: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const clamped = Math.min(Math.max(index, 0), STEP_TITLES.length - 1);
+    // カード幅は端数を持つので index × 幅だとじわじわずれる。実物の位置を使う。
+    const slide = track.children[clamped] as HTMLElement | undefined;
+    if (!slide) return;
+    settledStep.current = clamped;
+    track.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
+  };
 
   // 26人を平らに並べると探しにくいので、雇用区分ごとの見出し付きに分ける。
   // 並び順は display_order のまま（区分内の順序も保たれる）。
@@ -199,6 +258,9 @@ export function WorkRecordForm({
       if (result.ok) {
         setForm(createInitialState(today));
         setConfirming(false);
+        // 次の入力を前の続きから始めさせない。step は scroll イベントが直す。
+        settledStep.current = 0;
+        trackRef.current?.scrollTo({ left: 0 });
         setFeedback({
           tone: "success",
           message: `${result.insertedCount}件の作業実績を登録しました。`,
@@ -224,226 +286,337 @@ export function WorkRecordForm({
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-4">
-      <FormCard title="日時" required>
-        {/* 幅を固定すると端末のロケール次第で中身がはみ出すため、
-            狭い画面は 2 列グリッド（作業日は 2 列ぶん・入力だけ幅を抑える）、
-            広い画面は 3 つを 1 行に並べる。 */}
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-          <label className="col-span-2 block min-w-0 sm:w-56">
-            <span className="mb-1.5 block text-sm text-foreground-secondary">
-              作業日
-            </span>
-            <input
-              type="date"
-              value={form.workDate}
-              onChange={(event) => update("workDate", event.target.value)}
-              className={`${dateTimeInputClass} max-w-56`}
-            />
-          </label>
-          <label className="block min-w-0 sm:w-40">
-            <span className="mb-1.5 block text-sm text-foreground-secondary">
-              開始
-            </span>
-            <input
-              type="time"
-              step={TIME_STEP_MINUTES * 60}
-              value={form.startTime}
-              onChange={(event) => update("startTime", event.target.value)}
-              onBlur={(event) =>
-                update("startTime", snapTimeToStep(event.target.value))
-              }
-              className={dateTimeInputClass}
-            />
-          </label>
-          <label className="block min-w-0 sm:w-40">
-            <span className="mb-1.5 block text-sm text-foreground-secondary">
-              終了
-            </span>
-            <input
-              type="time"
-              step={TIME_STEP_MINUTES * 60}
-              value={form.endTime}
-              onChange={(event) => update("endTime", event.target.value)}
-              onBlur={(event) =>
-                update("endTime", snapTimeToStep(event.target.value))
-              }
-              className={dateTimeInputClass}
-            />
-          </label>
-        </div>
-        {spansLunchBreak(form.startTime, form.endTime) && (
-          <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
-            <input
-              type="checkbox"
-              checked={form.worksThroughLunch}
-              onChange={(event) =>
-                update("worksThroughLunch", event.target.checked)
-              }
-              className="control-focus mt-0.5 size-5 shrink-0 rounded border-separator-strong"
-            />
-            <span>
-              休憩を含まない（12:00〜13:00をまたいでも休憩なしで作業した）
-              <br />
-              <span className="text-foreground-tertiary">
-                未チェックの場合、12:00〜13:00の1時間を集計から差し引きます。
-              </span>
-            </span>
-          </label>
-        )}
-      </FormCard>
+    <div className="flex h-full flex-col gap-4 md:h-auto md:pb-4">
+      {/*
+        モバイルは横スクロール＋スナップで 1 枚ずつ見せる。縦に 6 枚積むと
+        端から端まで転がす必要があり、片手だとつらいため。カードの中身が
+        入りきらないときだけ、そのカードの中で縦に転がす。
+        md 以上はマウスで縦に読めるので、これまでどおり縦に積む。
 
-      <FormCard
-        title="作業者"
-        required
-        hint="選んだ人数分のレコードをまとめて登録します。"
-      >
-        <div className="flex flex-col gap-4">
-          {workerGroups.map((group) => (
-            <div key={group.label}>
-              <p className="mb-2 text-xs font-medium text-foreground-tertiary">
-                {group.label}
-              </p>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {group.members.map((worker) => (
-                  <GridChip
-                    key={worker.id}
-                    label={worker.label}
-                    selected={form.selectedWorkerIds.includes(worker.id)}
-                    onClick={() => toggleWorker(worker.id)}
+        確認サマリーはこの枠に重ねて出す。display:none で隠すと、ブラウザが
+        横スクロール位置を 0 に戻してしまい、「戻る」で 1 枚目へ飛ぶため。
+      */}
+      <div className="relative flex min-h-0 flex-1 flex-col md:flex-none">
+        <div
+          ref={trackRef}
+          onScroll={handleTrackScroll}
+          className="no-scrollbar flex min-h-0 flex-1 snap-x snap-mandatory scroll-smooth overflow-x-auto overflow-y-hidden overscroll-x-contain md:flex-none md:snap-none md:flex-col md:gap-4 md:overflow-visible"
+        >
+          <Slide>
+            <FormCard title="日時" required>
+              {/* 幅を固定すると端末のロケール次第で中身がはみ出すため、
+                狭い画面は 2 列グリッド（作業日は 2 列ぶん・入力だけ幅を抑える）、
+                広い画面は 3 つを 1 行に並べる。 */}
+              <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+                <label className="col-span-2 block min-w-0 sm:w-56">
+                  <span className="mb-1.5 block text-sm text-foreground-secondary">
+                    作業日
+                  </span>
+                  <input
+                    type="date"
+                    value={form.workDate}
+                    onChange={(event) => update("workDate", event.target.value)}
+                    className={`${dateTimeInputClass} max-w-56`}
                   />
+                </label>
+                <label className="block min-w-0 sm:w-40">
+                  <span className="mb-1.5 block text-sm text-foreground-secondary">
+                    開始
+                  </span>
+                  <input
+                    type="time"
+                    step={TIME_STEP_MINUTES * 60}
+                    value={form.startTime}
+                    onChange={(event) =>
+                      update("startTime", event.target.value)
+                    }
+                    onBlur={(event) =>
+                      update("startTime", snapTimeToStep(event.target.value))
+                    }
+                    className={dateTimeInputClass}
+                  />
+                </label>
+                <label className="block min-w-0 sm:w-40">
+                  <span className="mb-1.5 block text-sm text-foreground-secondary">
+                    終了
+                  </span>
+                  <input
+                    type="time"
+                    step={TIME_STEP_MINUTES * 60}
+                    value={form.endTime}
+                    onChange={(event) => update("endTime", event.target.value)}
+                    onBlur={(event) =>
+                      update("endTime", snapTimeToStep(event.target.value))
+                    }
+                    className={dateTimeInputClass}
+                  />
+                </label>
+              </div>
+              {spansLunchBreak(form.startTime, form.endTime) && (
+                <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
+                  <input
+                    type="checkbox"
+                    checked={form.worksThroughLunch}
+                    onChange={(event) =>
+                      update("worksThroughLunch", event.target.checked)
+                    }
+                    className="control-focus mt-0.5 size-5 shrink-0 rounded border-separator-strong"
+                  />
+                  <span>
+                    休憩を含まない（12:00〜13:00をまたいでも休憩なしで作業した）
+                    <br />
+                    <span className="text-foreground-tertiary">
+                      未チェックの場合、12:00〜13:00の1時間を集計から差し引きます。
+                    </span>
+                  </span>
+                </label>
+              )}
+            </FormCard>
+          </Slide>
+          <Slide>
+            <FormCard
+              title="作業者"
+              required
+              hint="選んだ人数分のレコードをまとめて登録します。"
+            >
+              <div className="flex flex-col gap-4">
+                {workerGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="mb-2 text-xs font-medium text-foreground-tertiary">
+                      {group.label}
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {group.members.map((worker) => (
+                        <GridChip
+                          key={worker.id}
+                          label={worker.label}
+                          selected={form.selectedWorkerIds.includes(worker.id)}
+                          onClick={() => toggleWorker(worker.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
+            </FormCard>
+          </Slide>
+          <Slide>
+            <FormCard
+              title="区分"
+              hint="タップで選択。もう一度タップで解除できます。"
+            >
+              {workCategories.length === 0 ? (
+                <p className="text-sm text-foreground-tertiary">
+                  作業区分マスタが空です。登録すればここに一覧が出ます。
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {workCategories.map((category) => (
+                    <GridChip
+                      key={category.id}
+                      label={category.label}
+                      /* 名前が隣にあるのでアイコンは装飾扱い */
+                      icon={
+                        <CropIcon name={category.label} className="size-5" />
+                      }
+                      selected={form.categoryId === category.id}
+                      onClick={() =>
+                        selectCategory(
+                          form.categoryId === category.id ? null : category.id,
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </FormCard>
+          </Slide>
+          <Slide>
+            <FormCard
+              title="作業種類"
+              hint={
+                form.categoryId
+                  ? "選んだ区分に合わせて表示しています。マスタに無ければ自由入力できます。"
+                  : "区分を選ぶと作業種類が表示されます。"
+              }
+            >
+              {visibleWorkTypes.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {visibleWorkTypes.map((type) => (
+                    <Chip
+                      key={type.id}
+                      selected={form.workTypeId === type.id}
+                      onClick={() =>
+                        update(
+                          "workTypeId",
+                          form.workTypeId === type.id ? null : type.id,
+                        )
+                      }
+                    >
+                      {type.label}
+                    </Chip>
+                  ))}
+                </div>
+              )}
+              <input
+                type="text"
+                list="work-type-suggestions"
+                value={form.workTypeRaw}
+                onChange={(event) => update("workTypeRaw", event.target.value)}
+                placeholder={
+                  visibleWorkTypes.length > 0
+                    ? "その他（自由入力）"
+                    : "例: 防除 / 施肥 / 収穫"
+                }
+                className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
+              />
+              <datalist id="work-type-suggestions">
+                {workTypeSuggestions.map((suggestion) => (
+                  <option key={suggestion.value} value={suggestion.value} />
+                ))}
+              </datalist>
+              {workTypeSuggestions.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {workTypeSuggestions.slice(0, 8).map((suggestion) => (
+                    <Chip
+                      key={suggestion.value}
+                      selected={form.workTypeRaw === suggestion.value}
+                      onClick={() =>
+                        update(
+                          "workTypeRaw",
+                          form.workTypeRaw === suggestion.value
+                            ? ""
+                            : suggestion.value,
+                        )
+                      }
+                    >
+                      {suggestion.value}
+                      <span className="ml-1 text-xs opacity-60">
+                        {suggestion.count}
+                      </span>
+                    </Chip>
+                  ))}
+                </div>
+              )}
+            </FormCard>
+          </Slide>
+          <Slide>
+            {/* 圃場は 16 件あり、1 行 1 件だと縦スクロールが長くなるので
+                作物・作業者と同じグリッドに揃える。 */}
+            <FormCard title="圃場" hint="未設定のまま登録できます。">
+              {fields.length === 0 ? (
+                <p className="text-sm text-foreground-tertiary">
+                  圃場マスタが空です。登録すればここに一覧が出ます。
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {fields.map((field) => (
+                    <GridChip
+                      key={field.id}
+                      label={field.label}
+                      selected={form.fieldId === field.id}
+                      onClick={() =>
+                        update(
+                          "fieldId",
+                          form.fieldId === field.id ? null : field.id,
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </FormCard>
+          </Slide>
+          <Slide>
+            <FormCard title="メモ">
+              <textarea
+                value={form.memo}
+                onChange={(event) => update("memo", event.target.value)}
+                rows={3}
+                placeholder="任意"
+                className="control-focus w-full resize-y rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground placeholder:text-foreground-tertiary"
+              />
+            </FormCard>
+          </Slide>
+        </div>
+
+        {confirming && (
+          <div
+            ref={confirmRef}
+            className="surface-card absolute inset-0 z-10 overflow-y-auto p-5 md:static md:mt-4 md:overflow-visible"
+          >
+            <h2 className="text-[15px] font-semibold text-foreground">
+              この内容で登録されます
+            </h2>
+            <dl className="mt-3 flex flex-col gap-2 text-sm">
+              <SummaryRow label="作業日" value={form.workDate} />
+              <SummaryRow label="時間" value={timeLabel} />
+              {spansLunchBreak(form.startTime, form.endTime) && (
+                <SummaryRow
+                  label="休憩"
+                  value={form.worksThroughLunch ? "含まない" : "含む（-1時間）"}
+                />
+              )}
+              <SummaryRow label="区分" value={categoryLabel} />
+              <SummaryRow label="作業種類" value={workTypeLabel} />
+              <SummaryRow label="圃場" value={fieldLabel} />
+              <SummaryRow
+                label="作業者"
+                value={selectedWorkerLabels.join("、") || null}
+              />
+              <SummaryRow label="メモ" value={form.memo.trim() || null} />
+            </dl>
+            <p className="mt-4 text-sm font-medium text-foreground">
+              {selectedWorkerLabels.length}件のレコードを作成します。
+            </p>
+            {missing.length > 0 && (
+              <p className="mt-1.5 text-sm text-warning">
+                未設定: {missing.join("・")}
+              </p>
+            )}
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={pending}
+                className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-4 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary"
+              >
+                {pending ? "登録中…" : "確定して登録"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                disabled={pending}
+                className="control-focus pressable min-h-11 rounded-full border border-separator-strong px-4 text-[15px] font-medium text-foreground-secondary hover:bg-surface-secondary disabled:border-separator disabled:text-foreground-tertiary"
+              >
+                戻る
+              </button>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* 今どこにいるかの目印。タップでその項目へ飛べる。 */}
+      {!confirming && (
+        <div className="flex items-center justify-center md:hidden">
+          {STEP_TITLES.map((title, index) => (
+            <button
+              key={title}
+              type="button"
+              onClick={() => goToStep(index)}
+              aria-label={`${title}へ`}
+              aria-current={index === step}
+              className="control-focus flex h-6 w-6 items-center justify-center rounded-full"
+            >
+              <span
+                className={`block size-1.5 rounded-full transition-colors ${
+                  index === step ? "bg-accent" : "bg-separator-strong"
+                }`}
+              />
+            </button>
           ))}
         </div>
-      </FormCard>
-
-      <FormCard title="区分" hint="タップで選択。もう一度タップで解除できます。">
-        {workCategories.length === 0 ? (
-          <p className="text-sm text-foreground-tertiary">
-            作業区分マスタが空です。登録すればここに一覧が出ます。
-          </p>
-        ) : (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {workCategories.map((category) => (
-              <GridChip
-                key={category.id}
-                label={category.label}
-                /* 名前が隣にあるのでアイコンは装飾扱い */
-                icon={<CropIcon name={category.label} className="size-5" />}
-                selected={form.categoryId === category.id}
-                onClick={() =>
-                  selectCategory(
-                    form.categoryId === category.id ? null : category.id,
-                  )
-                }
-              />
-            ))}
-          </div>
-        )}
-      </FormCard>
-
-      <FormCard
-        title="作業種類"
-        hint={
-          form.categoryId
-            ? "選んだ区分に合わせて表示しています。マスタに無ければ自由入力できます。"
-            : "区分を選ぶと作業種類が表示されます。"
-        }
-      >
-        {visibleWorkTypes.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {visibleWorkTypes.map((type) => (
-              <Chip
-                key={type.id}
-                selected={form.workTypeId === type.id}
-                onClick={() =>
-                  update(
-                    "workTypeId",
-                    form.workTypeId === type.id ? null : type.id,
-                  )
-                }
-              >
-                {type.label}
-              </Chip>
-            ))}
-          </div>
-        )}
-        <input
-          type="text"
-          list="work-type-suggestions"
-          value={form.workTypeRaw}
-          onChange={(event) => update("workTypeRaw", event.target.value)}
-          placeholder={
-            visibleWorkTypes.length > 0
-              ? "その他（自由入力）"
-              : "例: 防除 / 施肥 / 収穫"
-          }
-          className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
-        />
-        <datalist id="work-type-suggestions">
-          {workTypeSuggestions.map((suggestion) => (
-            <option key={suggestion.value} value={suggestion.value} />
-          ))}
-        </datalist>
-        {workTypeSuggestions.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {workTypeSuggestions.slice(0, 8).map((suggestion) => (
-              <Chip
-                key={suggestion.value}
-                selected={form.workTypeRaw === suggestion.value}
-                onClick={() =>
-                  update(
-                    "workTypeRaw",
-                    form.workTypeRaw === suggestion.value
-                      ? ""
-                      : suggestion.value,
-                  )
-                }
-              >
-                {suggestion.value}
-                <span className="ml-1 text-xs opacity-60">
-                  {suggestion.count}
-                </span>
-              </Chip>
-            ))}
-          </div>
-        )}
-      </FormCard>
-
-      {/* 圃場は 16 件あり、1 行 1 件だと縦スクロールが長くなるので
-          作物・作業者と同じグリッドに揃える。 */}
-      <FormCard title="圃場" hint="未設定のまま登録できます。">
-        {fields.length === 0 ? (
-          <p className="text-sm text-foreground-tertiary">
-            圃場マスタが空です。登録すればここに一覧が出ます。
-          </p>
-        ) : (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {fields.map((field) => (
-              <GridChip
-                key={field.id}
-                label={field.label}
-                selected={form.fieldId === field.id}
-                onClick={() =>
-                  update("fieldId", form.fieldId === field.id ? null : field.id)
-                }
-              />
-            ))}
-          </div>
-        )}
-      </FormCard>
-
-      <FormCard title="メモ">
-        <textarea
-          value={form.memo}
-          onChange={(event) => update("memo", event.target.value)}
-          rows={3}
-          placeholder="任意"
-          className="control-focus w-full resize-y rounded-[10px] border border-separator-strong bg-surface px-3 py-2.5 text-base text-foreground placeholder:text-foreground-tertiary"
-        />
-      </FormCard>
+      )}
 
       {feedback && (
         <div
@@ -466,76 +639,78 @@ export function WorkRecordForm({
         </div>
       )}
 
-      {confirming && (
-        <div ref={confirmRef} className="surface-card p-5">
-          <h2 className="text-[15px] font-semibold text-foreground">
-            この内容で登録されます
-          </h2>
-          <dl className="mt-3 flex flex-col gap-2 text-sm">
-            <SummaryRow label="作業日" value={form.workDate} />
-            <SummaryRow label="時間" value={timeLabel} />
-            {spansLunchBreak(form.startTime, form.endTime) && (
-              <SummaryRow
-                label="休憩"
-                value={form.worksThroughLunch ? "含まない" : "含む（-1時間）"}
-              />
-            )}
-            <SummaryRow label="区分" value={categoryLabel} />
-            <SummaryRow label="作業種類" value={workTypeLabel} />
-            <SummaryRow label="圃場" value={fieldLabel} />
-            <SummaryRow
-              label="作業者"
-              value={selectedWorkerLabels.join("、") || null}
-            />
-            <SummaryRow label="メモ" value={form.memo.trim() || null} />
-          </dl>
-          <p className="mt-4 text-sm font-medium text-foreground">
-            {selectedWorkerLabels.length}件のレコードを作成します。
-          </p>
-          {missing.length > 0 && (
-            <p className="mt-1.5 text-sm text-warning">
-              未設定: {missing.join("・")}
-            </p>
-          )}
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={pending}
-              className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-4 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary"
-            >
-              {pending ? "登録中…" : "確定して登録"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              disabled={pending}
-              className="control-focus pressable min-h-11 rounded-full border border-separator-strong px-4 text-[15px] font-medium text-foreground-secondary hover:bg-surface-secondary disabled:border-separator disabled:text-foreground-tertiary"
-            >
-              戻る
-            </button>
-          </div>
+      {/* 送信ボタンの左右に前後の矢印。親指の届く場所に操作を集める。 */}
+      {!confirming && (
+        <div className="sticky bottom-0 flex items-center gap-2">
+          <StepArrow
+            direction="prev"
+            label="前の項目へ"
+            disabled={step === 0}
+            onClick={() => goToStep(settledStep.current - 1)}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setFeedback(null);
+              setConfirming(true);
+            }}
+            disabled={!canSubmit}
+            // 押せないときは薄くするのではなく、色そのものを地の灰色に落とす。
+            // 半透明だと下の本文が透けて、文字が読みにくくなる。
+            className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-5 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary disabled:shadow-none md:mx-auto md:flex-none"
+          >
+            {canSubmit
+              ? `内容を確認（${form.selectedWorkerIds.length}件）`
+              : "作業者を選択してください"}
+          </button>
+          <StepArrow
+            direction="next"
+            label="次の項目へ"
+            disabled={step === STEP_TITLES.length - 1}
+            onClick={() => goToStep(settledStep.current + 1)}
+          />
         </div>
       )}
-
-      {!confirming && (
-        <button
-          type="button"
-          onClick={() => {
-            setFeedback(null);
-            setConfirming(true);
-          }}
-          disabled={!canSubmit}
-          // 押せないときは薄くするのではなく、色そのものを地の灰色に落とす。
-          // 半透明だと下の本文が透けて、文字が読みにくくなる。
-          className="control-focus pressable sticky bottom-2 min-h-11 self-center rounded-full bg-accent px-5 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary disabled:shadow-none"
-        >
-          {canSubmit
-            ? `内容を確認（${form.selectedWorkerIds.length}件）`
-            : "作業者を選択してください"}
-        </button>
-      )}
     </div>
+  );
+}
+
+/**
+ * スライド 1 枚ぶんの枠。モバイルは画面幅ちょうどで、はみ出す中身は
+ * この中だけで縦に転がす。md 以上では枠として何もしない。
+ */
+function Slide({ children }: { children: ReactNode }) {
+  return (
+    <div className="w-full shrink-0 snap-center overflow-y-auto md:w-auto md:overflow-visible">
+      {children}
+    </div>
+  );
+}
+
+/** スライドを 1 枚送る矢印。モバイルだけに出す。 */
+function StepArrow({
+  direction,
+  label,
+  disabled,
+  onClick,
+}: {
+  direction: "prev" | "next";
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="control-focus pressable flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-separator-strong bg-surface text-foreground-secondary disabled:border-separator disabled:text-foreground-tertiary md:hidden"
+    >
+      <IconChevronRight
+        className={`h-4 w-4 ${direction === "prev" ? "rotate-180" : ""}`}
+      />
+    </button>
   );
 }
 
@@ -632,7 +807,9 @@ function GridChip({
           {icon}
         </span>
       )}
-      <span className={`whitespace-nowrap ${gridLabelClass(label, Boolean(icon))}`}>
+      <span
+        className={`whitespace-nowrap ${gridLabelClass(label, Boolean(icon))}`}
+      >
         {label}
       </span>
     </Chip>
