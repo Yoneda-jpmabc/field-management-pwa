@@ -657,7 +657,7 @@ export function WorkRecordForm({
             disabled={!canSubmit}
             // 押せないときは薄くするのではなく、色そのものを地の灰色に落とす。
             // 半透明だと下の本文が透けて、文字が読みにくくなる。
-            className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-5 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary disabled:shadow-none md:mx-auto md:flex-none"
+            className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-5 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary md:mx-auto md:flex-none"
           >
             {canSubmit
               ? `内容を確認（${form.selectedWorkerIds.length}件）`

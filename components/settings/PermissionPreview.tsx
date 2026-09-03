@@ -41,7 +41,7 @@ export function PermissionPreview({ current }: { current: Permission }) {
             }
             className={`control-focus flex min-h-11 flex-1 items-center justify-center rounded-full px-3 text-[15px] font-medium whitespace-nowrap transition-colors disabled:opacity-50 ${
               active
-                ? "bg-surface text-foreground shadow-[var(--shadow-card)]"
+                ? "bg-surface text-foreground"
                 : "text-foreground-secondary hover:text-foreground active:bg-surface/60"
             }`}
           >

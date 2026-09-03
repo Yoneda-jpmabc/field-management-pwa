@@ -1,10 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono } from "next/font/google";
+import { Geist_Mono, Zen_Kaku_Gothic_New } from "next/font/google";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+/*
+ * 本文フォント。太さの幅（400〜900）が要るのでシステムフォントでは代替できない。
+ * オフライン前提のアプリなので CDN 参照ではなく next/font で self-host する。
+ */
+const zenKaku = Zen_Kaku_Gothic_New({
+  variable: "--font-zen-kaku",
+  weight: ["400", "700", "900"],
+  // subsets を指定すると日本語グリフが落ちる（このフォントは latin 系しか
+  // サブセット指定できない）。省略して全スライスを取り込み、代わりに
+  // preload: false でプリロードだけ切る。初回に必要な分だけ読み込まれ、
+  // 以降は Service Worker のキャッシュに乗る。
+  preload: false,
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -13,8 +28,8 @@ export const viewport: Viewport = {
   // ノッチ・ホームバー領域まで描画し、safe-area-inset で避ける（タブバーが対応済み）
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5f5f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f4f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#101215" },
   ],
 };
 
@@ -47,7 +62,7 @@ export default function RootLayout({
       lang="ja"
       data-theme="light"
       suppressHydrationWarning
-      className={`${geistMono.variable} h-full antialiased`}
+      className={`${geistMono.variable} ${zenKaku.variable} h-full antialiased`}
     >
       <head>
         <script

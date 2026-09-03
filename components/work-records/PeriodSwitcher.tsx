@@ -43,7 +43,7 @@ export function PeriodSwitcher({
             onClick={() => go(candidate, anchor)}
             className={`control-focus min-h-11 flex-1 rounded-full text-center text-[15px] font-medium transition-colors ${
               candidate === unit
-                ? "bg-surface text-foreground shadow-[var(--shadow-card)]"
+                ? "bg-surface text-foreground"
                 : "text-foreground-secondary hover:text-foreground active:bg-surface/60"
             }`}
           >

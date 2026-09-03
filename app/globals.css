@@ -2,46 +2,50 @@
 
 :root,
 [data-theme="light"] {
-  --background: #f5f5f7;
+  --background: #f5f4f1;
   --surface: #ffffff;
-  --surface-secondary: #ebebee;
-  --foreground: #1d1d1f;
-  --foreground-secondary: #6e6e73;
-  --foreground-tertiary: #86868b;
-  --separator: rgba(0, 0, 0, 0.08);
-  --separator-strong: rgba(0, 0, 0, 0.14);
-  --accent: #0071e3;
-  --accent-hover: #0077ed;
+  --surface-secondary: #f0eee9;
+  --foreground: #14130f;
+  --foreground-secondary: #6e6a5e;
+  --foreground-tertiary: #8e8a7d;
+  --separator: #edeae3;
+  --separator-strong: #cfcbc0;
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
   --accent-foreground: #ffffff;
-  --success: #248a3d;
-  --success-bg: #e7f7ec;
-  --warning: #c26200;
-  --warning-bg: #fdf1e3;
-  --danger: #d70015;
-  --danger-bg: #fbe9e9;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --accent-bg: #fdece2;
+  --success: #256e36;
+  --success-bg: #e7f2e9;
+  --warning: #a85b00;
+  --warning-bg: #fdf3e3;
+  --danger: #b42318;
+  --danger-bg: #fbe9e7;
+  /*
+   * 面の区別は 1px の罫線と背景色だけでつける方針にしたので、カードの影は持たない。
+   * 影が残るのは、本文の上に重ねるボトムシートだけ。
+   */
   --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] {
-  --background: #000000;
-  --surface: #1c1c1e;
-  --surface-secondary: #2c2c2e;
-  --foreground: #f5f5f7;
-  --foreground-secondary: #98989d;
-  --foreground-tertiary: #8e8e93;
-  --separator: rgba(255, 255, 255, 0.1);
-  --separator-strong: rgba(255, 255, 255, 0.16);
-  --accent: #0a84ff;
-  --accent-hover: #409cff;
-  --accent-foreground: #ffffff;
-  --success: #32d74b;
-  --success-bg: rgba(50, 215, 75, 0.14);
-  --warning: #ff9f0a;
-  --warning-bg: rgba(255, 159, 10, 0.14);
-  --danger: #ff453a;
-  --danger-bg: rgba(255, 69, 58, 0.14);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --background: #101215;
+  --surface: #171a1f;
+  --surface-secondary: #1e2126;
+  --foreground: #eceef1;
+  --foreground-secondary: #8b929c;
+  --foreground-tertiary: #7b828c;
+  --separator: #1e2126;
+  --separator-strong: #343941;
+  --accent: #ff7a2f;
+  --accent-hover: #ff9457;
+  --accent-foreground: #17100a;
+  --accent-bg: #2c1a0e;
+  --success: #4ed07b;
+  --success-bg: rgba(78, 208, 123, 0.14);
+  --warning: #e8b04a;
+  --warning-bg: rgba(232, 176, 74, 0.14);
+  --danger: #f27167;
+  --danger-bg: rgba(242, 113, 103, 0.14);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.4), 0 20px 48px rgba(0, 0, 0, 0.45);
 }
 
@@ -57,15 +61,15 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-bg: var(--accent-bg);
   --color-success: var(--success);
   --color-success-bg: var(--success-bg);
   --color-warning: var(--warning);
   --color-warning-bg: var(--warning-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN", var(--font-geist-sans), "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-zen-kaku), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
+    "Noto Sans JP", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
@@ -120,6 +124,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /* 桁が揃わないと表・集計が読みにくいので、数字は全画面で等幅にする */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -135,11 +141,13 @@ summary {
 }
 
 @layer components {
+  /*
+   * 影は使わない。面の区別は罫線と背景色だけ。角丸は 10px（面の共通値）。
+   */
   .surface-card {
     background: var(--surface);
     border: 1px solid var(--separator);
-    border-radius: 1rem;
-    box-shadow: var(--shadow-card);
+    border-radius: 0.625rem;
   }
 
   .control-focus {
