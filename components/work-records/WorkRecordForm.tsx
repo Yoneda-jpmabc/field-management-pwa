@@ -640,8 +640,13 @@ export function WorkRecordForm({
       )}
 
       {/* 送信ボタンの左右に前後の矢印。親指の届く場所に操作を集める。 */}
+      {/*
+        モバイルは <main> の pb-8（32px）ぶん下に余白が残り、ボタンが
+        サブタブバーから浮く。同じ 32px を負のマージンと bottom で相殺して、
+        サブタブバーのすぐ上に寄せる。md 以上は縦積みなので相殺しない。
+      */}
       {!confirming && (
-        <div className="sticky bottom-0 flex items-center gap-2">
+        <div className="sticky -bottom-8 -mb-8 flex items-center gap-2 md:bottom-0 md:mb-0">
           <StepArrow
             direction="prev"
             label="前の項目へ"

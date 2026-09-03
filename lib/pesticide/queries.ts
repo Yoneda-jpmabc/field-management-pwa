@@ -8,7 +8,7 @@ export type DilutionList = {
 
 /**
  * 希釈計算の履歴。
- * limit を渡すとダッシュボードの直近表示のように件数を絞れる。省略時は全件。
+ * limit を渡すとホームの直近表示のように件数を絞れる。省略時は全件。
  */
 export async function fetchDilutionRecords(
   limit?: number,

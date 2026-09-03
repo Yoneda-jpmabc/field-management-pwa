@@ -48,7 +48,7 @@ export default async function Home({
 
   return (
     <>
-      <h1 className="sr-only">ダッシュボード</h1>
+      <h1 className="sr-only">ホーム</h1>
 
       {plans.errorMessage && (
         <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">

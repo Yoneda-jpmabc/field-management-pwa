@@ -7,8 +7,8 @@ import type { Permission } from "@/lib/auth/permissions";
 import {
   IconBasket,
   IconCalendarCheck,
-  IconChecklist,
   IconGrid,
+  IconReport,
   IconSettings,
 } from "../icons";
 
@@ -16,7 +16,7 @@ const icons = {
   "square.grid.2x2": IconGrid,
   basket: IconBasket,
   "calendar.check": IconCalendarCheck,
-  checklist: IconChecklist,
+  report: IconReport,
   gearshape: IconSettings,
 } as const;
 

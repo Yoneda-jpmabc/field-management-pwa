@@ -1,7 +1,7 @@
 -- 作業予定テーブルを追加する。
 --
 -- work_records（実績）が「やったこと」を残すのに対し、work_plans は
--- 「これからやること」をダッシュボードの週カレンダーに置くためのもの。
+-- 「これからやること」をホームの週カレンダーに置くためのもの。
 -- 実績と違い作業者は持たせない。予定の段階では担当が決まっていないことが多く、
 -- 「大まかな予定を先に置いておく」用途を優先するため。
 -- 実績と紐付けたくなった時点で plan_id を work_records 側へ足す想定。
@@ -24,7 +24,7 @@ create table public.work_plans (
 );
 
 comment on table public.work_plans is
-  '作業予定。ダッシュボードの週カレンダーに表示する「これからやること」。';
+  '作業予定。ホームの週カレンダーに表示する「これからやること」。';
 comment on column public.work_plans.title is
   '大まかな作業内容のフリーテキスト。実績側の work_type_raw とは別管理。';
 comment on column public.work_plans.is_done is

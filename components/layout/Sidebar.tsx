@@ -7,9 +7,9 @@ import type { Permission } from "@/lib/auth/permissions";
 import {
   IconBasket,
   IconCalendarCheck,
-  IconChecklist,
   IconGrid,
   IconLeaf,
+  IconReport,
   IconSettings,
 } from "../icons";
 import { SyncStatus } from "../SyncStatus";
@@ -18,7 +18,7 @@ const icons = {
   "square.grid.2x2": IconGrid,
   basket: IconBasket,
   "calendar.check": IconCalendarCheck,
-  checklist: IconChecklist,
+  report: IconReport,
   gearshape: IconSettings,
 } as const;
 

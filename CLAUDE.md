@@ -164,8 +164,16 @@ Next 16 の Lightning CSS が `[data-theme=...]` 側を落として潰す。そ�
 
 ### アイコン
 
+UI アイコンは **Tabler Icons（https://tabler.io/icons, MIT License）の「outline」スタイル**から
+語を厳選して使う。新しいアイコンが要るときは tabler.io/icons で選び、その SVG の `<path>` を
+`components/icons.tsx` に `Icon◯◯` として転記する（1 コンポーネント 1 アイコン、`import` はしない）。
+どの Tabler 語から起こしたかを各コンポーネントの JSDoc に `Tabler: <name>` で残す。
+
 `components/icons.tsx` の規約を維持する: 24px グリッド / `fill:none` /
-`stroke:currentColor` / `stroke-width:1.7`（選択中のみ 2.0）/ 丸いキャップ。
+`stroke:currentColor` / `stroke-width:2`（Tabler 標準。選択状態は色だけで表し、線幅は変えない）/ 丸いキャップ。
+
+Tabler に該当語が無いもの（いちご・トマト・さつまいも・じゃがいも・玉ねぎ、天気の「晴れ時々くもり」）
+**だけ**は上記の作法に合わせて自作する。新しく足す作物・状態も、まず Tabler に語がないか確認してから。
 
 ### やらないこと
 

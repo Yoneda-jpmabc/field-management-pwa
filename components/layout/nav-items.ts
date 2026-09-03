@@ -16,11 +16,11 @@ export type NavItem = {
 };
 
 export const navItems: NavItem[] = [
-  { href: "/", label: "ダッシュボード", icon: "square.grid.2x2" },
+  { href: "/", label: "ホーム", icon: "square.grid.2x2" },
   { href: "/harvest", label: "収穫", icon: "basket" },
   { href: "/care", label: "管理", icon: "calendar.check" },
   // 作業記録は実績タブの「確認」に統合した（同じ work_records を見ていたため）。
-  { href: "/records", label: "実績", icon: "checklist" },
+  { href: "/records", label: "実績", icon: "report" },
   { href: "/settings", label: "設定", icon: "gearshape" },
 ];
 

@@ -4,7 +4,7 @@ import {
   SkeletonScreen,
 } from "@/components/ui/Skeleton";
 
-/** ダッシュボード（週カレンダー＋直近の記録＋圃場）の骨組み。 */
+/** ホーム（週カレンダー＋直近の記録＋圃場）の骨組み。 */
 export default function Loading() {
   return (
     <SkeletonScreen>
