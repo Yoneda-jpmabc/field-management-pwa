@@ -19,6 +19,8 @@ export default async function RecordsPage() {
     workTypes,
     fields,
     workTypeSuggestions,
+    startTimeSuggestions,
+    endTimeSuggestions,
     errorMessage,
   } = await fetchWorkRecordFormData();
 
@@ -38,6 +40,8 @@ export default async function RecordsPage() {
         workTypes={workTypes}
         fields={fields}
         workTypeSuggestions={workTypeSuggestions}
+        startTimeSuggestions={startTimeSuggestions}
+        endTimeSuggestions={endTimeSuggestions}
       />
     </>
   );

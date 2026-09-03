@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { snapTimeToStep } from "./time";
 import type {
   EditableWorkRecord,
   MasterOption,
@@ -20,9 +21,30 @@ export type WorkRecordFormData = {
   /** 作業予定（work-plans）側の作物ピッカーがそのまま使うので残してある。 */
   crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
+  /** 過去の記録で多かった開始・終了時刻（"HH:MM"、頻度順、最大 4 件）。 */
+  startTimeSuggestions: string[];
+  endTimeSuggestions: string[];
   /** マスタ取得に失敗した場合のメッセージ。null なら成功。 */
   errorMessage: string | null;
 };
+
+/**
+ * 時刻文字列の配列を頻度順に集計し、上位 limit 件を "HH:MM" で返す。
+ * 旧 10 分刻みの記録が混ざっても、30 分グリッドに丸めてから数える。
+ */
+function topTimes(values: (string | null)[], limit = 4): string[] {
+  const counts = new Map<string, number>();
+  for (const value of values) {
+    if (!value) continue;
+    const snapped = snapTimeToStep(value.slice(0, 5));
+    if (!/^\d{2}:\d{2}$/.test(snapped)) continue;
+    counts.set(snapped, (counts.get(snapped) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([time]) => time);
+}
 
 export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
   const supabase = await createSupabaseServerClient();
@@ -34,6 +56,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     fieldsResult,
     cropsResult,
     suggestionsResult,
+    timeRowsResult,
   ] = await Promise.all([
       supabase
         .from("workers")
@@ -75,6 +98,14 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         .select("work_type_raw, record_count")
         .order("record_count", { ascending: false })
         .limit(30),
+      // 開始・終了時刻の候補は集計ビューを用意せず、直近の記録から JS 側で数える。
+      // 件数が増えても頭打ちになるよう直近 1000 件に絞る。
+      supabase
+        .from("work_records")
+        .select("start_time, end_time")
+        .is("deleted_at", null)
+        .order("work_date", { ascending: false })
+        .limit(1000),
     ]);
 
   const failure =
@@ -83,7 +114,8 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     workTypesResult.error ??
     fieldsResult.error ??
     cropsResult.error ??
-    suggestionsResult.error;
+    suggestionsResult.error ??
+    timeRowsResult.error;
 
   return {
     workers: (workersResult.data ?? []).map((row) => ({
@@ -113,6 +145,12 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
       row.work_type_raw
         ? [{ value: row.work_type_raw, count: row.record_count ?? 0 }]
         : [],
+    ),
+    startTimeSuggestions: topTimes(
+      (timeRowsResult.data ?? []).map((row) => row.start_time),
+    ),
+    endTimeSuggestions: topTimes(
+      (timeRowsResult.data ?? []).map((row) => row.end_time),
     ),
     errorMessage: failure ? `マスタの取得に失敗しました（${failure.message}）。` : null,
   };

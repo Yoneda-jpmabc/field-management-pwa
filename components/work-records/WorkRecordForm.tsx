@@ -27,6 +27,9 @@ type Props = {
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
+  /** 過去の記録で多かった開始・終了時刻（"HH:MM"、頻度順）。ワンタップ入力用。 */
+  startTimeSuggestions: string[];
+  endTimeSuggestions: string[];
 };
 
 type Feedback = { tone: "success" | "danger"; message: string };
@@ -87,6 +90,8 @@ export function WorkRecordForm({
   workTypes,
   fields,
   workTypeSuggestions,
+  startTimeSuggestions,
+  endTimeSuggestions,
 }: Props) {
   const [form, setForm] = useState<WorkRecordFormState>(() =>
     createInitialState(today),
@@ -288,6 +293,34 @@ export function WorkRecordForm({
   return (
     <div className="flex h-full flex-col gap-4 md:h-auto md:pb-4">
       {/*
+        いま何番目かをヘッダー直下に出す。通り過ぎた項目は塗り、今の項目は
+        アクセント、これからの項目は枠線だけ。タップでその項目へ飛べる。
+        md 以上は縦積みで全項目が同時に見えるので出さない。
+      */}
+      {!confirming && (
+        <div className="flex gap-1.5 overflow-hidden md:hidden">
+          {STEP_TITLES.map((title, index) => (
+            <button
+              key={title}
+              type="button"
+              onClick={() => goToStep(index)}
+              aria-label={`${title}へ`}
+              aria-current={index === step}
+              className={`control-focus flex h-[30px] shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 text-xs font-bold ${
+                index === step
+                  ? "bg-accent text-accent-foreground"
+                  : index < step
+                    ? "bg-foreground text-background"
+                    : "border border-separator-strong text-foreground-tertiary"
+              }`}
+            >
+              {title}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/*
         モバイルは横スクロール＋スナップで 1 枚ずつ見せる。縦に 6 枚積むと
         端から端まで転がす必要があり、片手だとつらいため。カードの中身が
         入りきらないときだけ、そのカードの中で縦に転がす。
@@ -335,6 +368,11 @@ export function WorkRecordForm({
                     }
                     className={dateTimeInputClass}
                   />
+                  <TimeChips
+                    times={startTimeSuggestions}
+                    current={form.startTime}
+                    onPick={(time) => update("startTime", time)}
+                  />
                 </label>
                 <label className="block min-w-0 sm:w-40">
                   <span className="mb-1.5 block text-sm text-foreground-secondary">
@@ -349,6 +387,11 @@ export function WorkRecordForm({
                       update("endTime", snapTimeToStep(event.target.value))
                     }
                     className={dateTimeInputClass}
+                  />
+                  <TimeChips
+                    times={endTimeSuggestions}
+                    current={form.endTime}
+                    onPick={(time) => update("endTime", time)}
                   />
                 </label>
               </div>
@@ -596,28 +639,6 @@ export function WorkRecordForm({
         )}
       </div>
 
-      {/* 今どこにいるかの目印。タップでその項目へ飛べる。 */}
-      {!confirming && (
-        <div className="flex items-center justify-center md:hidden">
-          {STEP_TITLES.map((title, index) => (
-            <button
-              key={title}
-              type="button"
-              onClick={() => goToStep(index)}
-              aria-label={`${title}へ`}
-              aria-current={index === step}
-              className="control-focus flex h-6 w-6 items-center justify-center rounded-full"
-            >
-              <span
-                className={`block size-1.5 rounded-full transition-colors ${
-                  index === step ? "bg-accent" : "bg-separator-strong"
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      )}
-
       {feedback && (
         <div
           role="status"
@@ -773,6 +794,36 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * 過去に多かった時刻をワンタップで入れるチップ列。時刻入力欄の下に置く。
+ * iOS の時刻ホイールを回さずに、定時の開始・終了をそのまま選べるようにする。
+ */
+function TimeChips({
+  times,
+  current,
+  onPick,
+}: {
+  times: string[];
+  current: string;
+  onPick: (time: string) => void;
+}) {
+  if (times.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {times.map((time) => (
+        <Chip
+          key={time}
+          selected={current === time}
+          onClick={() => onPick(time)}
+          className="px-3 text-sm tabular-nums"
+        >
+          {time}
+        </Chip>
+      ))}
+    </div>
   );
 }
 
