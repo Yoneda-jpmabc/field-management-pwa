@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader";
 import { CustomRangePicker } from "@/components/work-records/CustomRangePicker";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { RecordsTabs } from "@/components/work-records/RecordsTabs";
@@ -38,10 +37,7 @@ export default async function RecordsSummaryPage({
 
   return (
     <>
-      <PageHeader
-        title="実績"
-        description="期間ごとに、誰がどの作業に何時間かけたかを確認できます。"
-      />
+      <h1 className="sr-only">実績</h1>
       <RecordsTabs permission={worker.permission} />
       {isCustomRange ? (
         <>

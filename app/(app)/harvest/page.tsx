@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { HarvestTabs } from "@/components/harvest/HarvestTabs";
 import { HarvestBoard } from "@/components/harvest/HarvestBoard";
@@ -35,10 +34,7 @@ export default async function HarvestPage({
 
   return (
     <>
-      <PageHeader
-        title="収穫"
-        description="圃場ごとの作付状況を確認して、その場で収穫量を記録できます。"
-      />
+      <h1 className="sr-only">収穫</h1>
       <HarvestTabs />
       <PeriodSwitcher
         unit={unit}

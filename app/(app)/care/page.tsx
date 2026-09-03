@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader";
 import { DaySwitcher } from "@/components/care/DaySwitcher";
 import { DailyChecklist } from "@/components/care/DailyChecklist";
 import { getCurrentWorker } from "@/lib/auth/session";
@@ -22,10 +21,7 @@ export default async function CarePage({
 
   return (
     <>
-      <PageHeader
-        title="管理"
-        description="作物ごとに、その日確認することをチェックしていきます。"
-      />
+      <h1 className="sr-only">管理</h1>
       <DaySwitcher date={date} />
 
       {checklist.errorMessage && (

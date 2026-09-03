@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { HarvestTabs } from "@/components/harvest/HarvestTabs";
 import { HarvestListPanel } from "@/components/harvest/HarvestListPanel";
@@ -38,14 +37,7 @@ export default async function HarvestListPage({
 
   return (
     <>
-      <PageHeader
-        title="収穫"
-        description={
-          scopedWorkerId
-            ? "自分が収穫した記録を日付順に確認できます。"
-            : "収穫の記録を日付順に確認し、タップして修正・削除できます。"
-        }
-      />
+      <h1 className="sr-only">収穫</h1>
       <HarvestTabs />
       <PeriodSwitcher
         unit={unit}

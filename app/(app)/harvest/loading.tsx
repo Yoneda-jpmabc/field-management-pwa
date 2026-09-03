@@ -1,6 +1,5 @@
 import {
   SkeletonBlockCard,
-  SkeletonPageHeader,
   SkeletonPeriodSwitcher,
   SkeletonScreen,
   SkeletonTabs,
@@ -13,7 +12,6 @@ import {
 export default function Loading() {
   return (
     <SkeletonScreen>
-      <SkeletonPageHeader />
       <SkeletonTabs count={2} />
       <SkeletonPeriodSwitcher />
       <div className="flex flex-col gap-3">

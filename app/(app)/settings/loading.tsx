@@ -1,7 +1,6 @@
 import {
   SkeletonBar,
   SkeletonBlockCard,
-  SkeletonPageHeader,
   SkeletonScreen,
 } from "@/components/ui/Skeleton";
 
@@ -10,7 +9,6 @@ export default function Loading() {
   return (
     <SkeletonScreen>
       <div className="flex flex-col gap-6">
-        <SkeletonPageHeader />
         {[3, 2, 2, 1, 2].map((cards, section) => (
           <section key={section}>
             <SkeletonBar className="mb-2.5 h-[17px] w-24" />

@@ -1,7 +1,6 @@
 import {
   SkeletonBlockCard,
   SkeletonDaySwitcher,
-  SkeletonPageHeader,
   SkeletonScreen,
 } from "@/components/ui/Skeleton";
 
@@ -9,7 +8,6 @@ import {
 export default function Loading() {
   return (
     <SkeletonScreen>
-      <SkeletonPageHeader />
       <SkeletonDaySwitcher />
       <div className="flex flex-col gap-3">
         {Array.from({ length: 4 }, (_, i) => (

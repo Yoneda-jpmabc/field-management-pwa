@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatus } from "@/components/SyncStatus";
@@ -54,10 +53,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader
-        title="設定"
-        description="圃場情報・表示・同期状況を確認・変更できます。"
-      />
+      <h1 className="sr-only">設定</h1>
 
       <div className="flex flex-col gap-6">
         <section>

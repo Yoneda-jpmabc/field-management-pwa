@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader";
 import { RecordsTabs } from "@/components/work-records/RecordsTabs";
 import { WorkRecordForm } from "@/components/work-records/WorkRecordForm";
 import { getCurrentWorker } from "@/lib/auth/session";
@@ -26,10 +25,7 @@ export default async function RecordsPage() {
 
   return (
     <>
-      <PageHeader
-        title="実績"
-        description="作業者ごとの作業実績を、管理者がまとめて入力します。"
-      />
+      <h1 className="sr-only">実績</h1>
       <RecordsTabs permission={worker.permission} />
 
       {errorMessage && (

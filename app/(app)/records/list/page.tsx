@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { RecordsTabs } from "@/components/work-records/RecordsTabs";
 import { RecordListPanel } from "@/components/work-records/RecordListPanel";
@@ -47,16 +46,7 @@ export default async function RecordsListPage({
 
   return (
     <>
-      <PageHeader
-        title="実績"
-        description={
-          canEdit
-            ? "登録した実績を確認し、タップして修正・削除できます。"
-            : scopedWorkerId
-              ? "自分の作業実績を日付ごとに確認できます。"
-              : "登録された作業実績を日付ごとに確認できます。"
-        }
-      />
+      <h1 className="sr-only">実績</h1>
       <RecordsTabs permission={worker.permission} />
       <PeriodSwitcher
         unit={unit}

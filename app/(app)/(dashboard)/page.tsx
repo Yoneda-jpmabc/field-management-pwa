@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { IconChevronRight } from "@/components/icons";
 import { WeekCalendar } from "@/components/work-plans/WeekCalendar";
@@ -49,10 +48,7 @@ export default async function Home({
 
   return (
     <>
-      <PageHeader
-        title="ダッシュボード"
-        description="今週の作業予定と、直近の作業実績を確認できます。"
-      />
+      <h1 className="sr-only">ダッシュボード</h1>
 
       {plans.errorMessage && (
         <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">

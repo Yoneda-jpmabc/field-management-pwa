@@ -1,7 +1,6 @@
 import {
   SkeletonBar,
   SkeletonListCard,
-  SkeletonPageHeader,
   SkeletonScreen,
 } from "@/components/ui/Skeleton";
 
@@ -9,8 +8,6 @@ import {
 export default function Loading() {
   return (
     <SkeletonScreen>
-      <SkeletonPageHeader />
-
       {/* WeekCalendar: 週の前後移動 → 7 日ぶんのカード */}
       <div className="mb-3 flex items-center justify-between gap-2">
         <SkeletonBar className="h-11 w-14 !rounded-full" />

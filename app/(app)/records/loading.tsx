@@ -1,6 +1,5 @@
 import {
   SkeletonBlockCard,
-  SkeletonPageHeader,
   SkeletonScreen,
   SkeletonTabs,
 } from "@/components/ui/Skeleton";
@@ -16,7 +15,6 @@ import {
 export default function Loading() {
   return (
     <SkeletonScreen>
-      <SkeletonPageHeader />
       <SkeletonTabs count={3} />
       <div className="flex flex-col gap-3">
         {Array.from({ length: 5 }, (_, i) => (
