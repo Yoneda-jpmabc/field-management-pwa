@@ -1,5 +1,4 @@
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
-import { HarvestTabs } from "@/components/harvest/HarvestTabs";
 import { HarvestBoard } from "@/components/harvest/HarvestBoard";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords } from "@/lib/auth/permissions";
@@ -35,7 +34,6 @@ export default async function HarvestPage({
   return (
     <>
       <h1 className="sr-only">収穫</h1>
-      <HarvestTabs />
       <PeriodSwitcher
         unit={unit}
         anchor={anchor}

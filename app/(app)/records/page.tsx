@@ -1,4 +1,3 @@
-import { RecordsTabs } from "@/components/work-records/RecordsTabs";
 import { WorkRecordForm } from "@/components/work-records/WorkRecordForm";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords } from "@/lib/auth/permissions";
@@ -26,8 +25,6 @@ export default async function RecordsPage() {
   return (
     <>
       <h1 className="sr-only">実績</h1>
-      <RecordsTabs permission={worker.permission} />
-
       {errorMessage && (
         <p className="mb-4 rounded-[10px] bg-danger-bg px-4 py-3 text-sm text-danger">
           {errorMessage}

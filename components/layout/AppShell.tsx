@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { BottomTabBar } from "./BottomTabBar";
+import { SubTabBar } from "./SubTabBar";
 import { MobileHeader } from "./MobileHeader";
 import { PreviewBanner } from "./PreviewBanner";
 import { ScrollReset } from "./ScrollReset";
@@ -38,6 +39,7 @@ export function AppShell({
           <ScrollReset />
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>
+        <SubTabBar permission={permission} />
         <BottomTabBar permission={permission} />
       </div>
     </div>

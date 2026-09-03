@@ -55,17 +55,6 @@ export function SkeletonPageHeader() {
   );
 }
 
-/** RecordsTabs / HarvestTabs と同じピル型タブの骨組み。 */
-export function SkeletonTabs({ count }: { count: number }) {
-  return (
-    <div className="mb-5 flex gap-1 rounded-full bg-surface-secondary p-1">
-      {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="min-h-11 flex-1 rounded-full" />
-      ))}
-    </div>
-  );
-}
-
 /**
  * PeriodSwitcher（単位ピル＋前後の矢印）と同じ骨組み。
  *

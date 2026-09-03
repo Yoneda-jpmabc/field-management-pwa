@@ -1,6 +1,5 @@
 import { CustomRangePicker } from "@/components/work-records/CustomRangePicker";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
-import { RecordsTabs } from "@/components/work-records/RecordsTabs";
 import { SummaryPanels } from "@/components/work-records/SummaryPanels";
 import { requireEveryoneViewer } from "@/lib/auth/session";
 import { fetchWorkSummary } from "@/lib/work-records/queries";
@@ -21,7 +20,7 @@ export default async function RecordsSummaryPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const worker = await requireEveryoneViewer();
+  await requireEveryoneViewer();
   const params = await searchParams;
 
   // クエリは手で書き換えられるので、想定外の値は既定に落とす。
@@ -38,7 +37,6 @@ export default async function RecordsSummaryPage({
   return (
     <>
       <h1 className="sr-only">実績</h1>
-      <RecordsTabs permission={worker.permission} />
       {isCustomRange ? (
         <>
           <p className="mb-2 text-[15px] font-semibold text-foreground">

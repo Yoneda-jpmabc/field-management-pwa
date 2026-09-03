@@ -502,7 +502,7 @@ export function WorkRecordForm({
               type="button"
               onClick={handleConfirm}
               disabled={pending}
-              className="control-focus pressable min-h-12 flex-1 rounded-full bg-accent px-4 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
+              className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-4 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary"
             >
               {pending ? "登録中…" : "確定して登録"}
             </button>
@@ -510,7 +510,7 @@ export function WorkRecordForm({
               type="button"
               onClick={() => setConfirming(false)}
               disabled={pending}
-              className="control-focus pressable min-h-12 rounded-full border border-separator-strong px-4 text-[15px] font-medium text-foreground-secondary hover:bg-surface-secondary disabled:opacity-50"
+              className="control-focus pressable min-h-11 rounded-full border border-separator-strong px-4 text-[15px] font-medium text-foreground-secondary hover:bg-surface-secondary disabled:border-separator disabled:text-foreground-tertiary"
             >
               戻る
             </button>
@@ -526,7 +526,9 @@ export function WorkRecordForm({
             setConfirming(true);
           }}
           disabled={!canSubmit}
-          className="control-focus pressable sticky bottom-4 min-h-13 rounded-full bg-accent px-4 text-base font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:opacity-40"
+          // 押せないときは薄くするのではなく、色そのものを地の灰色に落とす。
+          // 半透明だと下の本文が透けて、文字が読みにくくなる。
+          className="control-focus pressable sticky bottom-2 min-h-11 self-center rounded-full bg-accent px-5 text-[15px] font-medium text-accent-foreground shadow-[var(--shadow-elevated)] hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary disabled:shadow-none"
         >
           {canSubmit
             ? `内容を確認（${form.selectedWorkerIds.length}件）`

@@ -1,5 +1,4 @@
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
-import { RecordsTabs } from "@/components/work-records/RecordsTabs";
 import { RecordListPanel } from "@/components/work-records/RecordListPanel";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords, canViewEveryone } from "@/lib/auth/permissions";
@@ -47,7 +46,6 @@ export default async function RecordsListPage({
   return (
     <>
       <h1 className="sr-only">実績</h1>
-      <RecordsTabs permission={worker.permission} />
       <PeriodSwitcher
         unit={unit}
         anchor={anchor}
