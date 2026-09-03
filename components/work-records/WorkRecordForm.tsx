@@ -5,11 +5,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { CropIcon, IconChevronRight } from "@/components/icons";
 import { createWorkRecords } from "@/lib/work-records/actions";
-import {
-  snapTimeToStep,
-  spansLunchBreak,
-  TIME_STEP_MINUTES,
-} from "@/lib/work-records/time";
+import { spansLunchBreak } from "@/lib/work-records/time";
+import { TimeWheel } from "./TimeWheel";
 import type {
   MasterOption,
   WorkCategoryOption,
@@ -337,11 +334,10 @@ export function WorkRecordForm({
         >
           <Slide>
             <FormCard title="日時" required>
-              {/* 幅を固定すると端末のロケール次第で中身がはみ出すため、
-                狭い画面は 2 列グリッド（作業日は 2 列ぶん・入力だけ幅を抑える）、
-                広い画面は 3 つを 1 行に並べる。 */}
-              <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-                <label className="col-span-2 block min-w-0 sm:w-56">
+              {/* 開始と終了は左右に並べず縦に積む。ホイールの高さがあるので
+                横並びだと片方が窮屈になるため。 */}
+              <div className="flex flex-col gap-4">
+                <label className="block min-w-0 sm:w-56">
                   <span className="mb-1.5 block text-sm text-foreground-secondary">
                     作業日
                   </span>
@@ -352,48 +348,34 @@ export function WorkRecordForm({
                     className={`${dateTimeInputClass} max-w-56`}
                   />
                 </label>
-                <label className="block min-w-0 sm:w-40">
+                <div>
                   <span className="mb-1.5 block text-sm text-foreground-secondary">
                     開始
                   </span>
-                  <input
-                    type="time"
-                    step={TIME_STEP_MINUTES * 60}
+                  <TimeWheel
                     value={form.startTime}
-                    onChange={(event) =>
-                      update("startTime", event.target.value)
-                    }
-                    onBlur={(event) =>
-                      update("startTime", snapTimeToStep(event.target.value))
-                    }
-                    className={dateTimeInputClass}
+                    onChange={(time) => update("startTime", time)}
                   />
                   <TimeChips
                     times={startTimeSuggestions}
                     current={form.startTime}
                     onPick={(time) => update("startTime", time)}
                   />
-                </label>
-                <label className="block min-w-0 sm:w-40">
+                </div>
+                <div>
                   <span className="mb-1.5 block text-sm text-foreground-secondary">
                     終了
                   </span>
-                  <input
-                    type="time"
-                    step={TIME_STEP_MINUTES * 60}
+                  <TimeWheel
                     value={form.endTime}
-                    onChange={(event) => update("endTime", event.target.value)}
-                    onBlur={(event) =>
-                      update("endTime", snapTimeToStep(event.target.value))
-                    }
-                    className={dateTimeInputClass}
+                    onChange={(time) => update("endTime", time)}
                   />
                   <TimeChips
                     times={endTimeSuggestions}
                     current={form.endTime}
                     onPick={(time) => update("endTime", time)}
                   />
-                </label>
+                </div>
               </div>
               {spansLunchBreak(form.startTime, form.endTime) && (
                 <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
