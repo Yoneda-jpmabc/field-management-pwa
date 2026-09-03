@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Zen_Kaku_Gothic_New } from "next/font/google";
+import { Geist_Mono, IBM_Plex_Sans_JP } from "next/font/google";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -8,13 +8,14 @@ const geistMono = Geist_Mono({
 });
 
 /*
- * 本文フォント。太さの幅（400〜900）が要るのでシステムフォントでは代替できない。
+ * 本文フォント。屋外・低解像度端末での可読性重視で IBM Plex Sans JP を採用。
+ * この書体は最大ウェイトが 700（900 は無い）。KPI 数値は 600、見出しは 700 で組む。
  * オフライン前提のアプリなので CDN 参照ではなく next/font で self-host する。
  */
-const zenKaku = Zen_Kaku_Gothic_New({
-  variable: "--font-zen-kaku",
-  weight: ["400", "700", "900"],
-  // subsets を指定すると日本語グリフが落ちる（このフォントは latin 系しか
+const plexJp = IBM_Plex_Sans_JP({
+  variable: "--font-plex-jp",
+  weight: ["400", "500", "600", "700"],
+  // subsets を指定すると日本語グリフが落ちる（この書体は latin / cyrillic しか
   // サブセット指定できない）。省略して全スライスを取り込み、代わりに
   // preload: false でプリロードだけ切る。初回に必要な分だけ読み込まれ、
   // 以降は Service Worker のキャッシュに乗る。
@@ -61,15 +62,17 @@ export default function RootLayout({
     <html
       lang="ja"
       data-theme="light"
+      data-accent="orange"
       suppressHydrationWarning
-      className={`${geistMono.variable} ${zenKaku.variable} h-full antialiased`}
+      className={`${geistMono.variable} ${plexJp.variable} h-full antialiased`}
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
             // 保存された選択があればそれを、無ければ OS のダークモード設定に従う。
-            // body 描画前に属性を確定させて、白 → 黒のちらつきを防いでいる。
-            __html: `(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`,
+            // アクセントカラーも同じタイミングで確定させる（既定はオレンジ）。
+            // body 描画前に属性を確定させて、白 → 黒／色のちらつきを防いでいる。
+            __html: `(function(){try{var d=document.documentElement;var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.setAttribute("data-theme",t);var a=localStorage.getItem("accent");if(a!=="blue"&&a!=="green"&&a!=="orange"){a="orange"}d.setAttribute("data-accent",a)}catch(e){}})()`,
           }}
         />
       </head>

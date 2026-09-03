@@ -7,8 +7,10 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "圃場と作業記録を管理するフィールドマネジメントアプリ",
     start_url: "/",
     display: "standalone",
-    background_color: "#f5f5f7",
-    theme_color: "#0071e3",
+    // アプリの背景色に合わせる（旧デザインの Apple 風パレットから差し替え）。
+    // 明暗それぞれの実値は layout.tsx の viewport.themeColor 側で出し分けている。
+    background_color: "#f5f4f1",
+    theme_color: "#f5f4f1",
     icons: [
       {
         src: "/icons/icon-192.png",

@@ -48,9 +48,22 @@ https://claude.ai/code/artifact/3a55d999-dc80-47f4-bd7b-06a0f3ff1ee1
 
 ### 色トークン
 
-`app/globals.css` のトークン名は変えず、値だけ差し替える。青系アクセントは使わない。
+`app/globals.css` のトークン名は変えず、値だけ差し替える。
+既定アクセントはオレンジ（下表）。UI を書くときはハードコードせず必ず `--accent` 系を参照する。
 
-ライト:
+アクセントは設定画面（表示セクション）から **オレンジ / ブルー / グリーン** の3択で切り替えられる
+（`AccentPicker`。この端末だけの設定で `localStorage.accent` に保存、`<html data-accent>` で反映、
+初期値は `layout.tsx` のインラインスクリプトが復元）。上書きされるのは accent 系トークンのみで、
+状態色（success / warning / danger）と面の色は共通。ブルーは Apple 風の `#0071e3` 系ではなく
+落ち着いた濃紺（ライト `#1E51C4` / ダーク `#6AA5F5`）を使う。
+
+実装上の注意: `[data-theme="dark"][data-accent="blue"]` のような複合セレクタは
+Next 16 の Lightning CSS が `[data-theme=...]` 側を落として潰す。そのため globals.css では
+`[data-accent="blue"]` 側で light/dark 両方の生値（`--accent-l` / `--accent-d` …）を定義し、
+テーマ側の単一セレクタで `--accent: var(--accent-l, <オレンジ>)` のように選ぶ二段構えにしている。
+**accent 系を複合セレクタで書き足さないこと。**
+
+ライト（既定・オレンジ）:
 
 ```
 --background          #F5F4F1
@@ -102,22 +115,23 @@ https://claude.ai/code/artifact/3a55d999-dc80-47f4-bd7b-06a0f3ff1ee1
 
 ### タイポグラフィ
 
-本文フォントは **Zen Kaku Gothic New**（フォールバック: Hiragino Kaku Gothic ProN → system-ui）。
+本文フォントは **IBM Plex Sans JP**（フォールバック: Hiragino Kaku Gothic ProN → system-ui）。
+この書体は **最大ウェイトが 700**（900 は無い）。屋外・低解像度端末で太字が潰れにくいことを優先した選定。
 数字を出す要素には必ず `font-variant-numeric: tabular-nums`。**11px 未満は使わない。**
 
 | 用途 | サイズ / 太さ |
 | --- | --- |
-| 数値（KPI・集計） | 22 / 900 / letter-spacing -0.03em |
-| 画面タイトル | 17 / 900 |
+| 数値（KPI・集計） | 22 / 600 / letter-spacing -0.01em |
+| 画面タイトル | 17 / 700 |
 | 行タイトル | 15 / 700 |
 | テーブル本文 | 14 / 400（強調セルのみ 700） |
 | 副情報 | 12 / 400 / `--foreground-tertiary` |
-| セクション見出し | 12 / 900 / letter-spacing .06em / `--foreground-secondary` |
+| セクション見出し | 12 / 700 / letter-spacing .06em / `--foreground-secondary` |
 | テーブル列見出し | 10-11 / 700 / letter-spacing .05em |
 
 ### 高さ・角丸・タップ領域
 
-押せるものは **44px 以上**（屋外＋手袋前提）。主要操作は親指が届く画面下側に置く。
+押せるものは **44px 以上**。主要操作は親指が届く画面下側に置く。
 
 | 部品 | 高さ |
 | --- | --- |
@@ -156,7 +170,8 @@ https://claude.ai/code/artifact/3a55d999-dc80-47f4-bd7b-06a0f3ff1ee1
 ### やらないこと
 
 - 絵文字を UI に使わない。
-- 青系アクセント（`#0071e3` 系）、16px 角丸、カードの影を新規に足さない。
+- Apple 風の青（`#0071e3` 系）、16px 角丸、カードの影を新規に足さない。
+  アクセントのブルーは設定で選べるが、上記の落ち着いた濃紺を使い、明るい `#0071e3` 系にはしない。
 - 入力欄のフォントサイズを 16px 未満にしない（iOS が自動ズームするため）。
 - グラフ（収量推移など）の色・軸・凡例はまだ決めていない。作る前に必ず確認する。
 

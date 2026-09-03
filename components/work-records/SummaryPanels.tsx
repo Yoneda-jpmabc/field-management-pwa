@@ -141,7 +141,7 @@ function Stat({
     <div>
       <p className="text-xs text-foreground-tertiary">{label}</p>
       <p
-        className={`mt-0.5 text-[22px] font-semibold tracking-tight ${
+        className={`mt-0.5 text-[22px] font-semibold tracking-[-0.01em] tabular-nums ${
           muted ? "text-foreground-tertiary" : "text-foreground"
         }`}
       >

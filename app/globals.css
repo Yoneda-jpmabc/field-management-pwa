@@ -1,5 +1,37 @@
 @import "tailwindcss";
 
+/*
+ * アクセントは「素の値」を data-accent 側で定義し、テーマ側で light / dark を選ぶ二段構え。
+ *
+ * 直感的には `[data-theme="dark"][data-accent="blue"]` と複合セレクタで書きたいが、
+ * Next 16 の CSS 最適化（Lightning CSS）が `[data-theme=...]` の方を落として
+ * `[data-accent="blue"]` に潰してしまい、light と dark が衝突する。
+ * 単一属性セレクタなら潰されないので、この書き方を守る（複合セレクタにしないこと）。
+ *
+ * 既定（data-accent 未設定 / "orange"）は各 var() の第2引数（オレンジ）に落ちる。
+ * 初期値は layout.tsx のインラインスクリプトが localStorage から復元する。
+ */
+[data-accent="blue"] {
+  --accent-l: #1e51c4;
+  --accent-hover-l: #17408f;
+  --accent-fg-l: #ffffff;
+  --accent-bg-l: #e7edf9;
+  --accent-d: #6aa5f5;
+  --accent-hover-d: #8abbf8;
+  --accent-fg-d: #0c1526;
+  --accent-bg-d: #16233a;
+}
+[data-accent="green"] {
+  --accent-l: #0c6b3f;
+  --accent-hover-l: #08502f;
+  --accent-fg-l: #ffffff;
+  --accent-bg-l: #e2f0e9;
+  --accent-d: #34d399;
+  --accent-hover-d: #5cddb0;
+  --accent-fg-d: #06150f;
+  --accent-bg-d: #10261d;
+}
+
 :root,
 [data-theme="light"] {
   --background: #f5f4f1;
@@ -10,10 +42,10 @@
   --foreground-tertiary: #8e8a7d;
   --separator: #edeae3;
   --separator-strong: #cfcbc0;
-  --accent: #c2410c;
-  --accent-hover: #9a3412;
-  --accent-foreground: #ffffff;
-  --accent-bg: #fdece2;
+  --accent: var(--accent-l, #c2410c);
+  --accent-hover: var(--accent-hover-l, #9a3412);
+  --accent-foreground: var(--accent-fg-l, #ffffff);
+  --accent-bg: var(--accent-bg-l, #fdece2);
   --success: #256e36;
   --success-bg: #e7f2e9;
   --warning: #a85b00;
@@ -36,10 +68,10 @@
   --foreground-tertiary: #7b828c;
   --separator: #1e2126;
   --separator-strong: #343941;
-  --accent: #ff7a2f;
-  --accent-hover: #ff9457;
-  --accent-foreground: #17100a;
-  --accent-bg: #2c1a0e;
+  --accent: var(--accent-d, #ff7a2f);
+  --accent-hover: var(--accent-hover-d, #ff9457);
+  --accent-foreground: var(--accent-fg-d, #17100a);
+  --accent-bg: var(--accent-bg-d, #2c1a0e);
   --success: #4ed07b;
   --success-bg: rgba(78, 208, 123, 0.14);
   --warning: #e8b04a;
@@ -68,7 +100,7 @@
   --color-warning-bg: var(--warning-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
-  --font-sans: var(--font-zen-kaku), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
+  --font-sans: var(--font-plex-jp), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
     "Noto Sans JP", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }

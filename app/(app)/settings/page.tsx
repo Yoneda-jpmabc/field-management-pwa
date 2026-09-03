@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AccentPicker } from "@/components/AccentPicker";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SupabaseHealth } from "@/components/settings/SupabaseHealth";
 import { CropUnitSettings } from "@/components/settings/CropUnitSettings";
@@ -103,6 +104,11 @@ export default async function SettingsPage() {
               title="外観"
               description="ライトモード・ダークモードを切り替えます。"
               control={<ThemeToggle />}
+            />
+            <SettingsRow
+              title="アクセントカラー"
+              description="ボタンや選択中の表示に使う色を選びます。この端末だけの設定です。"
+              control={<AccentPicker />}
             />
             <SettingsRow
               title="天気の地点"
