@@ -29,7 +29,8 @@ export type WorkRecordFormData = {
 };
 
 /**
- * 時刻文字列の配列を頻度順に集計し、上位 limit 件を "HH:MM" で返す。
+ * 時刻文字列の配列から、よく使われる上位 limit 件を選び、
+ * 表示は時間の早い順に並べて "HH:MM" で返す。
  * 旧 10 分刻みの記録が混ざっても、30 分グリッドに丸めてから数える。
  */
 function topTimes(values: (string | null)[], limit = 4): string[] {
@@ -43,7 +44,8 @@ function topTimes(values: (string | null)[], limit = 4): string[] {
   return [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, limit)
-    .map(([time]) => time);
+    .map(([time]) => time)
+    .sort((a, b) => a.localeCompare(b));
 }
 
 export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {

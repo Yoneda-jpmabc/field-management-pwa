@@ -97,6 +97,9 @@ export function WorkRecordForm({
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [pending, startTransition] = useTransition();
   const confirmRef = useRef<HTMLDivElement>(null);
+  // ホイールとチップは 1 組だけ置き、開始／終了のどちらを編集中かで中身を差し替える。
+  // 2 つ並べるとスマホ 1 画面に収まらないため。
+  const [timeSide, setTimeSide] = useState<"start" | "end">("start");
 
   // モバイルは 6 枚のカードを横スライドで見せる。今どの枚目かは、指での
   // スワイプと ←→ ボタンで食い違わないよう、実際のスクロール位置から求める。
@@ -334,8 +337,6 @@ export function WorkRecordForm({
         >
           <Slide>
             <FormCard title="日時" required>
-              {/* 開始と終了は左右に並べず縦に積む。ホイールの高さがあるので
-                横並びだと片方が窮屈になるため。 */}
               <div className="flex flex-col gap-4">
                 <label className="block min-w-0 sm:w-56">
                   <span className="mb-1.5 block text-sm text-foreground-secondary">
@@ -348,32 +349,60 @@ export function WorkRecordForm({
                     className={`${dateTimeInputClass} max-w-56`}
                   />
                 </label>
-                <div>
-                  <span className="mb-1.5 block text-sm text-foreground-secondary">
-                    開始
-                  </span>
+
+                <div className="flex flex-col gap-2">
+                  {/* 開始・終了の現在値。行をタップすると下のホイール／候補が
+                    その側を編集する。両方の値が常に見えるようにしている。 */}
+                  {(
+                    [
+                      { side: "start", label: "開始", value: form.startTime },
+                      { side: "end", label: "終了", value: form.endTime },
+                    ] as const
+                  ).map(({ side, label, value }) => (
+                    <button
+                      key={side}
+                      type="button"
+                      aria-pressed={timeSide === side}
+                      onClick={() => setTimeSide(side)}
+                      className={`control-focus flex min-h-11 items-center justify-between rounded-lg border px-3 text-[15px] ${
+                        timeSide === side
+                          ? "border-accent bg-accent-bg"
+                          : "border-separator-strong"
+                      }`}
+                    >
+                      <span className="font-bold text-foreground">{label}</span>
+                      <span
+                        className={`tabular-nums ${value ? "text-foreground" : "text-foreground-tertiary"}`}
+                      >
+                        {value || "未設定"}
+                      </span>
+                    </button>
+                  ))}
+
                   <TimeWheel
-                    value={form.startTime}
-                    onChange={(time) => update("startTime", time)}
+                    value={timeSide === "start" ? form.startTime : form.endTime}
+                    onChange={(time) =>
+                      update(
+                        timeSide === "start" ? "startTime" : "endTime",
+                        time,
+                      )
+                    }
                   />
                   <TimeChips
-                    times={startTimeSuggestions}
-                    current={form.startTime}
-                    onPick={(time) => update("startTime", time)}
-                  />
-                </div>
-                <div>
-                  <span className="mb-1.5 block text-sm text-foreground-secondary">
-                    終了
-                  </span>
-                  <TimeWheel
-                    value={form.endTime}
-                    onChange={(time) => update("endTime", time)}
-                  />
-                  <TimeChips
-                    times={endTimeSuggestions}
-                    current={form.endTime}
-                    onPick={(time) => update("endTime", time)}
+                    times={
+                      timeSide === "start"
+                        ? startTimeSuggestions
+                        : endTimeSuggestions
+                    }
+                    current={
+                      timeSide === "start" ? form.startTime : form.endTime
+                    }
+                    onPick={(time) =>
+                      update(
+                        timeSide === "start" ? "startTime" : "endTime",
+                        time,
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -794,7 +823,7 @@ function TimeChips({
 }) {
   if (times.length === 0) return null;
   return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1.5">
       {times.map((time) => (
         <Chip
           key={time}

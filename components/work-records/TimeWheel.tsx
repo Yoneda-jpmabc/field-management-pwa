@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * 端末ごとに姿が変わるネイティブの `<input type="time">` の代わりに使う、
- * 自前のドラムロール式ピッカー。iOS/Android/PC で同じ見た目・同じ操作になる。
+ * 自前の時刻ピッカー。iOS/Android/PC で同じ見た目・同じ操作になる。
  *
- * - 時は 24 時間表記で 5〜22 時。先頭に「—」を置き、そこに合わせると未設定。
+ * - 見た目はドラムロール。中央の枠が選択行。
+ * - 操作は「見えている行をタップ」が主。スワイプでも動く。
+ *   （iOS のホイールを回して合わせるのが面倒、という声への対応。）
+ * - 時は 24 時間表記で 5〜22 時。先頭の「—」に合わせると未設定。
  * - 分は 00 / 30 のみ（実績は 30 分刻みで運用しているため）。
  *
- * 値は "HH:MM"（未設定は空文字）。よく使う時刻チップから値を差し込むと、
- * こちら側もその行までスクロールして揃う。
+ * 値は "HH:MM"（未設定は空文字）。
  */
 
 const ROW = 44; // px。1 行の高さ＝タップ領域。globals の高さ規約に合わせる。
@@ -34,7 +36,7 @@ function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
-/** "HH:MM" → 各ホイールの行番号。空文字・範囲外は未設定(0)。 */
+/** "HH:MM" → 各列の行番号。空文字・範囲外は未設定(0)。 */
 function toIndices(value: string): { hour: number; minute: number } {
   const matched = /^(\d{2}):(\d{2})$/.exec(value);
   if (!matched) return { hour: 0, minute: 0 };
@@ -54,27 +56,32 @@ function toValue(hourIndex: number, minuteIndex: number): string {
 type ColumnProps = {
   items: readonly string[];
   index: number;
-  onSettle: (index: number) => void;
+  onPick: (index: number) => void;
   ariaLabel: string;
 };
 
-/** ホイール 1 列ぶん。スクロールが止まった位置の行を確定する。 */
-function Column({ items, index, onSettle, ariaLabel }: ColumnProps) {
+/**
+ * ピッカー 1 列ぶん。行タップ（主）か、スワイプ後にスナップした位置で確定する。
+ */
+function Column({ items, index, onPick, ariaLabel }: ColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const firstRun = useRef(true);
+  // スワイプ中の見た目用。確定値（index）とは別に、指の位置に追従させる。
   const [active, setActive] = useState(index);
 
-  // 外から index が変わったら（チップ選択・初期化など）その行へ寄せる。
-  useEffect(() => {
+  const scrollToRow = (rowIndex: number) => {
     const el = ref.current;
     if (!el) return;
-    setActive(index);
-    const target = index * ROW;
+    const target = rowIndex * ROW;
     if (Math.abs(el.scrollTop - target) > 1) {
-      el.scrollTo({ top: target, behavior: firstRun.current ? "auto" : "smooth" });
+      el.scrollTo({ top: target });
     }
-    firstRun.current = false;
+  };
+
+  // 外から index が変わったら（行タップ・チップ・サイド切替・初期化）合わせる。
+  useEffect(() => {
+    setActive(index);
+    scrollToRow(index);
   }, [index]);
 
   useEffect(
@@ -84,6 +91,7 @@ function Column({ items, index, onSettle, ariaLabel }: ColumnProps) {
     [],
   );
 
+  // スワイプ用。止まった行を確定する。行タップのときは onClick 側で確定済み。
   const handleScroll = () => {
     const el = ref.current;
     if (!el) return;
@@ -99,19 +107,11 @@ function Column({ items, index, onSettle, ariaLabel }: ColumnProps) {
         0,
         items.length - 1,
       );
-      // 慣性で半端に止まることがあるので、行にぴったり合わせ直す。
       if (Math.abs(settled.scrollTop - idx * ROW) > 1) {
-        settled.scrollTo({ top: idx * ROW, behavior: "smooth" });
+        settled.scrollTo({ top: idx * ROW });
       }
-      onSettle(idx);
+      if (idx !== index) onPick(idx);
     }, 140);
-  };
-
-  const nudge = (delta: number) => {
-    const el = ref.current;
-    if (!el) return;
-    const idx = clamp(active + delta, 0, items.length - 1);
-    el.scrollTo({ top: idx * ROW, behavior: "smooth" }); // 確定は scroll 経由。
   };
 
   return (
@@ -119,35 +119,27 @@ function Column({ items, index, onSettle, ariaLabel }: ColumnProps) {
       ref={ref}
       role="listbox"
       aria-label={ariaLabel}
-      tabIndex={0}
       onScroll={handleScroll}
-      onKeyDown={(event) => {
-        if (event.key === "ArrowUp") {
-          event.preventDefault();
-          nudge(-1);
-        } else if (event.key === "ArrowDown") {
-          event.preventDefault();
-          nudge(1);
-        }
-      }}
-      className="no-scrollbar snap-y snap-mandatory flex-1 overflow-y-auto overscroll-contain scroll-smooth outline-none focus-visible:bg-surface-secondary"
+      className="no-scrollbar snap-y snap-mandatory flex-1 overflow-y-auto overscroll-contain"
       style={{ height: ROW * VISIBLE_ROWS }}
     >
       {/* 上下 1 行ぶんの余白で、端の項目も中央に来られるようにする。 */}
       <ul style={{ paddingBlock: ROW }}>
         {items.map((item, itemIndex) => (
-          <li
-            key={item}
-            role="option"
-            aria-selected={itemIndex === active}
-            className={`flex snap-center items-center justify-center text-[17px] tabular-nums transition-colors ${
-              itemIndex === active
-                ? "font-bold text-accent"
-                : "text-foreground-tertiary"
-            }`}
-            style={{ height: ROW }}
-          >
-            {item}
+          <li key={item} role="option" aria-selected={itemIndex === index}>
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => onPick(itemIndex)}
+              className={`flex w-full snap-center items-center justify-center text-[17px] tabular-nums transition-colors active:bg-surface-secondary ${
+                itemIndex === active
+                  ? "font-bold text-accent"
+                  : "text-foreground-tertiary"
+              }`}
+              style={{ height: ROW }}
+            >
+              {item}
+            </button>
           </li>
         ))}
       </ul>
@@ -162,7 +154,42 @@ type Props = {
 };
 
 export function TimeWheel({ value, onChange }: Props) {
-  const { hour, minute } = toIndices(value);
+  // 時・分は内部で持つ。片方を変えたとき、もう片方の最新値と組み直して
+  // onChange する。value から都度計算すると、続けて操作したとき
+  // 前の再レンダー前の値で上書きしてしまう。
+  const [hour, setHour] = useState(() => toIndices(value).hour);
+  const [minute, setMinute] = useState(() => toIndices(value).minute);
+  const hourRef = useRef(hour);
+  const minuteRef = useRef(minute);
+  hourRef.current = hour;
+  minuteRef.current = minute;
+
+  // 自分が出した値以外で value が変わったら取り込む（チップ選択・サイド切替）。
+  const lastEmitted = useRef(value);
+  useEffect(() => {
+    if (value === lastEmitted.current) return;
+    lastEmitted.current = value;
+    const next = toIndices(value);
+    setHour(next.hour);
+    setMinute(next.minute);
+  }, [value]);
+
+  const commit = () => {
+    const next = toValue(hourRef.current, minuteRef.current);
+    lastEmitted.current = next;
+    onChange(next);
+  };
+
+  const pickHour = (next: number) => {
+    hourRef.current = next;
+    setHour(next);
+    commit();
+  };
+  const pickMinute = (next: number) => {
+    minuteRef.current = next;
+    setMinute(next);
+    commit();
+  };
 
   return (
     <div
@@ -178,7 +205,7 @@ export function TimeWheel({ value, onChange }: Props) {
       <Column
         items={HOUR_ITEMS}
         index={hour}
-        onSettle={(next) => onChange(toValue(next, minute))}
+        onPick={pickHour}
         ariaLabel="時"
       />
       <div
@@ -190,7 +217,7 @@ export function TimeWheel({ value, onChange }: Props) {
       <Column
         items={MINUTE_ITEMS}
         index={minute}
-        onSettle={(next) => onChange(toValue(hour, next))}
+        onPick={pickMinute}
         ariaLabel="分"
       />
     </div>
