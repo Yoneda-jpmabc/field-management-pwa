@@ -681,7 +681,7 @@ export function WorkRecordForm({
  */
 function Slide({ children }: { children: ReactNode }) {
   return (
-    <div className="w-full shrink-0 snap-center overflow-y-auto md:w-auto md:overflow-visible">
+    <div className="no-scrollbar w-full shrink-0 snap-center overflow-y-auto md:w-auto md:overflow-visible">
       {children}
     </div>
   );
