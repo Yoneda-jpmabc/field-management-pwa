@@ -293,30 +293,57 @@ export function WorkRecordForm({
   return (
     <div className="flex h-full flex-col gap-4 md:h-auto md:pb-4">
       {/*
-        いま何番目かをヘッダー直下に出す。通り過ぎた項目は塗り、今の項目は
-        アクセント、これからの項目は枠線だけ。タップでその項目へ飛べる。
+        いま何番目かをヘッダー直下に出す。丸を線でつないだ進捗表示。
+        現在地までは線・丸をアクセント色で連続させ、以降は灰。タップで移動。
         md 以上は縦積みで全項目が同時に見えるので出さない。
       */}
       {!confirming && (
-        <div className="flex gap-1.5 overflow-hidden md:hidden">
-          {STEP_TITLES.map((title, index) => (
-            <button
-              key={title}
-              type="button"
-              onClick={() => goToStep(index)}
-              aria-label={`${title}へ`}
-              aria-current={index === step}
-              className={`control-focus flex h-[30px] shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 text-xs font-bold ${
-                index === step
-                  ? "bg-accent text-accent-foreground"
-                  : index < step
-                    ? "bg-foreground text-background"
-                    : "border border-separator-strong text-foreground-tertiary"
-              }`}
-            >
-              {title}
-            </button>
-          ))}
+        <div className="flex items-start md:hidden">
+          {STEP_TITLES.map((title, index) => {
+            const done = index < step;
+            const current = index === step;
+            const reached = index <= step;
+            const isFirst = index === 0;
+            const isLast = index === STEP_TITLES.length - 1;
+            return (
+              <button
+                key={title}
+                type="button"
+                onClick={() => goToStep(index)}
+                aria-label={`${title}へ`}
+                aria-current={current}
+                className="control-focus relative flex flex-1 flex-col items-center gap-1 pt-0.5"
+              >
+                {/* 隣の丸とつなぐ線。丸の中心の高さに合わせて背面に敷く。 */}
+                <span
+                  aria-hidden
+                  className={`pointer-events-none absolute top-[11px] h-0.5 ${
+                    isFirst ? "left-1/2 right-0" : isLast ? "left-0 right-1/2" : "inset-x-0"
+                  } ${reached ? "bg-accent" : "bg-separator-strong"}`}
+                />
+                <span
+                  className={`relative z-10 h-6 w-6 rounded-full transition-transform ${
+                    current
+                      ? "scale-110 bg-accent"
+                      : done
+                        ? "bg-accent"
+                        : "border-2 border-separator-strong bg-surface"
+                  }`}
+                />
+                <span
+                  className={`whitespace-nowrap text-[11px] leading-tight ${
+                    current
+                      ? "font-bold text-foreground"
+                      : done
+                        ? "text-foreground-secondary"
+                        : "text-foreground-tertiary"
+                  }`}
+                >
+                  {title}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
