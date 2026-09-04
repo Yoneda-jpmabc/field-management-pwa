@@ -774,7 +774,7 @@ export function WorkRecordForm({
  */
 function Slide({ children }: { children: ReactNode }) {
   return (
-    <div className="no-scrollbar w-full shrink-0 snap-center overflow-y-auto md:w-auto md:overflow-visible">
+    <div className="no-scrollbar flex w-full shrink-0 snap-center flex-col overflow-y-auto md:block md:w-auto md:overflow-visible">
       {children}
     </div>
   );
@@ -819,7 +819,8 @@ function FormCard({
   children: ReactNode;
 }) {
   return (
-    <section className="surface-card p-5">
+    // モバイルはスライド高さいっぱいに伸ばして、カード下に地の色が余らないようにする。
+    <section className="surface-card flex-1 p-5 md:flex-none">
       <h2 className="text-[15px] font-semibold text-foreground">
         {title}
         {required && <span className="ml-1.5 text-xs text-danger">必須</span>}
