@@ -464,12 +464,17 @@ export function WorkRecordForm({
                     current={
                       timeSide === "start" ? form.startTime : form.endTime
                     }
-                    onPick={(time) =>
-                      update(
-                        timeSide === "start" ? "startTime" : "endTime",
-                        time,
-                      )
-                    }
+                    onPick={(time) => {
+                      // 候補から選んだときだけ次へ送る。開始→終了へ、終了→次のカードへ。
+                      // ホイールで合わせたときは何もしない。
+                      if (timeSide === "start") {
+                        update("startTime", time);
+                        window.setTimeout(() => setTimeSide("end"), 150);
+                      } else {
+                        update("endTime", time);
+                        advanceTo(1);
+                      }
+                    }}
                   />
                 </div>
               </div>
