@@ -293,18 +293,28 @@ export function WorkRecordForm({
   return (
     <div className="flex h-full flex-col gap-4 md:h-auto md:pb-4">
       {/*
-        いま何番目かをヘッダー直下に出す。丸を線でつないだ進捗表示。
-        現在地までは線・丸をアクセント色で連続させ、以降は灰。タップで移動。
+        いま何番目かをヘッダー直下に出す。丸を 1 本の線でつなぎ、現在地までの
+        アクセント線は幅をアニメーションさせて「伸びる」ように見せる。タップで移動。
         md 以上は縦積みで全項目が同時に見えるので出さない。
       */}
       {!confirming && (
-        <div className="flex items-start md:hidden">
+        <div className="relative flex items-start md:hidden">
+          {/* 円の中心どうしをつなぐ 1 本線（灰）。左端・右端は端の円の中心に合わせる。 */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-[8.333%] right-[8.333%] top-[13px] h-0.5 overflow-hidden rounded-full bg-separator-strong"
+          >
+            {/* 現在地まで伸びるアクセント線。step が変わると width がなめらかに動く。 */}
+            <div
+              className="h-full rounded-full bg-accent transition-[width] duration-500 ease-out"
+              style={{
+                width: `${(step / (STEP_TITLES.length - 1)) * 100}%`,
+              }}
+            />
+          </div>
           {STEP_TITLES.map((title, index) => {
             const done = index < step;
             const current = index === step;
-            const reached = index <= step;
-            const isFirst = index === 0;
-            const isLast = index === STEP_TITLES.length - 1;
             return (
               <button
                 key={title}
@@ -312,28 +322,21 @@ export function WorkRecordForm({
                 onClick={() => goToStep(index)}
                 aria-label={`${title}へ`}
                 aria-current={current}
-                className="control-focus relative flex flex-1 flex-col items-center gap-1 pt-0.5"
+                className="control-focus relative z-10 flex flex-1 flex-col items-center gap-1 pt-0.5"
               >
-                {/* 隣の丸とつなぐ線。丸の中心の高さ（pt 2px + 半径 12px）に合わせる。 */}
                 <span
-                  aria-hidden
-                  className={`pointer-events-none absolute top-[13px] h-0.5 ${
-                    isFirst ? "left-1/2 right-0" : isLast ? "left-0 right-1/2" : "inset-x-0"
-                  } ${reached ? "bg-accent" : "bg-separator-strong"}`}
-                />
-                <span
-                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold leading-none tabular-nums transition-transform ${
+                  className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[11px] font-bold leading-none tabular-nums transition-[background-color,border-color,color,transform] duration-500 ease-out ${
                     current
-                      ? "scale-110 bg-accent text-accent-foreground"
+                      ? "scale-110 border-accent bg-accent text-accent-foreground"
                       : done
-                        ? "bg-accent text-accent-foreground"
-                        : "border-2 border-separator-strong bg-surface text-foreground-tertiary"
+                        ? "border-accent bg-accent text-accent-foreground"
+                        : "border-separator-strong bg-surface text-foreground-tertiary"
                   }`}
                 >
                   {index + 1}
                 </span>
                 <span
-                  className={`whitespace-nowrap text-[11px] leading-tight ${
+                  className={`whitespace-nowrap text-[11px] leading-tight transition-colors duration-500 ${
                     current
                       ? "font-bold text-foreground"
                       : done
