@@ -322,14 +322,16 @@ export function WorkRecordForm({
                   } ${reached ? "bg-accent" : "bg-separator-strong"}`}
                 />
                 <span
-                  className={`relative z-10 h-6 w-6 rounded-full transition-transform ${
+                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold tabular-nums transition-transform ${
                     current
-                      ? "scale-110 bg-accent"
+                      ? "scale-110 bg-accent text-accent-foreground"
                       : done
-                        ? "bg-accent"
-                        : "border-2 border-separator-strong bg-surface"
+                        ? "bg-accent text-accent-foreground"
+                        : "border-2 border-separator-strong bg-surface text-foreground-tertiary"
                   }`}
-                />
+                >
+                  {index + 1}
+                </span>
                 <span
                   className={`whitespace-nowrap text-[11px] leading-tight ${
                     current
