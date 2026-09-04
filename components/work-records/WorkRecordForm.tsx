@@ -407,33 +407,37 @@ export function WorkRecordForm({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  {/* 開始・終了の現在値。行をタップすると下のホイール／候補が
-                    その側を編集する。両方の値が常に見えるようにしている。 */}
-                  {(
-                    [
-                      { side: "start", label: "開始", value: form.startTime },
-                      { side: "end", label: "終了", value: form.endTime },
-                    ] as const
-                  ).map(({ side, label, value }) => (
-                    <button
-                      key={side}
-                      type="button"
-                      aria-pressed={timeSide === side}
-                      onClick={() => setTimeSide(side)}
-                      className={`control-focus flex min-h-11 items-center justify-between rounded-lg border px-3 text-[15px] ${
-                        timeSide === side
-                          ? "border-accent bg-accent-bg"
-                          : "border-separator-strong"
-                      }`}
-                    >
-                      <span className="font-bold text-foreground">{label}</span>
-                      <span
-                        className={`tabular-nums ${value ? "text-foreground" : "text-foreground-tertiary"}`}
+                  {/* 開始・終了の現在値。タップすると下のホイール／候補がその側を
+                    編集する。1 行に 2 つ並べて縦を詰める。両方の値が常に見える。 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {(
+                      [
+                        { side: "start", label: "開始", value: form.startTime },
+                        { side: "end", label: "終了", value: form.endTime },
+                      ] as const
+                    ).map(({ side, label, value }) => (
+                      <button
+                        key={side}
+                        type="button"
+                        aria-pressed={timeSide === side}
+                        onClick={() => setTimeSide(side)}
+                        className={`control-focus flex min-h-11 items-center justify-between gap-1 rounded-lg border px-3 text-[15px] ${
+                          timeSide === side
+                            ? "border-accent bg-accent-bg"
+                            : "border-separator-strong"
+                        }`}
                       >
-                        {value || "未設定"}
-                      </span>
-                    </button>
-                  ))}
+                        <span className="font-bold text-foreground">
+                          {label}
+                        </span>
+                        <span
+                          className={`tabular-nums ${value ? "text-foreground" : "text-foreground-tertiary"}`}
+                        >
+                          {value || "未設定"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
 
                   <TimeWheel
                     value={timeSide === "start" ? form.startTime : form.endTime}
