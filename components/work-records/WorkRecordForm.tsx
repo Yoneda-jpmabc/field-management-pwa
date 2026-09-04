@@ -314,15 +314,15 @@ export function WorkRecordForm({
                 aria-current={current}
                 className="control-focus relative flex flex-1 flex-col items-center gap-1 pt-0.5"
               >
-                {/* 隣の丸とつなぐ線。丸の中心の高さに合わせて背面に敷く。 */}
+                {/* 隣の丸とつなぐ線。丸の中心の高さ（pt 2px + 半径 12px）に合わせる。 */}
                 <span
                   aria-hidden
-                  className={`pointer-events-none absolute top-[11px] h-0.5 ${
+                  className={`pointer-events-none absolute top-[13px] h-0.5 ${
                     isFirst ? "left-1/2 right-0" : isLast ? "left-0 right-1/2" : "inset-x-0"
                   } ${reached ? "bg-accent" : "bg-separator-strong"}`}
                 />
                 <span
-                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold tabular-nums transition-transform ${
+                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold leading-none tabular-nums transition-transform ${
                     current
                       ? "scale-110 bg-accent text-accent-foreground"
                       : done
