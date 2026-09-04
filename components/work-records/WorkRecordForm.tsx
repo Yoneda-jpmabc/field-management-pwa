@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CropIcon, IconChevronRight } from "@/components/icons";
+import { CheckMark } from "@/components/ui/CheckMark";
+import { RoundArrowButton } from "@/components/ui/RoundArrowButton";
 import { createWorkRecords } from "@/lib/work-records/actions";
 import { shiftAnchor } from "@/lib/work-records/period";
 import { spansLunchBreak } from "@/lib/work-records/time";
@@ -492,7 +494,11 @@ export function WorkRecordForm({
                       // チェックしたら確認は済みなので作業者カードへ進む。
                       if (event.target.checked) advanceTo(1);
                     }}
-                    className="control-focus size-5 shrink-0 rounded border-separator-strong"
+                    className="peer sr-only"
+                  />
+                  <CheckMark
+                    checked={form.worksThroughLunch}
+                    className="peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:[outline-color:var(--accent)]"
                   />
                   休憩を含まない
                 </label>
@@ -751,11 +757,12 @@ export function WorkRecordForm({
       */}
       {!confirming && (
         <div className="sticky -bottom-8 -mb-8 flex items-center gap-2 md:bottom-0 md:mb-0">
-          <StepArrow
+          <RoundArrowButton
             direction="prev"
             label="前の項目へ"
             disabled={step === 0}
             onClick={() => goToStep(settledStep.current - 1)}
+            className="md:hidden"
           />
           <button
             type="button"
@@ -772,11 +779,12 @@ export function WorkRecordForm({
               ? `内容を確認（${form.selectedWorkerIds.length}件）`
               : "作業者を選択してください"}
           </button>
-          <StepArrow
+          <RoundArrowButton
             direction="next"
             label="次の項目へ"
             disabled={step === STEP_TITLES.length - 1}
             onClick={() => goToStep(settledStep.current + 1)}
+            className="md:hidden"
           />
         </div>
       )}
@@ -793,33 +801,6 @@ function Slide({ children }: { children: ReactNode }) {
     <div className="no-scrollbar flex w-full shrink-0 snap-center flex-col overflow-y-auto md:block md:w-auto md:overflow-visible">
       {children}
     </div>
-  );
-}
-
-/** スライドを 1 枚送る矢印。モバイルだけに出す。 */
-function StepArrow({
-  direction,
-  label,
-  disabled,
-  onClick,
-}: {
-  direction: "prev" | "next";
-  label: string;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      className="control-focus pressable flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-separator-strong bg-surface text-foreground-secondary disabled:border-separator disabled:text-foreground-tertiary md:hidden"
-    >
-      <IconChevronRight
-        className={`h-4 w-4 ${direction === "prev" ? "rotate-180" : ""}`}
-      />
-    </button>
   );
 }
 

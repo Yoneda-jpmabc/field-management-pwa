@@ -3,6 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { IconPlus } from "@/components/icons";
+import { CheckMark } from "@/components/ui/CheckMark";
+import { RoundArrowButton } from "@/components/ui/RoundArrowButton";
 import { toggleWorkPlanDone } from "@/lib/work-plans/actions";
 import type { WorkPlan } from "@/lib/work-plans/types";
 import type { MasterOption } from "@/lib/work-records/types";
@@ -90,25 +92,19 @@ export function WeekCalendar({
       </div>
 
       <div className="mb-4 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          aria-label="前の週"
+        <RoundArrowButton
+          direction="prev"
+          label="前の週"
           onClick={() => goToWeek(shiftAnchor("week", anchor, -1))}
-          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary"
-        >
-          ←
-        </button>
+        />
         <p className="min-w-0 truncate text-center text-[15px] font-semibold text-foreground">
           {label}
         </p>
-        <button
-          type="button"
-          aria-label="次の週"
+        <RoundArrowButton
+          direction="next"
+          label="次の週"
           onClick={() => goToWeek(shiftAnchor("week", anchor, 1))}
-          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary"
-        >
-          →
-        </button>
+        />
       </div>
 
       {notice && (
@@ -181,17 +177,7 @@ export function WeekCalendar({
                     </>
                   );
 
-                  const checkMark = (
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                        plan.isDone
-                          ? "border-success bg-success text-white"
-                          : "border-separator-strong"
-                      }`}
-                    >
-                      {plan.isDone && <span aria-hidden>✓</span>}
-                    </span>
-                  );
+                  const checkMark = <CheckMark checked={plan.isDone} />;
 
                   return (
                     <div

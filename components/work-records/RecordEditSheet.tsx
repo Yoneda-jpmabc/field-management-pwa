@@ -6,6 +6,7 @@ import {
   SheetChip,
   SheetSection,
 } from "@/components/ui/BottomSheet";
+import { CheckMark } from "@/components/ui/CheckMark";
 import { deleteWorkRecord, updateWorkRecord } from "@/lib/work-records/actions";
 import type {
   EditableWorkRecord,
@@ -256,20 +257,18 @@ export function RecordEditSheet({
             </p>
           )}
           {spansLunchBreak(startTime, endTime) && (
-            <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
+            <label className="mt-3 flex items-center gap-2 text-sm text-foreground-secondary">
               <input
                 type="checkbox"
                 checked={worksThroughLunch}
                 onChange={(event) => setWorksThroughLunch(event.target.checked)}
-                className="control-focus mt-0.5 size-5 shrink-0 rounded border-separator-strong"
+                className="peer sr-only"
               />
-              <span>
-                休憩を含まない（12:00〜13:00をまたいでも休憩なしで作業した）
-                <br />
-                <span className="text-foreground-tertiary">
-                  未チェックの場合、12:00〜13:00の1時間を集計から差し引きます。
-                </span>
-              </span>
+              <CheckMark
+                checked={worksThroughLunch}
+                className="peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:[outline-color:var(--accent)]"
+              />
+              休憩を含まない
             </label>
           )}
         </SheetSection>
