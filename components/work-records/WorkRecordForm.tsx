@@ -383,7 +383,7 @@ export function WorkRecordForm({
                       onChange={(event) =>
                         update("workDate", event.target.value)
                       }
-                      className={`${dateTimeInputClass} max-w-56`}
+                      className={dateTimeInputClass}
                     />
                     {/* 実績はほぼ前日ぶんの入力。ワンタップで 1 日戻せるようにする
                       （翌日以降を登録することはないので「翌日」は置かない）。 */}
@@ -866,8 +866,9 @@ function Chip({
 }
 
 /**
- * 過去に多かった時刻をワンタップで入れるチップ列。時刻入力欄の下に置く。
+ * 過去によく使った時刻をワンタップで入れるチップ。時刻入力欄の下に置く。
  * iOS の時刻ホイールを回さずに、定時の開始・終了をそのまま選べるようにする。
+ * 幅いっぱいの 4 列グリッドにして、行の右側に地の色が余らないようにする。
  */
 function TimeChips({
   times,
@@ -880,13 +881,13 @@ function TimeChips({
 }) {
   if (times.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="grid grid-cols-4 gap-1.5">
       {times.map((time) => (
         <Chip
           key={time}
           selected={current === time}
           onClick={() => onPick(time)}
-          className="px-3 text-sm tabular-nums"
+          className="px-1 text-sm tabular-nums"
         >
           {time}
         </Chip>
