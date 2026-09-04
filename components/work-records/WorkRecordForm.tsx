@@ -488,18 +488,16 @@ export function WorkRecordForm({
             </FormCard>
           </Slide>
           <Slide>
-            <FormCard
-              title="作業者"
-              required
-              hint="選んだ人数分のレコードをまとめて登録します。"
-            >
-              <div className="flex flex-col gap-4">
+            <FormCard title="作業者" required>
+              {/* スクロールせず全員 1 画面に収める。1 行あたりの人数を増やし、
+                見出しの余白を詰める。 */}
+              <div className="flex flex-col gap-1">
                 {workerGroups.map((group) => (
                   <div key={group.label}>
-                    <p className="mb-2 text-xs font-medium text-foreground-tertiary">
+                    <p className="mb-0.5 text-[11px] font-medium text-foreground-tertiary">
                       {group.label}
                     </p>
-                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    <div className="grid grid-cols-5 gap-1 sm:grid-cols-8">
                       {group.members.map((worker) => (
                         <GridChip
                           key={worker.id}
@@ -907,9 +905,9 @@ function TimeChips({
  */
 function gridLabelClass(label: string, hasIcon: boolean): string {
   const length = [...label].length + (hasIcon ? 2 : 0);
-  if (length <= 5) return "text-[15px]";
-  if (length === 6) return "text-[13px]";
-  if (length === 7) return "inline-block scale-x-90 text-[12px]";
+  if (length <= 4) return "text-[15px]";
+  if (length === 5) return "inline-block scale-x-90 text-[13px]";
+  if (length === 6) return "inline-block scale-x-90 text-[12px]";
   return "inline-block scale-x-75 text-[12px]";
 }
 
