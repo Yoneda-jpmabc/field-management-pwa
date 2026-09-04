@@ -156,6 +156,11 @@ export function WorkRecordForm({
     track.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
   };
 
+  // 選択したらタップの反応が見えるくらい待ってから次のカードへ送る。
+  const advanceTo = (index: number) => {
+    window.setTimeout(() => goToStep(index), 150);
+  };
+
   // 26人を平らに並べると探しにくいので、雇用区分ごとの見出し付きに分ける。
   // 並び順は display_order のまま（区分内の順序も保たれる）。
   const workerGroups = useMemo(() => {
@@ -216,6 +221,8 @@ export function WorkRecordForm({
     }));
     setConfirming(false);
     setFeedback(null);
+    // 区分を選んだら作業種類カードへ自動で進む（解除のときは進まない）。
+    if (categoryId) advanceTo(3);
   };
 
   // 区分未選択のうちは何も出さない。選んだ区分に属する作業種類だけを出す。
@@ -559,12 +566,13 @@ export function WorkRecordForm({
                     <Chip
                       key={type.id}
                       selected={form.workTypeId === type.id}
-                      onClick={() =>
-                        update(
-                          "workTypeId",
-                          form.workTypeId === type.id ? null : type.id,
-                        )
-                      }
+                      onClick={() => {
+                        const next =
+                          form.workTypeId === type.id ? null : type.id;
+                        update("workTypeId", next);
+                        // 作業種類を選んだら圃場カードへ自動で進む。
+                        if (next) advanceTo(4);
+                      }}
                     >
                       {type.label}
                     </Chip>
