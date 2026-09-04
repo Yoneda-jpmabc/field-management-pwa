@@ -472,29 +472,27 @@ export function WorkRecordForm({
                         window.setTimeout(() => setTimeSide("end"), 150);
                       } else {
                         update("endTime", time);
-                        advanceTo(1);
+                        // 12:00〜13:00 をまたぐと休憩チェックが出るので、
+                        // その確認のため次のカードへは自動で進まない。
+                        if (!spansLunchBreak(form.startTime, time)) {
+                          advanceTo(1);
+                        }
                       }
                     }}
                   />
                 </div>
               </div>
               {spansLunchBreak(form.startTime, form.endTime) && (
-                <label className="mt-3 flex items-start gap-2 text-sm text-foreground-secondary">
+                <label className="mt-3 flex items-center gap-2 text-sm text-foreground-secondary">
                   <input
                     type="checkbox"
                     checked={form.worksThroughLunch}
                     onChange={(event) =>
                       update("worksThroughLunch", event.target.checked)
                     }
-                    className="control-focus mt-0.5 size-5 shrink-0 rounded border-separator-strong"
+                    className="control-focus size-5 shrink-0 rounded border-separator-strong"
                   />
-                  <span>
-                    休憩を含まない（12:00〜13:00をまたいでも休憩なしで作業した）
-                    <br />
-                    <span className="text-foreground-tertiary">
-                      未チェックの場合、12:00〜13:00の1時間を集計から差し引きます。
-                    </span>
-                  </span>
+                  休憩を含まない
                 </label>
               )}
             </FormCard>
