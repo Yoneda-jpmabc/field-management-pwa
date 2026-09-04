@@ -362,7 +362,7 @@ export function WorkRecordForm({
         <div
           ref={trackRef}
           onScroll={handleTrackScroll}
-          className="no-scrollbar flex min-h-0 flex-1 snap-x snap-mandatory scroll-smooth overflow-x-auto overflow-y-hidden overscroll-x-contain md:flex-none md:snap-none md:flex-col md:gap-4 md:overflow-visible"
+          className="no-scrollbar flex min-h-0 flex-1 gap-4 snap-x snap-mandatory scroll-smooth overflow-x-auto overflow-y-hidden overscroll-x-contain md:flex-none md:snap-none md:flex-col md:overflow-visible"
         >
           <Slide>
             <FormCard title="日時" required>
