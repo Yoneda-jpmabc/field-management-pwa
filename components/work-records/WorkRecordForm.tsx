@@ -497,10 +497,11 @@ export function WorkRecordForm({
                     <p className="mb-0.5 text-[11px] font-medium text-foreground-tertiary">
                       {group.label}
                     </p>
-                    <div className="grid grid-cols-5 gap-1 sm:grid-cols-8">
+                    <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-8">
                       {group.members.map((worker) => (
                         <GridChip
                           key={worker.id}
+                          dense
                           label={worker.label}
                           selected={form.selectedWorkerIds.includes(worker.id)}
                           onClick={() => toggleWorker(worker.id)}
@@ -854,8 +855,9 @@ function Chip({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`control-focus pressable min-h-11 select-none rounded-full border ${
-        className ?? "px-4 text-[15px]"
+      className={`control-focus pressable select-none rounded-full border ${
+        // className を渡す側は高さ（min-h-* か h-*）も自分で指定する。
+        className ?? "min-h-11 px-4 text-[15px]"
       } ${
         selected
           ? "border-accent bg-accent text-accent-foreground"
@@ -889,7 +891,7 @@ function TimeChips({
           key={time}
           selected={current === time}
           onClick={() => onPick(time)}
-          className="px-1 text-sm tabular-nums"
+          className="min-h-11 px-1 text-sm tabular-nums"
         >
           {time}
         </Chip>
@@ -916,18 +918,23 @@ function GridChip({
   icon,
   selected,
   onClick,
+  /** 人数が多いカード（作業者）向けに 1 段低くする。 */
+  dense = false,
 }: {
   label: string;
   /** 装飾用アイコン。ラベルと同じ意味なので読み上げ対象から外す。 */
   icon?: ReactNode;
   selected: boolean;
   onClick: () => void;
+  dense?: boolean;
 }) {
   return (
     <Chip
       selected={selected}
       onClick={onClick}
-      className="flex h-11 w-full items-center justify-center gap-1 overflow-hidden px-1.5"
+      className={`flex w-full items-center justify-center gap-1 overflow-hidden px-1.5 ${
+        dense ? "h-[38px]" : "h-11"
+      }`}
     >
       {icon && (
         <span aria-hidden className="flex shrink-0">
