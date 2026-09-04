@@ -193,7 +193,7 @@ export function TimeWheel({ value, onChange }: Props) {
 
   return (
     <div
-      className="relative flex max-w-[240px] overflow-hidden rounded-[10px] border border-separator-strong bg-surface"
+      className="relative flex w-full max-w-sm overflow-hidden rounded-[10px] border border-separator-strong bg-surface"
       style={{ height: ROW * VISIBLE_ROWS }}
     >
       {/* 中央の選択行を囲む枠。数字は上下の罫線の間に来るので隠れない。 */}
