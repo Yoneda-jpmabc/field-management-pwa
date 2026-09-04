@@ -125,23 +125,30 @@ function Column({ items, index, onPick, ariaLabel }: ColumnProps) {
     >
       {/* 上下 1 行ぶんの余白で、端の項目も中央に来られるようにする。 */}
       <ul style={{ paddingBlock: ROW }}>
-        {items.map((item, itemIndex) => (
-          <li key={item} role="option" aria-selected={itemIndex === index}>
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => onPick(itemIndex)}
-              className={`flex w-full snap-center items-center justify-center text-[17px] tabular-nums transition-colors active:bg-surface-secondary ${
-                itemIndex === active
-                  ? "font-bold text-accent"
-                  : "text-foreground-tertiary"
-              }`}
-              style={{ height: ROW }}
-            >
-              {item}
-            </button>
-          </li>
-        ))}
+        {items.map((item, itemIndex) => {
+          // 中央からの距離で見た目を変える。離れるほど縦に潰して薄くし、
+          // ドラムが奥へ回り込んでいるように見せる。
+          const distance = Math.abs(itemIndex - active);
+          const look =
+            distance === 0
+              ? "font-bold text-accent"
+              : distance === 1
+                ? "text-foreground-secondary opacity-60 [transform:scaleY(0.68)]"
+                : "text-foreground-tertiary opacity-25 [transform:scaleY(0.42)]";
+          return (
+            <li key={item} role="option" aria-selected={itemIndex === index}>
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => onPick(itemIndex)}
+                className={`flex w-full snap-center items-center justify-center text-[17px] tabular-nums transition-[transform,opacity,color] duration-100 active:bg-surface-secondary ${look}`}
+                style={{ height: ROW }}
+              >
+                {item}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -196,6 +203,17 @@ export function TimeWheel({ value, onChange }: Props) {
       className="relative flex w-full max-w-sm overflow-hidden rounded-[10px] border border-separator-strong bg-surface"
       style={{ height: ROW * VISIBLE_ROWS }}
     >
+      {/* 上下を地の色へフェードさせ、ドラムが丸く回り込んでいるように見せる。 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-surface via-surface/80 to-transparent"
+        style={{ height: ROW * 1.4 }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-surface via-surface/80 to-transparent"
+        style={{ height: ROW * 1.4 }}
+      />
       {/* 中央の選択行を囲む枠。数字は上下の罫線の間に来るので隠れない。 */}
       <div
         aria-hidden
