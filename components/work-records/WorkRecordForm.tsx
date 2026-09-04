@@ -487,9 +487,11 @@ export function WorkRecordForm({
                   <input
                     type="checkbox"
                     checked={form.worksThroughLunch}
-                    onChange={(event) =>
-                      update("worksThroughLunch", event.target.checked)
-                    }
+                    onChange={(event) => {
+                      update("worksThroughLunch", event.target.checked);
+                      // チェックしたら確認は済みなので作業者カードへ進む。
+                      if (event.target.checked) advanceTo(1);
+                    }}
                     className="control-focus size-5 shrink-0 rounded border-separator-strong"
                   />
                   休憩を含まない
