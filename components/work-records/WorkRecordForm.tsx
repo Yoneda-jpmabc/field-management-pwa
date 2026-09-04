@@ -497,7 +497,7 @@ export function WorkRecordForm({
                     <p className="mb-0.5 text-[11px] font-medium text-foreground-tertiary">
                       {group.label}
                     </p>
-                    <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-8">
+                    <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
                       {group.members.map((worker) => (
                         <GridChip
                           key={worker.id}
