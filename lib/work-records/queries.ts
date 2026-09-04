@@ -21,7 +21,10 @@ export type WorkRecordFormData = {
   /** 作業予定（work-plans）側の作物ピッカーがそのまま使うので残してある。 */
   crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
-  /** 過去の記録で多かった開始・終了時刻（"HH:MM"、頻度順、最大 4 件）。 */
+  /**
+   * 開始・終了時刻の候補（"HH:MM"、最大 8 件、表示は時間の早い順）。
+   * 「よく使う」＋「最近使った」を混ぜて選ぶ。
+   */
   startTimeSuggestions: string[];
   endTimeSuggestions: string[];
   /** マスタ取得に失敗した場合のメッセージ。null なら成功。 */
@@ -29,19 +32,25 @@ export type WorkRecordFormData = {
 };
 
 /**
- * 時刻文字列の配列から、よく使われる上位 limit 件を選び、
- * 表示は時間の早い順に並べて "HH:MM" で返す。
- * 旧 10 分刻みの記録が混ざっても、30 分グリッドに丸めてから数える。
+ * 新しい順に並んだ時刻文字列の配列から、候補を上位 limit 件選ぶ。
+ * スコア = 使用回数（頻度）＋ 直近ぶんの加点（新しい記録ほど大きい）。
+ * これで「多く使われている時刻」と「最近使った時刻」の両方が上位に来る。
+ * 表示は時間の早い順に並べ、旧 10 分刻みの記録は 30 分グリッドに丸める。
  */
-function topTimes(values: (string | null)[], limit = 4): string[] {
-  const counts = new Map<string, number>();
-  for (const value of values) {
-    if (!value) continue;
+const RECENCY_WINDOW = 120; // この件数までの新しさに応じて加点する。
+const RECENCY_WEIGHT = 4; // 最新の 1 件が持つ加点の最大値。
+
+function rankTimes(values: (string | null)[], limit = 8): string[] {
+  const scores = new Map<string, number>();
+  values.forEach((value, index) => {
+    if (!value) return;
     const snapped = snapTimeToStep(value.slice(0, 5));
-    if (!/^\d{2}:\d{2}$/.test(snapped)) continue;
-    counts.set(snapped, (counts.get(snapped) ?? 0) + 1);
-  }
-  return [...counts.entries()]
+    if (!/^\d{2}:\d{2}$/.test(snapped)) return;
+    const recency =
+      Math.max(0, (RECENCY_WINDOW - index) / RECENCY_WINDOW) * RECENCY_WEIGHT;
+    scores.set(snapped, (scores.get(snapped) ?? 0) + 1 + recency);
+  });
+  return [...scores.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, limit)
     .map(([time]) => time)
@@ -101,12 +110,14 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         .order("record_count", { ascending: false })
         .limit(30),
       // 開始・終了時刻の候補は集計ビューを用意せず、直近の記録から JS 側で数える。
+      // 新しい順（登録日時まで見る）で取り、頻度＋直近で重み付けする。
       // 件数が増えても頭打ちになるよう直近 1000 件に絞る。
       supabase
         .from("work_records")
         .select("start_time, end_time")
         .is("deleted_at", null)
         .order("work_date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(1000),
     ]);
 
@@ -148,10 +159,10 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         ? [{ value: row.work_type_raw, count: row.record_count ?? 0 }]
         : [],
     ),
-    startTimeSuggestions: topTimes(
+    startTimeSuggestions: rankTimes(
       (timeRowsResult.data ?? []).map((row) => row.start_time),
     ),
-    endTimeSuggestions: topTimes(
+    endTimeSuggestions: rankTimes(
       (timeRowsResult.data ?? []).map((row) => row.end_time),
     ),
     errorMessage: failure ? `マスタの取得に失敗しました（${failure.message}）。` : null,
