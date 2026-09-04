@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { CropIcon, IconChevronRight } from "@/components/icons";
 import { createWorkRecords } from "@/lib/work-records/actions";
+import { shiftAnchor } from "@/lib/work-records/period";
 import { spansLunchBreak } from "@/lib/work-records/time";
 import { TimeWheel } from "./TimeWheel";
 import type {
@@ -370,17 +371,40 @@ export function WorkRecordForm({
           <Slide>
             <FormCard title="日時" required>
               <div className="flex flex-col gap-4">
-                <label className="block min-w-0 sm:w-56">
+                <div>
                   <span className="mb-1.5 block text-sm text-foreground-secondary">
                     作業日
                   </span>
-                  <input
-                    type="date"
-                    value={form.workDate}
-                    onChange={(event) => update("workDate", event.target.value)}
-                    className={`${dateTimeInputClass} max-w-56`}
-                  />
-                </label>
+                  <div className="flex items-stretch gap-2">
+                    <input
+                      type="date"
+                      aria-label="作業日"
+                      value={form.workDate}
+                      onChange={(event) =>
+                        update("workDate", event.target.value)
+                      }
+                      className={`${dateTimeInputClass} max-w-56`}
+                    />
+                    {/* 実績はほぼ前日ぶんの入力。ワンタップで 1 日戻せるようにする
+                      （翌日以降を登録することはないので「翌日」は置かない）。 */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        update(
+                          "workDate",
+                          shiftAnchor("day", form.workDate, -1),
+                        )
+                      }
+                      className="control-focus flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded-[10px] border border-separator-strong px-3 text-sm font-bold text-foreground-secondary active:bg-surface-secondary"
+                    >
+                      <IconChevronRight
+                        aria-hidden
+                        className="h-4 w-4 shrink-0 rotate-180"
+                      />
+                      前日
+                    </button>
+                  </div>
+                </div>
 
                 <div className="flex flex-col gap-2">
                   {/* 開始・終了の現在値。行をタップすると下のホイール／候補が
