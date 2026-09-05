@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, IBM_Plex_Sans_JP } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import "./fonts-ibm-plex-sans-jp.css";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -8,20 +9,17 @@ const geistMono = Geist_Mono({
 });
 
 /*
- * 本文フォント。屋外・低解像度端末での可読性重視で IBM Plex Sans JP を採用。
- * この書体は最大ウェイトが 700（900 は無い）。KPI 数値は 600、見出しは 700 で組む。
- * オフライン前提のアプリなので CDN 参照ではなく next/font で self-host する。
+ * 本文フォント（IBM Plex Sans JP）は next/font/google ではなく
+ * fonts-ibm-plex-sans-jp.css で自前ホストしている。
+ *
+ * この書体は next/font/google の subsets（cyrillic / latin / latin-ext しか
+ * 選べない）では日本語グリフを絞り込めず、素で読み込むと使わない拡張漢字まで
+ * 含む @font-face が約500個生成され、CSS だけで350KB超になっていた。
+ * 常用漢字2136字＋このリポジトリ内の実在文字＋かな・記号・英数字（計2656字）
+ * だけを含むサブセットを Google Fonts の text= 機能で生成し直し、
+ * public/fonts/ibm-plex-sans-jp/ に固定してある。
+ * 対応外の稀な漢字は端末の標準日本語フォントにフォールバックする。
  */
-const plexJp = IBM_Plex_Sans_JP({
-  variable: "--font-plex-jp",
-  weight: ["400", "500", "600", "700"],
-  // subsets を指定すると日本語グリフが落ちる（この書体は latin / cyrillic しか
-  // サブセット指定できない）。省略して全スライスを取り込み、代わりに
-  // preload: false でプリロードだけ切る。初回に必要な分だけ読み込まれ、
-  // 以降は Service Worker のキャッシュに乗る。
-  preload: false,
-  display: "swap",
-});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -64,7 +62,7 @@ export default function RootLayout({
       data-theme="light"
       data-accent="orange"
       suppressHydrationWarning
-      className={`${geistMono.variable} ${plexJp.variable} h-full antialiased`}
+      className={`${geistMono.variable} h-full antialiased`}
     >
       <head>
         <script

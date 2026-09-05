@@ -100,6 +100,7 @@
   --color-warning-bg: var(--warning-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
+  --font-plex-jp: "IBM Plex Sans JP";
   --font-sans: var(--font-plex-jp), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
     "Noto Sans JP", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
