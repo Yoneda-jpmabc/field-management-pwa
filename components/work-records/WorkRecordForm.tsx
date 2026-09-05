@@ -61,7 +61,7 @@ const dateTimeInputClass =
  * 横スライドの並び順。実際のカードの並びと 1 対 1 で対応させること
  * （目印のドットと ←→ ボタンの端の判定がこれを見ている）。
  */
-const STEP_TITLES = ["日時", "作業者", "区分", "作業種類", "圃場", "メモ"];
+const STEP_TITLES = ["区分", "作業種類", "作業者", "日時", "圃場", "メモ"];
 
 /** 今どのカードが正面に来ているか。端は必ず 0 と最後に丸める。 */
 function nearestStep(track: HTMLElement): number {
@@ -238,7 +238,7 @@ export function WorkRecordForm({
     setConfirming(false);
     setFeedback(null);
     // 区分を選んだら作業種類カードへ自動で進む（解除のときは進まない）。
-    if (categoryId) advanceTo(3);
+    if (categoryId) advanceTo(1);
   };
 
   // 区分未選択のうちは何も出さない。選んだ区分に属する作業種類だけを出す。
@@ -411,6 +411,133 @@ export function WorkRecordForm({
           className="no-scrollbar flex min-h-0 flex-1 gap-4 snap-x snap-mandatory scroll-smooth overflow-x-auto overflow-y-hidden overscroll-x-contain md:flex-none md:snap-none md:flex-col md:overflow-visible"
         >
           <Slide>
+            <FormCard
+              title="区分"
+              hint="タップで選択。もう一度タップで解除できます。"
+            >
+              {workCategories.length === 0 ? (
+                <p className="text-sm text-foreground-tertiary">
+                  作業区分マスタが空です。登録すればここに一覧が出ます。
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {workCategories.map((category) => (
+                    <GridChip
+                      key={category.id}
+                      label={category.label}
+                      /* 名前が隣にあるのでアイコンは装飾扱い */
+                      icon={
+                        <CropIcon name={category.label} className="size-5" />
+                      }
+                      selected={form.categoryId === category.id}
+                      onClick={() =>
+                        selectCategory(
+                          form.categoryId === category.id ? null : category.id,
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </FormCard>
+          </Slide>
+          <Slide>
+            <FormCard
+              title="作業種類"
+              hint={
+                form.categoryId
+                  ? "選んだ区分に合わせて表示しています。マスタに無ければ自由入力できます。"
+                  : "区分を選ぶと作業種類が表示されます。"
+              }
+            >
+              {visibleWorkTypes.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {visibleWorkTypes.map((type) => (
+                    <Chip
+                      key={type.id}
+                      selected={form.workTypeId === type.id}
+                      onClick={() => {
+                        const next =
+                          form.workTypeId === type.id ? null : type.id;
+                        update("workTypeId", next);
+                        // 作業種類を選んだら作業者カードへ自動で進む。
+                        if (next) advanceTo(2);
+                      }}
+                    >
+                      {type.label}
+                    </Chip>
+                  ))}
+                </div>
+              )}
+              <input
+                type="text"
+                list="work-type-suggestions"
+                value={form.workTypeRaw}
+                onChange={(event) => update("workTypeRaw", event.target.value)}
+                placeholder={
+                  visibleWorkTypes.length > 0
+                    ? "その他（自由入力）"
+                    : "例: 防除 / 施肥 / 収穫"
+                }
+                className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
+              />
+              <datalist id="work-type-suggestions">
+                {workTypeSuggestions.map((suggestion) => (
+                  <option key={suggestion.value} value={suggestion.value} />
+                ))}
+              </datalist>
+              {workTypeSuggestions.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {workTypeSuggestions.slice(0, 8).map((suggestion) => (
+                    <Chip
+                      key={suggestion.value}
+                      selected={form.workTypeRaw === suggestion.value}
+                      onClick={() =>
+                        update(
+                          "workTypeRaw",
+                          form.workTypeRaw === suggestion.value
+                            ? ""
+                            : suggestion.value,
+                        )
+                      }
+                    >
+                      {suggestion.value}
+                      <span className="ml-1 text-xs opacity-60">
+                        {suggestion.count}
+                      </span>
+                    </Chip>
+                  ))}
+                </div>
+              )}
+            </FormCard>
+          </Slide>
+          <Slide>
+            <FormCard title="作業者" required>
+              {/* スクロールせず全員 1 画面に収める。1 行あたりの人数を増やし、
+                見出しの余白を詰める。 */}
+              <div className="flex flex-col gap-1">
+                {workerGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="mb-0.5 text-[11px] font-medium text-foreground-tertiary">
+                      {group.label}
+                    </p>
+                    <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+                      {group.members.map((worker) => (
+                        <GridChip
+                          key={worker.id}
+                          dense
+                          label={worker.label}
+                          selected={form.selectedWorkerIds.includes(worker.id)}
+                          onClick={() => toggleWorker(worker.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </FormCard>
+          </Slide>
+          <Slide>
             <FormCard title="日時" required>
               <div className="flex flex-col gap-4">
                 <div>
@@ -510,7 +637,7 @@ export function WorkRecordForm({
                         // 12:00〜13:00 をまたぐと休憩チェックが出るので、
                         // その確認のため次のカードへは自動で進まない。
                         if (!spansLunchBreak(form.startTime, time)) {
-                          advanceTo(1);
+                          advanceTo(4);
                         }
                       }
                     }}
@@ -524,8 +651,8 @@ export function WorkRecordForm({
                     checked={form.worksThroughLunch}
                     onChange={(event) => {
                       update("worksThroughLunch", event.target.checked);
-                      // チェックしたら確認は済みなので作業者カードへ進む。
-                      if (event.target.checked) advanceTo(1);
+                      // チェックしたら確認は済みなので圃場カードへ進む。
+                      if (event.target.checked) advanceTo(4);
                     }}
                     className="peer sr-only"
                   />
@@ -535,133 +662,6 @@ export function WorkRecordForm({
                   />
                   休憩を含まない
                 </label>
-              )}
-            </FormCard>
-          </Slide>
-          <Slide>
-            <FormCard title="作業者" required>
-              {/* スクロールせず全員 1 画面に収める。1 行あたりの人数を増やし、
-                見出しの余白を詰める。 */}
-              <div className="flex flex-col gap-1">
-                {workerGroups.map((group) => (
-                  <div key={group.label}>
-                    <p className="mb-0.5 text-[11px] font-medium text-foreground-tertiary">
-                      {group.label}
-                    </p>
-                    <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
-                      {group.members.map((worker) => (
-                        <GridChip
-                          key={worker.id}
-                          dense
-                          label={worker.label}
-                          selected={form.selectedWorkerIds.includes(worker.id)}
-                          onClick={() => toggleWorker(worker.id)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </FormCard>
-          </Slide>
-          <Slide>
-            <FormCard
-              title="区分"
-              hint="タップで選択。もう一度タップで解除できます。"
-            >
-              {workCategories.length === 0 ? (
-                <p className="text-sm text-foreground-tertiary">
-                  作業区分マスタが空です。登録すればここに一覧が出ます。
-                </p>
-              ) : (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {workCategories.map((category) => (
-                    <GridChip
-                      key={category.id}
-                      label={category.label}
-                      /* 名前が隣にあるのでアイコンは装飾扱い */
-                      icon={
-                        <CropIcon name={category.label} className="size-5" />
-                      }
-                      selected={form.categoryId === category.id}
-                      onClick={() =>
-                        selectCategory(
-                          form.categoryId === category.id ? null : category.id,
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              )}
-            </FormCard>
-          </Slide>
-          <Slide>
-            <FormCard
-              title="作業種類"
-              hint={
-                form.categoryId
-                  ? "選んだ区分に合わせて表示しています。マスタに無ければ自由入力できます。"
-                  : "区分を選ぶと作業種類が表示されます。"
-              }
-            >
-              {visibleWorkTypes.length > 0 && (
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {visibleWorkTypes.map((type) => (
-                    <Chip
-                      key={type.id}
-                      selected={form.workTypeId === type.id}
-                      onClick={() => {
-                        const next =
-                          form.workTypeId === type.id ? null : type.id;
-                        update("workTypeId", next);
-                        // 作業種類を選んだら圃場カードへ自動で進む。
-                        if (next) advanceTo(4);
-                      }}
-                    >
-                      {type.label}
-                    </Chip>
-                  ))}
-                </div>
-              )}
-              <input
-                type="text"
-                list="work-type-suggestions"
-                value={form.workTypeRaw}
-                onChange={(event) => update("workTypeRaw", event.target.value)}
-                placeholder={
-                  visibleWorkTypes.length > 0
-                    ? "その他（自由入力）"
-                    : "例: 防除 / 施肥 / 収穫"
-                }
-                className="control-focus min-h-12 w-full rounded-[10px] border border-separator-strong bg-surface px-3 text-base text-foreground placeholder:text-foreground-tertiary"
-              />
-              <datalist id="work-type-suggestions">
-                {workTypeSuggestions.map((suggestion) => (
-                  <option key={suggestion.value} value={suggestion.value} />
-                ))}
-              </datalist>
-              {workTypeSuggestions.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {workTypeSuggestions.slice(0, 8).map((suggestion) => (
-                    <Chip
-                      key={suggestion.value}
-                      selected={form.workTypeRaw === suggestion.value}
-                      onClick={() =>
-                        update(
-                          "workTypeRaw",
-                          form.workTypeRaw === suggestion.value
-                            ? ""
-                            : suggestion.value,
-                        )
-                      }
-                    >
-                      {suggestion.value}
-                      <span className="ml-1 text-xs opacity-60">
-                        {suggestion.count}
-                      </span>
-                    </Chip>
-                  ))}
-                </div>
               )}
             </FormCard>
           </Slide>
