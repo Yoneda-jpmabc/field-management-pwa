@@ -96,6 +96,12 @@ export type EditableWorkRecord = {
   fieldName: string | null;
   cropName: string | null;
   worksThroughLunch: boolean;
+  /**
+   * 同時に一括登録された行をまとめる id。複数圃場にまたがる登録は
+   * 作業者 × 圃場 の数だけ行に分かれるが、同じ batchId を持つので
+   * 確認タブではこれで束ねて1行に見せる。
+   */
+  batchId: string | null;
 };
 
 /** 1 レコードの更新入力。 */

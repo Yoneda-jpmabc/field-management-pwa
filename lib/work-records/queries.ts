@@ -365,7 +365,7 @@ export async function fetchEditableWorkRecords(
   let query = supabase
     .from("work_records")
     .select(
-      "id, work_date, start_time, end_time, work_type_id, work_type_raw, field_id, crop_id, worker_id, memo, worked_through_lunch, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
+      "id, work_date, start_time, end_time, work_type_id, work_type_raw, field_id, crop_id, worker_id, memo, worked_through_lunch, batch_id, workers(name, short_name), fields(name), crops(name), work_type_master(name)",
     )
     .is("deleted_at", null)
     .gte("work_date", fromDate)
@@ -396,6 +396,7 @@ export async function fetchEditableWorkRecords(
       fieldName: row.fields?.name ?? null,
       cropName: row.crops?.name ?? null,
       worksThroughLunch: row.worked_through_lunch,
+      batchId: row.batch_id,
     })),
     errorMessage: error
       ? `作業実績の取得に失敗しました（${error.message}）。`
