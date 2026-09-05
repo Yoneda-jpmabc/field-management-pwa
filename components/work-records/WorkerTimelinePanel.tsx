@@ -290,7 +290,7 @@ export function WorkerTimelinePanel({
         </div>
       ) : (
         <div className="surface-card p-3.5">
-          {legend.length > 1 && (
+          {legend.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 border-b border-separator pb-3">
               {legend.map((entry) => (
                 <span
