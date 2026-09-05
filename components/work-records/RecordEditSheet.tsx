@@ -7,7 +7,10 @@ import {
   SheetSection,
 } from "@/components/ui/BottomSheet";
 import { CheckMark } from "@/components/ui/CheckMark";
-import { deleteWorkRecord, updateWorkRecord } from "@/lib/work-records/actions";
+import {
+  deleteWorkRecords,
+  updateWorkRecordGroup,
+} from "@/lib/work-records/actions";
 import type {
   EditableWorkRecord,
   MasterOption,
@@ -21,7 +24,12 @@ import {
 } from "@/lib/work-records/time";
 
 type Props = {
-  record: EditableWorkRecord;
+  /**
+   * 同じ一括登録（batchId）＋同じ作業者の行をまとめて渡す。
+   * 複数圃場ぶんに分かれていても確認タブでは 1 行として編集するため。
+   * 1 圃場だけの記録なら要素数 1。
+   */
+  records: EditableWorkRecord[];
   workers: MasterOption[];
   workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
@@ -46,9 +54,29 @@ function withCurrentOption(
   return [{ id: currentId, label: currentLabel ?? "（マスタ外）" }, ...options];
 }
 
-/** 登録済みレコードの編集・削除を行うボトムシート。 */
+/** 圃場は複数ありうるので、現在選ばれている分をまとめて先頭に補う。 */
+function withCurrentOptions(
+  options: MasterOption[],
+  current: { id: string | null; label: string | null }[],
+): MasterOption[] {
+  const known = new Set(options.map((option) => option.id));
+  const missing: MasterOption[] = [];
+  for (const { id, label } of current) {
+    if (id && !known.has(id)) {
+      missing.push({ id, label: label ?? "（マスタ外）" });
+      known.add(id);
+    }
+  }
+  return missing.length > 0 ? [...missing, ...options] : options;
+}
+
+/**
+ * 登録済みレコード（1件、または同じ一括登録でまとまった複数件）の
+ * 編集・削除を行うボトムシート。日時・作業者などの共通項目は全件に、
+ * 圃場だけは複数選択でき、保存時に行を増減させて反映する。
+ */
 export function RecordEditSheet({
-  record,
+  records,
   workers,
   workCategories,
   workTypes,
@@ -57,12 +85,21 @@ export function RecordEditSheet({
   onSaved,
   onDeleted,
 }: Props) {
+  const record = records[0];
+  const isGroup = records.length > 1;
+
   const [workDate, setWorkDate] = useState(record.workDate);
   const [startTime, setStartTime] = useState(record.startTime);
   const [endTime, setEndTime] = useState(record.endTime);
   const [workTypeId, setWorkTypeId] = useState(record.workTypeId);
   const [workTypeRaw, setWorkTypeRaw] = useState(record.workTypeRaw);
-  const [fieldId, setFieldId] = useState(record.fieldId);
+  const [selectedFieldIds, setSelectedFieldIds] = useState<string[]>(() => [
+    ...new Set(
+      records
+        .map((item) => item.fieldId)
+        .filter((id): id is string => id !== null),
+    ),
+  ]);
   // 区分は保存していないので、元の作業種類が属す区分（無ければ元の作物に
   // 対応する区分）から逆算する。どちらも無ければ未選択のまま。
   const [categoryId, setCategoryId] = useState(
@@ -87,6 +124,12 @@ export function RecordEditSheet({
     setWorkTypeId(null);
   };
 
+  const toggleField = (id: string) => {
+    setSelectedFieldIds((prev) =>
+      prev.includes(id) ? prev.filter((fieldId) => fieldId !== id) : [...prev, id],
+    );
+  };
+
   const cropId =
     workCategories.find((category) => category.id === categoryId)?.cropId ??
     null;
@@ -105,7 +148,10 @@ export function RecordEditSheet({
     record.workTypeId,
     record.workTypeLabel,
   );
-  const fieldOptions = withCurrentOption(fields, record.fieldId, record.fieldName);
+  const fieldOptions = withCurrentOptions(
+    fields,
+    records.map((item) => ({ id: item.fieldId, label: item.fieldName })),
+  );
   const categoryOptions = withCurrentOption(
     workCategories,
     categoryId,
@@ -120,18 +166,19 @@ export function RecordEditSheet({
   const handleSave = () => {
     setError(null);
     startTransition(async () => {
-      const result = await updateWorkRecord({
-        id: record.id,
+      const result = await updateWorkRecordGroup({
+        ids: records.map((item) => item.id),
+        batchId: record.batchId,
         workDate,
         startTime,
         endTime,
         workTypeId,
         workTypeRaw,
-        fieldId,
         cropId,
         workerId,
         memo,
         worksThroughLunch,
+        selectedFieldIds,
       });
       if (result.ok) {
         onSaved();
@@ -144,7 +191,7 @@ export function RecordEditSheet({
   const handleDelete = () => {
     setError(null);
     startTransition(async () => {
-      const result = await deleteWorkRecord(record.id);
+      const result = await deleteWorkRecords(records.map((item) => item.id));
       if (result.ok) {
         onDeleted();
       } else {
@@ -157,7 +204,9 @@ export function RecordEditSheet({
   const footer = confirmingDelete ? (
     <div>
       <p className="mb-3 text-center text-sm font-medium text-foreground">
-        この実績を削除しますか？
+        {isGroup
+          ? `この実績（圃場${records.length}件ぶん）を削除しますか？`
+          : "この実績を削除しますか？"}
       </p>
       <div className="flex gap-2">
         <button
@@ -201,7 +250,7 @@ export function RecordEditSheet({
 
   return (
     <BottomSheet
-      title="実績の編集"
+      title={isGroup ? `実績の編集（圃場${records.length}件）` : "実績の編集"}
       onClose={onClose}
       busy={pending}
       footer={footer}
@@ -334,7 +383,10 @@ export function RecordEditSheet({
           />
         </SheetSection>
 
-        <SheetSection title="圃場">
+        <SheetSection
+          title="圃場"
+          hint="複数の圃場にまたがるときは全部選べます。"
+        >
           {fieldOptions.length === 0 ? (
             <p className="text-sm text-foreground-tertiary">
               圃場マスタが空です。
@@ -344,10 +396,8 @@ export function RecordEditSheet({
               {fieldOptions.map((field) => (
                 <SheetChip
                   key={field.id}
-                  selected={fieldId === field.id}
-                  onClick={() =>
-                    setFieldId(fieldId === field.id ? null : field.id)
-                  }
+                  selected={selectedFieldIds.includes(field.id)}
+                  onClick={() => toggleField(field.id)}
                 >
                   {field.label}
                 </SheetChip>

@@ -119,6 +119,27 @@ export type UpdateWorkRecordInput = {
   worksThroughLunch: boolean;
 };
 
+/**
+ * 複数圃場ぶんに分かれたレコード群（同じ batchId・同じ作業者）をまとめて
+ * 編集する入力。共通項目は ids 全件に適用し、圃場だけを選び直した数へ
+ * 行を増減させる（既存行を使い回し、足りなければ追加、余れば削除）。
+ */
+export type UpdateWorkRecordGroupInput = {
+  ids: string[];
+  batchId: string | null;
+  workDate: string;
+  startTime: string;
+  endTime: string;
+  workTypeId: string | null;
+  workTypeRaw: string;
+  cropId: string | null;
+  workerId: string;
+  memo: string;
+  worksThroughLunch: boolean;
+  /** 選び直した圃場。空なら「圃場なし」1件にする。 */
+  selectedFieldIds: string[];
+};
+
 export type WorkRecordMutationResult =
   | { ok: true }
   | { ok: false; message: string };

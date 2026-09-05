@@ -91,10 +91,12 @@ export function BottomSheet({
 export function SheetSection({
   title,
   required,
+  hint,
   children,
 }: {
   title: string;
   required?: boolean;
+  hint?: string;
   children: ReactNode;
 }) {
   return (
@@ -103,6 +105,11 @@ export function SheetSection({
         {title}
         {required && <span className="ml-1.5 text-xs text-danger">必須</span>}
       </h3>
+      {hint && (
+        <p className="mb-2 text-sm leading-relaxed text-foreground-tertiary">
+          {hint}
+        </p>
+      )}
       {children}
     </section>
   );

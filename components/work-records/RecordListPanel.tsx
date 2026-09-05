@@ -25,8 +25,8 @@ type Props = {
 
 /**
  * 登録画面で複数圃場を選ぶと、作業者 × 圃場の数だけ work_records 行に
- * 分かれる（batch_id は共通）。確認タブでは見た目をレコードのぶんまで
- * 割らず、同じ batchId ＋ 同じ作業者の行を 1 グループにまとめる。
+ * 分かれる（batch_id は共通）。確認タブでは分けて見せず、同じ batchId ＋
+ * 同じ作業者の行を 1 グループにまとめて 1 行として見せる・編集する。
  */
 type RecordGroup = {
   key: string;
@@ -97,7 +97,7 @@ function buildTimeLabel(record: {
 /**
  * 確認タブの一覧本体。
  * 行をタップするとボトムシートが開き、その場で修正・削除できる。
- * 複数圃場ぶんまとまった行は、まず展開してから個々の圃場を選んで直す。
+ * 複数圃場ぶんまとまった行も分けずに 1 行のまま、まとめて編集する。
  */
 export function RecordListPanel({
   items,
@@ -108,9 +108,8 @@ export function RecordListPanel({
   canEdit,
   emptyHint,
 }: Props) {
-  const [editing, setEditing] = useState<EditableWorkRecord | null>(null);
+  const [editing, setEditing] = useState<EditableWorkRecord[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   // 保存・削除後のトーストは数秒で自然に消す。
   useEffect(() => {
@@ -120,15 +119,6 @@ export function RecordListPanel({
   }, [notice]);
 
   const grouped = groupByDate(groupRecords(items));
-
-  const toggleExpanded = (key: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
 
   return (
     <div className="flex flex-col gap-5 pb-4">
@@ -167,9 +157,6 @@ export function RecordListPanel({
                 ]
                   .filter(Boolean)
                   .join(" ・ ");
-                const isMulti = group.records.length > 1;
-                const isOpen = expanded.has(group.key);
-
                 const content = (
                   <>
                     <div className="min-w-0 flex-1">
@@ -194,70 +181,27 @@ export function RecordListPanel({
                         </span>
                       )}
                       {canEdit && (
-                        <IconChevronRight
-                          className={`h-4 w-4 text-foreground-tertiary transition-transform ${
-                            isMulti ? (isOpen ? "rotate-90" : "") : ""
-                          }`}
-                        />
+                        <IconChevronRight className="h-4 w-4 text-foreground-tertiary" />
                       )}
                     </div>
                   </>
                 );
 
-                if (!canEdit) {
-                  return (
-                    <div
-                      key={group.key}
-                      className="flex min-h-16 w-full items-center gap-3 px-4 py-3"
-                    >
-                      {content}
-                    </div>
-                  );
-                }
-
-                // 圃場 1 件ぶんの行はこれまでどおり、タップで直接その記録を編集する。
-                if (!isMulti) {
-                  return (
-                    <button
-                      key={group.key}
-                      type="button"
-                      onClick={() => setEditing(group.records[0])}
-                      className="control-focus flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-surface-secondary"
-                    >
-                      {content}
-                    </button>
-                  );
-                }
-
-                // 複数圃場ぶんは、まず展開して圃場ごとに選んでから編集する
-                // （時間・作業者などは共通でも、圃場は行ごとに別レコードのため）。
-                return (
-                  <div key={group.key}>
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      onClick={() => toggleExpanded(group.key)}
-                      className="control-focus flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-surface-secondary"
-                    >
-                      {content}
-                    </button>
-                    {isOpen && (
-                      <div className="divide-y divide-separator bg-surface-secondary/40 pl-4">
-                        {group.records.map((record) => (
-                          <button
-                            key={record.id}
-                            type="button"
-                            onClick={() => setEditing(record)}
-                            className="control-focus flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left transition-colors active:bg-surface-secondary"
-                          >
-                            <span className="min-w-0 flex-1 truncate text-sm text-foreground-secondary">
-                              {record.fieldName ?? "圃場未設定"}
-                            </span>
-                            <IconChevronRight className="h-3.5 w-3.5 shrink-0 text-foreground-tertiary" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                return canEdit ? (
+                  <button
+                    key={group.key}
+                    type="button"
+                    onClick={() => setEditing(group.records)}
+                    className="control-focus flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-surface-secondary"
+                  >
+                    {content}
+                  </button>
+                ) : (
+                  <div
+                    key={group.key}
+                    className="flex min-h-16 w-full items-center gap-3 px-4 py-3"
+                  >
+                    {content}
                   </div>
                 );
               })}
@@ -268,8 +212,8 @@ export function RecordListPanel({
 
       {editing && (
         <RecordEditSheet
-          key={editing.id}
-          record={editing}
+          key={editing.map((record) => record.id).join(",")}
+          records={editing}
           workers={workers}
           workCategories={workCategories}
           workTypes={workTypes}
