@@ -50,20 +50,27 @@ export async function createWorkRecords(
   const startTime = toTimeOrNull(input.startTime);
   const endTime = toTimeOrNull(input.endTime);
 
+  // 圃場は複数またぐことがあるので、選んだ分だけ作業者との組み合わせで
+  // レコードを作る。1つも選んでいなければ、従来どおり圃場なしで1件。
+  const fieldIds = [...new Set(input.selectedFieldIds)].filter(Boolean);
+  const fieldSlots: (string | null)[] = fieldIds.length > 0 ? fieldIds : [null];
+
   const batchId = crypto.randomUUID();
-  const rows: TablesInsert<"work_records">[] = workerIds.map((workerId) => ({
-    worker_id: workerId,
-    work_date: input.workDate,
-    start_time: startTime,
-    end_time: endTime,
-    work_type_id: input.workTypeId,
-    work_type_raw: toTextOrNull(input.workTypeRaw),
-    field_id: input.fieldId,
-    crop_id: input.cropId,
-    memo: toTextOrNull(input.memo),
-    batch_id: batchId,
-    worked_through_lunch: input.worksThroughLunch,
-  }));
+  const rows: TablesInsert<"work_records">[] = workerIds.flatMap((workerId) =>
+    fieldSlots.map((fieldId) => ({
+      worker_id: workerId,
+      work_date: input.workDate,
+      start_time: startTime,
+      end_time: endTime,
+      work_type_id: input.workTypeId,
+      work_type_raw: toTextOrNull(input.workTypeRaw),
+      field_id: fieldId,
+      crop_id: input.cropId,
+      memo: toTextOrNull(input.memo),
+      batch_id: batchId,
+      worked_through_lunch: input.worksThroughLunch,
+    })),
+  );
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("work_records").insert(rows);

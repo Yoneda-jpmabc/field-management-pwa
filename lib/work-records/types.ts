@@ -48,7 +48,12 @@ export type WorkRecordFormState = {
   workTypeId: string | null;
   /** 試験期間中のフリーテキスト作業種類。 */
   workTypeRaw: string;
-  fieldId: string | null;
+  /**
+   * 複数の圃場にまたがって同じ作業をすることがあるため複数選択。
+   * 未選択のときは圃場なしの1件（従来どおり）、選んだときは
+   * 作業者 × 圃場 の組み合わせぶんレコードを作る。
+   */
+  selectedFieldIds: string[];
   /** 選んだ作業区分（work_category_master）。作業種類の絞り込みに使う UI 用の値。 */
   categoryId: string | null;
   /** 選んだ区分に紐づく作物。work_records.crop_id にそのまま入る。 */

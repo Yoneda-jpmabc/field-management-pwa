@@ -76,7 +76,7 @@ function createInitialState(today: string): WorkRecordFormState {
     endTime: "",
     workTypeId: null,
     workTypeRaw: "",
-    fieldId: null,
+    selectedFieldIds: [],
     categoryId: null,
     cropId: null,
     selectedWorkerIds: [],
@@ -203,6 +203,17 @@ export function WorkRecordForm({
     setFeedback(null);
   };
 
+  const toggleField = (id: string) => {
+    setForm((prev) => ({
+      ...prev,
+      selectedFieldIds: prev.selectedFieldIds.includes(id)
+        ? prev.selectedFieldIds.filter((fieldId) => fieldId !== id)
+        : [...prev.selectedFieldIds, id],
+    }));
+    setConfirming(false);
+    setFeedback(null);
+  };
+
   const selectedWorkerLabels = useMemo(
     () =>
       workers
@@ -255,8 +266,16 @@ export function WorkRecordForm({
     return raw || null;
   }, [workTypes, form.workTypeId, form.workTypeRaw]);
 
-  const fieldLabel =
-    fields.find((field) => field.id === form.fieldId)?.label ?? null;
+  const selectedFieldLabels = useMemo(
+    () =>
+      fields
+        .filter((field) => form.selectedFieldIds.includes(field.id))
+        .map((field) => field.label),
+    [fields, form.selectedFieldIds],
+  );
+  // 未選択なら従来どおり「圃場なし」の1件。複数選んだときだけ作業者との組み合わせ数になる。
+  const recordCount =
+    form.selectedWorkerIds.length * Math.max(form.selectedFieldIds.length, 1);
 
   const categoryLabel =
     workCategories.find((category) => category.id === form.categoryId)
@@ -275,7 +294,7 @@ export function WorkRecordForm({
     timeLabel ? null : "時間",
     categoryLabel ? null : "区分",
     workTypeLabel ? null : "作業種類",
-    fieldLabel ? null : "圃場",
+    selectedFieldLabels.length > 0 ? null : "圃場",
     form.memo.trim() ? null : "メモ",
   ].filter((item): item is string => item !== null);
 
@@ -655,8 +674,8 @@ export function WorkRecordForm({
               title="圃場"
               hint={
                 form.cropId && visibleFields.length < fields.length
-                  ? `${categoryLabel ?? ""}の圃場のみ表示中。未設定のまま登録できます。`
-                  : "未設定のまま登録できます。"
+                  ? `${categoryLabel ?? ""}の圃場のみ表示中。複数の圃場にまたがるときは全部タップ。未設定のまま登録できます。`
+                  : "複数の圃場にまたがるときは全部タップ。未設定のまま登録できます。"
               }
             >
               {visibleFields.length === 0 ? (
@@ -669,13 +688,8 @@ export function WorkRecordForm({
                     <GridChip
                       key={field.id}
                       label={field.label}
-                      selected={form.fieldId === field.id}
-                      onClick={() =>
-                        update(
-                          "fieldId",
-                          form.fieldId === field.id ? null : field.id,
-                        )
-                      }
+                      selected={form.selectedFieldIds.includes(field.id)}
+                      onClick={() => toggleField(field.id)}
                     />
                   ))}
                 </div>
@@ -714,7 +728,10 @@ export function WorkRecordForm({
               )}
               <SummaryRow label="区分" value={categoryLabel} />
               <SummaryRow label="作業種類" value={workTypeLabel} />
-              <SummaryRow label="圃場" value={fieldLabel} />
+              <SummaryRow
+                label="圃場"
+                value={selectedFieldLabels.join("、") || null}
+              />
               <SummaryRow
                 label="作業者"
                 value={selectedWorkerLabels.join("、") || null}
@@ -722,7 +739,9 @@ export function WorkRecordForm({
               <SummaryRow label="メモ" value={form.memo.trim() || null} />
             </dl>
             <p className="mt-4 text-sm font-medium text-foreground">
-              {selectedWorkerLabels.length}件のレコードを作成します。
+              {selectedFieldLabels.length > 1
+                ? `作業者${selectedWorkerLabels.length}人 × 圃場${selectedFieldLabels.length}件で ${recordCount}件のレコードを作成します。`
+                : `${recordCount}件のレコードを作成します。`}
             </p>
             {missing.length > 0 && (
               <p className="mt-1.5 text-sm text-warning">
@@ -799,7 +818,7 @@ export function WorkRecordForm({
             className="control-focus pressable min-h-11 flex-1 rounded-full bg-accent px-5 text-[15px] font-medium text-accent-foreground hover:bg-accent-hover disabled:bg-surface-secondary disabled:text-foreground-tertiary md:mx-auto md:flex-none"
           >
             {canSubmit
-              ? `内容を確認（${form.selectedWorkerIds.length}件）`
+              ? `内容を確認（${recordCount}件）`
               : "作業者を選択してください"}
           </button>
           <RoundArrowButton
