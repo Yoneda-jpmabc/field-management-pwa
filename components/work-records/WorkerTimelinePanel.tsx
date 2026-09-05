@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { IconAlertTriangle } from "@/components/icons";
-import { formatHours } from "@/lib/work-records/period";
 import { recordDurationMinutes, timeToMinutes } from "@/lib/work-records/time";
 import type {
   EditableWorkRecord,
@@ -31,11 +30,23 @@ const END_HOUR = 22;
 const START_MIN = START_HOUR * 60;
 const END_MIN = END_HOUR * 60;
 const RANGE_MIN = END_MIN - START_MIN;
-const TICK_HOURS = [6, 9, 12, 15, 18, 21];
+// 3時間おきの目盛りだけだと、間（7:30 など）がどこか目で追えないため、
+// 1時間おきに補助目盛りを足す（定規の大目盛り・小目盛りのイメージ）。
+const MAJOR_TICK_HOURS = [6, 9, 12, 15, 18, 21];
+const MINOR_TICK_HOURS = Array.from(
+  { length: END_HOUR - START_HOUR - 1 },
+  (_, i) => START_HOUR + 1 + i,
+).filter((hour) => !MAJOR_TICK_HOURS.includes(hour));
 
 function percentFor(minute: number): number {
   const clamped = Math.min(Math.max(minute, START_MIN), END_MIN);
   return ((clamped - START_MIN) / RANGE_MIN) * 100;
+}
+
+/** 合計時間の表示用。行の幅を取るので「時間」ではなく短い "h" 表記にする。 */
+function formatHoursShort(minutes: number): string {
+  if (minutes <= 0) return "―";
+  return `${Number((minutes / 60).toFixed(1))}h`;
 }
 
 /**
@@ -236,7 +247,7 @@ export function WorkerTimelinePanel({
           </p>
         </div>
       ) : (
-        <div className="surface-card p-4">
+        <div className="surface-card p-3.5">
           {legend.length > 1 && (
             <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 border-b border-separator pb-3">
               {legend.map((entry) => (
@@ -256,10 +267,10 @@ export function WorkerTimelinePanel({
           )}
 
           {/* 時刻の目盛り。下の行と同じ列幅で揃えることで、バーの位置と一致させる。 */}
-          <div className="flex items-center gap-2">
-            <div className="w-16 shrink-0" />
+          <div className="flex items-center gap-1">
+            <div className="w-14 shrink-0" />
             <div className="relative h-4 flex-1">
-              {TICK_HOURS.map((hour) => (
+              {MAJOR_TICK_HOURS.map((hour) => (
                 <span
                   key={hour}
                   className="absolute -translate-x-1/2 text-[10px] tabular-nums text-foreground-tertiary"
@@ -269,24 +280,32 @@ export function WorkerTimelinePanel({
                 </span>
               ))}
             </div>
-            <div className="w-20 shrink-0" />
+            <div className="w-14 shrink-0" />
           </div>
 
-          <div className="mt-2 flex flex-col gap-3">
+          <div className="mt-2 flex flex-col gap-2">
             {rows.map((row) => (
-              <div key={row.workerId} className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-16 shrink-0 truncate text-[15px] font-bold text-foreground">
+              <div key={row.workerId} className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <span className="w-14 shrink-0 truncate text-[15px] font-bold text-foreground">
                     {row.workerName}
                   </span>
 
-                  <div className="relative h-11 flex-1 overflow-hidden rounded-[8px] bg-surface-secondary">
-                    {/* 目盛り線。surface-secondary との対比がはっきり付く separator-strong を使う。 */}
-                    {TICK_HOURS.map((hour) => (
+                  <div className="relative h-8 flex-1 overflow-hidden rounded-[8px] bg-surface-secondary">
+                    {/* 大目盛り（3時間おき・数字あり）は縦いっぱい、小目盛り（1時間おき）は短く。 */}
+                    {MAJOR_TICK_HOURS.map((hour) => (
                       <div
                         key={hour}
                         aria-hidden
                         className="absolute inset-y-0 w-px bg-separator-strong"
+                        style={{ left: `${percentFor(hour * 60)}%` }}
+                      />
+                    ))}
+                    {MINOR_TICK_HOURS.map((hour) => (
+                      <div
+                        key={hour}
+                        aria-hidden
+                        className="absolute inset-y-2 w-px bg-separator-strong"
                         style={{ left: `${percentFor(hour * 60)}%` }}
                       />
                     ))}
@@ -299,7 +318,7 @@ export function WorkerTimelinePanel({
                             segment.group.workTypeLabel ?? "作業未設定"
                           }`}
                           onClick={() => setEditing(segment.group.records)}
-                          className="control-focus pressable absolute inset-y-[10px] rounded-[4px]"
+                          className="control-focus pressable absolute inset-y-1 rounded-[4px]"
                           style={{
                             left: `calc(${segment.leftPct}% + 1px)`,
                             width: `calc(${segment.widthPct}% - 2px)`,
@@ -309,7 +328,7 @@ export function WorkerTimelinePanel({
                       ) : (
                         <div
                           key={segment.group.key}
-                          className="absolute inset-y-[10px] rounded-[4px]"
+                          className="absolute inset-y-1 rounded-[4px]"
                           style={{
                             left: `calc(${segment.leftPct}% + 1px)`,
                             width: `calc(${segment.widthPct}% - 2px)`,
@@ -320,13 +339,13 @@ export function WorkerTimelinePanel({
                     )}
                   </div>
 
-                  <span className="w-20 shrink-0 text-right text-[13px] tabular-nums text-foreground-secondary">
-                    {row.totalMinutes > 0 ? formatHours(row.totalMinutes) : "―"}
+                  <span className="w-14 shrink-0 text-right text-[13px] tabular-nums text-foreground-secondary">
+                    {formatHoursShort(row.totalMinutes)}
                   </span>
                 </div>
 
                 {row.untimed.length > 0 && (
-                  <div className="ml-[72px] flex flex-wrap gap-2">
+                  <div className="ml-[60px] flex flex-wrap gap-2">
                     {row.untimed.map((group) => {
                       const label = `${group.workTypeLabel ?? "作業未設定"}・時間未設定`;
                       return canEdit ? (
