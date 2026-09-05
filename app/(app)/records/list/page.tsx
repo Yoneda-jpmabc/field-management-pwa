@@ -1,6 +1,7 @@
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { RecordListPanel } from "@/components/work-records/RecordListPanel";
 import { SwipeableDateArea } from "@/components/work-records/SwipeableDateArea";
+import { WorkerTimelinePanel } from "@/components/work-records/WorkerTimelinePanel";
 import { getCurrentWorker } from "@/lib/auth/session";
 import { canEditRecords, canViewEveryone } from "@/lib/auth/permissions";
 import {
@@ -61,19 +62,35 @@ export default async function RecordsListPage({
       )}
 
       <SwipeableDateArea unit={unit} anchor={anchor} basePath="/records/list">
-        <RecordListPanel
-          items={records.items}
-          workers={formData.workers}
-          workCategories={formData.workCategories}
-          workTypes={formData.workTypes}
-          fields={formData.fields}
-          canEdit={canEdit}
-          emptyHint={
-            canEdit
-              ? "上の矢印か左右スワイプで期間を移動するか、「登録」タブから追加できます。"
-              : "上の矢印か左右スワイプで期間を移動すると、別の日の記録を確認できます。"
-          }
-        />
+        {unit === "day" ? (
+          <WorkerTimelinePanel
+            items={records.items}
+            workers={formData.workers}
+            workCategories={formData.workCategories}
+            workTypes={formData.workTypes}
+            fields={formData.fields}
+            canEdit={canEdit}
+            emptyHint={
+              canEdit
+                ? "上の矢印か左右スワイプで期間を移動するか、「登録」タブから追加できます。"
+                : "上の矢印か左右スワイプで期間を移動すると、別の日の記録を確認できます。"
+            }
+          />
+        ) : (
+          <RecordListPanel
+            items={records.items}
+            workers={formData.workers}
+            workCategories={formData.workCategories}
+            workTypes={formData.workTypes}
+            fields={formData.fields}
+            canEdit={canEdit}
+            emptyHint={
+              canEdit
+                ? "上の矢印か左右スワイプで期間を移動するか、「登録」タブから追加できます。"
+                : "上の矢印か左右スワイプで期間を移動すると、別の日の記録を確認できます。"
+            }
+          />
+        )}
       </SwipeableDateArea>
     </>
   );

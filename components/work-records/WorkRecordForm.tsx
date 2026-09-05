@@ -7,6 +7,7 @@ import { CropIcon, IconChevronRight } from "@/components/icons";
 import { CheckMark } from "@/components/ui/CheckMark";
 import { RoundArrowButton } from "@/components/ui/RoundArrowButton";
 import { createWorkRecords } from "@/lib/work-records/actions";
+import { colorForCategoryIndex } from "@/lib/work-records/categoryColors";
 import { shiftAnchor } from "@/lib/work-records/period";
 import { spansLunchBreak } from "@/lib/work-records/time";
 import { TimeWheel } from "./TimeWheel";
@@ -421,7 +422,7 @@ export function WorkRecordForm({
                 </p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {workCategories.map((category) => (
+                  {workCategories.map((category, index) => (
                     <GridChip
                       key={category.id}
                       label={category.label}
@@ -429,6 +430,7 @@ export function WorkRecordForm({
                       icon={
                         <CropIcon name={category.label} className="size-5" />
                       }
+                      iconColor={colorForCategoryIndex(index)}
                       selected={form.categoryId === category.id}
                       onClick={() =>
                         selectCategory(
@@ -956,6 +958,13 @@ function GridChip({
   onClick,
   /** 人数が多いカード（作業者）向けに 1 段低くする。 */
   dense = false,
+  /**
+   * アイコンだけをこの色に染める（未選択のときだけ）。確認タブのタイムライン
+   * で区分ごとに割り当てた色と揃え、区分選択チップの段階から
+   * 「この色はこの区分」がつかめるようにする。選択中は他のチップと同じく
+   * アクセント塗り（状態色）を優先し、アイコンも accent-foreground を継承する。
+   */
+  iconColor,
 }: {
   label: string;
   /** 装飾用アイコン。ラベルと同じ意味なので読み上げ対象から外す。 */
@@ -963,6 +972,7 @@ function GridChip({
   selected: boolean;
   onClick: () => void;
   dense?: boolean;
+  iconColor?: string;
 }) {
   return (
     <Chip
@@ -973,7 +983,11 @@ function GridChip({
       }`}
     >
       {icon && (
-        <span aria-hidden className="flex shrink-0">
+        <span
+          aria-hidden
+          className="flex shrink-0"
+          style={!selected && iconColor ? { color: iconColor } : undefined}
+        >
           {icon}
         </span>
       )}

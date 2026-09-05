@@ -23,14 +23,10 @@ type Props = {
   emptyHint: string;
 };
 
-/**
- * 登録画面で複数圃場を選ぶと、作業者 × 圃場の数だけ work_records 行に
- * 分かれる（batch_id は共通）。確認タブでは分けて見せず、同じ batchId ＋
- * 同じ作業者の行を 1 グループにまとめて 1 行として見せる・編集する。
- */
-type RecordGroup = {
+export type RecordGroup = {
   key: string;
   workDate: string;
+  workerId: string;
   workerName: string;
   workTypeId: string | null;
   workTypeLabel: string | null;
@@ -39,10 +35,17 @@ type RecordGroup = {
   memo: string;
   startTime: string;
   endTime: string;
+  worksThroughLunch: boolean;
   records: EditableWorkRecord[];
 };
 
-function groupRecords(items: EditableWorkRecord[]): RecordGroup[] {
+/**
+ * 登録画面で複数圃場を選ぶと、作業者 × 圃場の数だけ work_records 行に
+ * 分かれる（batch_id は共通）。確認タブでは分けて見せず、同じ batchId ＋
+ * 同じ作業者の行を 1 グループにまとめて 1 行として見せる・編集する。
+ * 確認タブの一覧・人ごとタイムラインの両方から使う共通ロジック。
+ */
+export function groupRecords(items: EditableWorkRecord[]): RecordGroup[] {
   const groups = new Map<string, RecordGroup>();
   const order: string[] = [];
   for (const item of items) {
@@ -53,6 +56,7 @@ function groupRecords(items: EditableWorkRecord[]): RecordGroup[] {
       group = {
         key,
         workDate: item.workDate,
+        workerId: item.workerId,
         workerName: item.workerName,
         workTypeId: item.workTypeId,
         workTypeLabel: item.workTypeLabel,
@@ -61,6 +65,7 @@ function groupRecords(items: EditableWorkRecord[]): RecordGroup[] {
         memo: item.memo,
         startTime: item.startTime,
         endTime: item.endTime,
+        worksThroughLunch: item.worksThroughLunch,
         records: [],
       };
       groups.set(key, group);
