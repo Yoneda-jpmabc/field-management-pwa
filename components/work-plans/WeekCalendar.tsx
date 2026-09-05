@@ -123,7 +123,7 @@ export function WeekCalendar({
           return (
             <div
               key={day}
-              className={`rounded-[12px] border p-2.5 lg:flex lg:min-h-44 lg:flex-col ${
+              className={`rounded-[10px] border p-2.5 lg:flex lg:min-h-44 lg:flex-col ${
                 isToday
                   ? "border-accent bg-accent/5"
                   : "border-separator bg-surface-secondary/40"
@@ -228,7 +228,7 @@ export function WeekCalendar({
                   <button
                     type="button"
                     onClick={() => setSheet({ mode: "create", planDate: day })}
-                    className="control-focus pressable flex min-h-11 items-center justify-center gap-1 rounded-[10px] border border-dashed border-separator-strong text-sm text-foreground-tertiary lg:mt-auto lg:min-h-9"
+                    className="control-focus pressable flex min-h-11 items-center justify-center gap-1 rounded-[10px] border border-dashed border-separator-strong text-sm text-foreground-tertiary lg:mt-auto"
                   >
                     <IconPlus className="h-3.5 w-3.5" />
                     予定を追加

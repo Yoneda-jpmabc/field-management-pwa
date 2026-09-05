@@ -197,7 +197,7 @@ export function HarvestBoard({
                     return (
                       <div
                         key={planting.id}
-                        className="rounded-[12px] border border-separator p-3.5"
+                        className="rounded-[10px] border border-separator p-3.5"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex min-w-0 items-center gap-2">
@@ -273,9 +273,9 @@ export function HarvestBoard({
                                 unit: planting.unit,
                               })
                             }
-                            className="control-focus pressable mt-3 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent text-[15px] font-medium text-accent-foreground transition-colors hover:bg-accent-hover"
+                            className="control-focus pressable mt-3 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-separator-strong text-sm font-medium text-foreground-secondary transition-colors active:bg-surface-secondary"
                           >
-                            <IconPlus className="h-4 w-4" />
+                            <IconPlus className="h-3.5 w-3.5" />
                             収穫を記録
                           </button>
                         )}
@@ -286,7 +286,7 @@ export function HarvestBoard({
                   {field.unlinked.map((entry) => (
                     <div
                       key={entry.cropId}
-                      className="rounded-[12px] border border-dashed border-separator-strong p-3.5"
+                      className="rounded-[10px] border border-dashed border-separator-strong p-3.5"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex min-w-0 items-center gap-2">

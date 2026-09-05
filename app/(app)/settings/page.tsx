@@ -58,7 +58,7 @@ export default async function SettingsPage() {
 
       <div className="flex flex-col gap-6">
         <section>
-          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+          <h2 className="mb-2.5 text-xs font-bold tracking-[0.06em] text-foreground-secondary">
             圃場情報
           </h2>
           {fieldData.errorMessage && (
@@ -74,7 +74,7 @@ export default async function SettingsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+          <h2 className="mb-2.5 text-xs font-bold tracking-[0.06em] text-foreground-secondary">
             管理項目
           </h2>
           <p className="mb-2.5 text-sm text-foreground-secondary">
@@ -89,14 +89,14 @@ export default async function SettingsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+          <h2 className="mb-2.5 text-xs font-bold tracking-[0.06em] text-foreground-secondary">
             収穫量の単位
           </h2>
           <CropUnitSettings crops={fieldData.crops} canEdit={canEdit} />
         </section>
 
         <section>
-          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+          <h2 className="mb-2.5 text-xs font-bold tracking-[0.06em] text-foreground-secondary">
             表示
           </h2>
           <Card className="divide-y divide-separator !p-0">
@@ -119,7 +119,7 @@ export default async function SettingsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+          <h2 className="mb-2.5 text-xs font-bold tracking-[0.06em] text-foreground-secondary">
             アカウント
           </h2>
           <Card className="divide-y divide-separator !p-0">
@@ -149,7 +149,7 @@ export default async function SettingsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2.5 text-sm font-semibold text-foreground-secondary">
+          <h2 className="mb-2.5 text-xs font-bold tracking-[0.06em] text-foreground-secondary">
             同期
           </h2>
           <Card className="divide-y divide-separator !p-0">

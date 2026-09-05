@@ -5,11 +5,11 @@ import { useSyncExternalStore } from "react";
 const STORAGE_KEY = "accent";
 type Accent = "blue" | "orange" | "green";
 
-// スウォッチに出す代表色。ライト／ダーク両方で見えるよう中間の明度にしている。
+// スウォッチに出す代表色。実際に選ばれたときのライトモードの --accent-l と同じ値にする。
 const OPTIONS: { value: Accent; label: string; swatch: string }[] = [
-  { value: "blue", label: "ブルー", swatch: "#2f6fe0" },
-  { value: "orange", label: "オレンジ", swatch: "#d9531e" },
-  { value: "green", label: "グリーン", swatch: "#0f8a4c" },
+  { value: "blue", label: "ブルー", swatch: "#1e51c4" },
+  { value: "orange", label: "オレンジ", swatch: "#c2410c" },
+  { value: "green", label: "グリーン", swatch: "#0c6b3f" },
 ];
 
 const listeners = new Set<() => void>();
@@ -69,11 +69,11 @@ export function AccentPicker() {
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#ffffff"
+                stroke="currentColor"
                 strokeWidth={2.4}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-4 w-4"
+                className="h-4 w-4 text-white"
               >
                 <path d="M5 13l4 4L19 7" />
               </svg>

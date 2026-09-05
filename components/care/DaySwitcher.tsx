@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { RoundArrowButton } from "@/components/ui/RoundArrowButton";
 import {
   formatDayLabel,
   shiftAnchor,
@@ -22,14 +23,11 @@ export function DaySwitcher({ date }: { date: string }) {
 
   return (
     <div className="mb-5 flex items-center justify-between gap-2">
-      <button
-        type="button"
-        aria-label="前の日"
+      <RoundArrowButton
+        direction="prev"
+        label="前の日"
         onClick={() => go(shiftAnchor("day", date, -1))}
-        className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors hover:bg-surface-secondary active:bg-surface-secondary"
-      >
-        ←
-      </button>
+      />
 
       <div className="flex min-w-0 flex-1 flex-col items-center">
         <p className="w-full truncate text-center text-[15px] font-semibold text-foreground">
@@ -51,14 +49,11 @@ export function DaySwitcher({ date }: { date: string }) {
         )}
       </div>
 
-      <button
-        type="button"
-        aria-label="次の日"
+      <RoundArrowButton
+        direction="next"
+        label="次の日"
         onClick={() => go(shiftAnchor("day", date, 1))}
-        className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors hover:bg-surface-secondary active:bg-surface-secondary"
-      >
-        →
-      </button>
+      />
     </div>
   );
 }

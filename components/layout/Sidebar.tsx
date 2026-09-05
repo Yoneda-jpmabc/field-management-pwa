@@ -29,7 +29,7 @@ export function Sidebar({ permission }: { permission: Permission }) {
   return (
     <aside className="hidden h-full w-64 shrink-0 flex-col overflow-y-auto border-r border-separator bg-surface md:flex">
       <div className="flex items-center gap-2.5 px-6 py-6">
-        <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-accent text-accent-foreground">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-foreground">
           <IconLeaf className="h-[18px] w-[18px]" />
         </span>
         <span className="text-[17px] font-semibold tracking-tight text-foreground">

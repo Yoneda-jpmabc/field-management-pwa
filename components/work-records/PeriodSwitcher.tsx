@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { RoundArrowButton } from "@/components/ui/RoundArrowButton";
 import {
   PERIOD_UNITS,
   PERIOD_UNIT_LABELS,
@@ -53,14 +54,11 @@ export function PeriodSwitcher({
       </div>
 
       <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          aria-label="前の期間"
+        <RoundArrowButton
+          direction="prev"
+          label="前の期間"
           onClick={() => go(unit, shiftAnchor(unit, anchor, -1))}
-          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary hover:bg-surface-secondary"
-        >
-          ←
-        </button>
+        />
         {/* 期間名とリセットを縦に積む。押せる高さを確保するため余白は削らない */}
         <div className="flex min-w-0 flex-1 flex-col items-center">
           <p className="w-full truncate text-center text-[15px] font-semibold text-foreground">
@@ -74,14 +72,11 @@ export function PeriodSwitcher({
             今日に戻す
           </button>
         </div>
-        <button
-          type="button"
-          aria-label="次の期間"
+        <RoundArrowButton
+          direction="next"
+          label="次の期間"
           onClick={() => go(unit, shiftAnchor(unit, anchor, 1))}
-          className="control-focus flex min-h-11 min-w-14 items-center justify-center rounded-full border border-separator-strong text-[17px] text-foreground-secondary transition-colors active:bg-surface-secondary hover:bg-surface-secondary"
-        >
-          →
-        </button>
+        />
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ export default function Loading() {
         {Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
-            className="rounded-[12px] border border-separator bg-surface-secondary/40 p-2.5 lg:flex lg:min-h-44 lg:flex-col"
+            className="rounded-[10px] border border-separator bg-surface-secondary/40 p-2.5 lg:flex lg:min-h-44 lg:flex-col"
           >
             <SkeletonBar className="h-[17px] w-20" />
           </div>

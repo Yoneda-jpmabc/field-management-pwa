@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { CheckMark } from "@/components/ui/CheckMark";
 import { CropIcon } from "@/components/icons";
 import { setCheckState } from "@/lib/crop-checks/actions";
 import type { DailyCheckCrop, DailyCheckItem } from "@/lib/crop-checks/types";
@@ -16,20 +17,6 @@ type Props = {
 
 /** サーバー反映待ちの間だけ、画面を先に動かすための上書き。 */
 type Override = { isDone: boolean; memo: string };
-
-function CheckBox({ checked }: { checked: boolean }) {
-  return (
-    <span
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-sm ${
-        checked
-          ? "border-success bg-success text-white"
-          : "border-separator-strong"
-      }`}
-    >
-      {checked && <span aria-hidden>✓</span>}
-    </span>
-  );
-}
 
 export function DailyChecklist({ crops, date, canEdit }: Props) {
   // 日付が変わったら、このコンポーネントは呼び出し側で key ごと作り直される。
@@ -145,11 +132,11 @@ export function DailyChecklist({ crops, date, canEdit }: Props) {
                             }
                             className="control-focus flex min-h-12 w-11 shrink-0 items-center justify-center rounded-[10px] transition-colors active:bg-surface-secondary"
                           >
-                            <CheckBox checked={state.isDone} />
+                            <CheckMark checked={state.isDone} />
                           </button>
                         ) : (
                           <span className="flex min-h-12 w-11 shrink-0 items-center justify-center">
-                            <CheckBox checked={state.isDone} />
+                            <CheckMark checked={state.isDone} />
                           </span>
                         )}
 
