@@ -40,6 +40,20 @@ export function SwipeableDateArea({ unit, anchor, basePath, children }: Props) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // 前回描画時の anchor と比べて、新しい日付が「先」か「前」かを見る。
+  // スワイプに限らず矢印タップや「今日に戻す」でも、新しい中身が来た側から
+  // 軽くスライドインさせて、パキッと切り替わる感じを和らげる。
+  const prevAnchor = useRef(anchor);
+  const enterFrom =
+    anchor === prevAnchor.current
+      ? null
+      : anchor > prevAnchor.current
+        ? "right"
+        : "left";
+  useEffect(() => {
+    prevAnchor.current = anchor;
+  }, [anchor]);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -107,5 +121,22 @@ export function SwipeableDateArea({ unit, anchor, basePath, children }: Props) {
     };
   }, [router, unit, anchor, basePath]);
 
-  return <div ref={containerRef}>{children}</div>;
+  return (
+    // min-h: 中身が短い（実績なし等）ときもスワイプできる余地を画面下側に残す。
+    // カードの外側の空白をタップしても反応しないという指摘への対応。
+    <div ref={containerRef} className="min-h-[60dvh]">
+      <div
+        key={anchor}
+        className={
+          enterFrom === "right"
+            ? "animate-[date-slide-in-from-right_0.22s_ease-out]"
+            : enterFrom === "left"
+              ? "animate-[date-slide-in-from-left_0.22s_ease-out]"
+              : ""
+        }
+      >
+        {children}
+      </div>
+    </div>
+  );
 }

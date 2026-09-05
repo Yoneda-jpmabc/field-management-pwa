@@ -270,6 +270,33 @@ summary {
   }
 }
 
+/*
+  確認・集計タブで日付を切り替えたときの疑似カルーセル演出。
+  実際に前後のカードを並べて持っているわけではなく、新しい日付の中身が
+  差し替わった瞬間にどちらから入ってきたかだけを見せる軽い演出。
+*/
+@keyframes date-slide-in-from-right {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes date-slide-in-from-left {
+  from {
+    transform: translateX(-16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
