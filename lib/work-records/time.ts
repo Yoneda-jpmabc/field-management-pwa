@@ -39,3 +39,26 @@ export function spansLunchBreak(startTime: string, endTime: string): boolean {
     endTime >= "13:00"
   );
 }
+
+/** "HH:MM" を 0 時からの経過分に変換する。 */
+export function timeToMinutes(value: string): number {
+  const matched = /^(\d{1,2}):(\d{2})/.exec(value);
+  if (!matched) return 0;
+  return Number(matched[1]) * 60 + Number(matched[2]);
+}
+
+/**
+ * 所要時間（分）。開始・終了のどちらかが未入力、または終了が開始以前なら
+ * 集計対象外（null）。work_record_durations ビューの計算式と揃えている。
+ */
+export function recordDurationMinutes(
+  startTime: string,
+  endTime: string,
+  worksThroughLunch: boolean,
+): number | null {
+  if (!startTime || !endTime || endTime <= startTime) return null;
+  const duration = timeToMinutes(endTime) - timeToMinutes(startTime);
+  return spansLunchBreak(startTime, endTime) && !worksThroughLunch
+    ? duration - 60
+    : duration;
+}
