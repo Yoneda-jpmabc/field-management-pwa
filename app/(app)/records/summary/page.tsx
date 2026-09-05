@@ -1,6 +1,7 @@
 import { CustomRangePicker } from "@/components/work-records/CustomRangePicker";
 import { PeriodSwitcher } from "@/components/work-records/PeriodSwitcher";
 import { SummaryPanels } from "@/components/work-records/SummaryPanels";
+import { SwipeableDateArea } from "@/components/work-records/SwipeableDateArea";
 import { requireEveryoneViewer } from "@/lib/auth/session";
 import { fetchWorkSummary } from "@/lib/work-records/queries";
 import {
@@ -67,7 +68,14 @@ export default async function RecordsSummaryPage({
         </p>
       )}
 
-      <SummaryPanels summary={summary} />
+      {isCustomRange ? (
+        // 任意期間は前後の単位が定まらないのでスワイプ移動の対象にしない。
+        <SummaryPanels summary={summary} />
+      ) : (
+        <SwipeableDateArea unit={unit} anchor={anchor} basePath={SUMMARY_PATH}>
+          <SummaryPanels summary={summary} />
+        </SwipeableDateArea>
+      )}
     </>
   );
 }
