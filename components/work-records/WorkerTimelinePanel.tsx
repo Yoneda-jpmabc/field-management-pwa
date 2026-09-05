@@ -38,11 +38,70 @@ function percentFor(minute: number): number {
   return ((clamped - START_MIN) / RANGE_MIN) * 100;
 }
 
+/**
+ * 区分の見分け用パレット（dataviz スキルの検証済みカテゴリカル配色から
+ * 隣接ペアが CVD 安全な先頭 6 色）。区分マスタの並び順に固定で割り当てる。
+ * 7 番目以降・区分が分からない記録は色を増やさず、無彩色の
+ * foreground-tertiary（グレー）に畳む。
+ */
+const CATEGORY_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
+];
+const OTHER_COLOR = "var(--foreground-tertiary)";
+const OTHER_LABEL = "その他";
+
+type CategoryLookup = {
+  colorFor: (group: RecordGroup) => string;
+  labelFor: (group: RecordGroup) => string;
+};
+
+/**
+ * 作業種類 → 区分 → 色 の対応表を作る。区分が分かる記録だけ色を持ち、
+ * フリー入力など区分不明の記録は「その他」と同じグレーにまとめる。
+ */
+function buildCategoryLookup(
+  workTypes: WorkTypeOption[],
+  workCategories: WorkCategoryOption[],
+): CategoryLookup {
+  const categoryIdByWorkTypeId = new Map(
+    workTypes.map((type) => [type.id, type.categoryId]),
+  );
+  const colorByCategoryId = new Map<string, string>();
+  const labelByCategoryId = new Map<string, string>();
+  workCategories.forEach((category, index) => {
+    labelByCategoryId.set(category.id, category.label);
+    if (index < CATEGORY_COLORS.length) {
+      colorByCategoryId.set(category.id, CATEGORY_COLORS[index]);
+    }
+  });
+
+  const categoryIdFor = (group: RecordGroup) =>
+    group.workTypeId ? (categoryIdByWorkTypeId.get(group.workTypeId) ?? null) : null;
+
+  return {
+    colorFor: (group) => {
+      const categoryId = categoryIdFor(group);
+      return (categoryId && colorByCategoryId.get(categoryId)) || OTHER_COLOR;
+    },
+    labelFor: (group) => {
+      const categoryId = categoryIdFor(group);
+      return (categoryId && labelByCategoryId.get(categoryId)) || OTHER_LABEL;
+    },
+  };
+}
+
 type Segment = {
   group: RecordGroup;
   leftPct: number;
   widthPct: number;
   timeLabel: string;
+  color: string;
+  categoryLabel: string;
 };
 
 type WorkerRow = {
@@ -58,7 +117,10 @@ type WorkerRow = {
  * 確認タブの一覧と同じグループ（batchId＋作業者）を、今度は作業者ごとの
  * 行にまとめ直す。時間に置ける記録はバーへ、置けない記録は警告バッジへ回す。
  */
-function buildWorkerRows(groups: RecordGroup[]): WorkerRow[] {
+function buildWorkerRows(
+  groups: RecordGroup[],
+  category: CategoryLookup,
+): WorkerRow[] {
   const rows = new Map<string, WorkerRow>();
   const order: string[] = [];
   for (const group of groups) {
@@ -88,6 +150,8 @@ function buildWorkerRows(groups: RecordGroup[]): WorkerRow[] {
         leftPct,
         widthPct: Math.max(rightPct - leftPct, 0.6),
         timeLabel: `${group.startTime}〜${group.endTime}`,
+        color: category.colorFor(group),
+        categoryLabel: category.labelFor(group),
       });
       row.totalMinutes +=
         recordDurationMinutes(
@@ -102,11 +166,32 @@ function buildWorkerRows(groups: RecordGroup[]): WorkerRow[] {
   return order.map((id) => rows.get(id)!);
 }
 
+/** その日実際に使われた区分だけを、マスタの並び順で凡例に出す。 */
+function buildLegend(
+  rows: WorkerRow[],
+  workCategories: WorkCategoryOption[],
+): { label: string; color: string }[] {
+  const used = new Set<string>();
+  for (const row of rows) {
+    for (const segment of row.segments) used.add(segment.categoryLabel);
+  }
+  const legend: { label: string; color: string }[] = [];
+  workCategories.forEach((category, index) => {
+    if (index < CATEGORY_COLORS.length && used.has(category.label)) {
+      legend.push({ label: category.label, color: CATEGORY_COLORS[index] });
+    }
+  });
+  if (used.has(OTHER_LABEL) || used.size > legend.length) {
+    legend.push({ label: OTHER_LABEL, color: OTHER_COLOR });
+  }
+  return legend;
+}
+
 /**
  * 確認タブ（日ごと）の本体。区分・作業種類ではなく作業者を行にした
  * 簡易ガントチャートで、「誰が何時から何時まで・合計何時間働いたか」と、
- * 時間の抜け（入力ミスの疑い）を一目で見せる。バーをタップすると
- * 一覧と同じ編集シートが開く。
+ * 時間の抜け（入力ミスの疑い）を一目で見せる。バーの色は作業区分を表し、
+ * タップすると一覧と同じ編集シートが開く。
  */
 export function WorkerTimelinePanel({
   items,
@@ -126,7 +211,9 @@ export function WorkerTimelinePanel({
     return () => clearTimeout(timer);
   }, [notice]);
 
-  const rows = buildWorkerRows(groupRecords(items));
+  const category = buildCategoryLookup(workTypes, workCategories);
+  const rows = buildWorkerRows(groupRecords(items), category);
+  const legend = buildLegend(rows, workCategories);
 
   return (
     <div className="flex flex-col gap-4 pb-4">
@@ -150,6 +237,24 @@ export function WorkerTimelinePanel({
         </div>
       ) : (
         <div className="surface-card p-4">
+          {legend.length > 1 && (
+            <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 border-b border-separator pb-3">
+              {legend.map((entry) => (
+                <span
+                  key={entry.label}
+                  className="flex items-center gap-1.5 text-xs text-foreground-secondary"
+                >
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  {entry.label}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* 時刻の目盛り。下の行と同じ列幅で揃えることで、バーの位置と一致させる。 */}
           <div className="flex items-center gap-2">
             <div className="w-16 shrink-0" />
@@ -176,11 +281,12 @@ export function WorkerTimelinePanel({
                   </span>
 
                   <div className="relative h-11 flex-1 overflow-hidden rounded-[8px] bg-surface-secondary">
+                    {/* 目盛り線。surface-secondary との対比がはっきり付く separator-strong を使う。 */}
                     {TICK_HOURS.map((hour) => (
                       <div
                         key={hour}
                         aria-hidden
-                        className="absolute inset-y-0 w-px bg-separator"
+                        className="absolute inset-y-0 w-px bg-separator-strong"
                         style={{ left: `${percentFor(hour * 60)}%` }}
                       />
                     ))}
@@ -189,25 +295,25 @@ export function WorkerTimelinePanel({
                         <button
                           key={segment.group.key}
                           type="button"
-                          aria-label={`${row.workerName} ${segment.timeLabel} ${
+                          aria-label={`${row.workerName} ${segment.timeLabel} ${segment.categoryLabel}・${
                             segment.group.workTypeLabel ?? "作業未設定"
                           }`}
                           onClick={() => setEditing(segment.group.records)}
-                          className="control-focus absolute inset-y-[10px]"
+                          className="control-focus pressable absolute inset-y-[10px] rounded-[4px]"
                           style={{
                             left: `calc(${segment.leftPct}% + 1px)`,
                             width: `calc(${segment.widthPct}% - 2px)`,
+                            backgroundColor: segment.color,
                           }}
-                        >
-                          <span className="block h-full w-full rounded-[4px] bg-accent active:bg-accent-hover" />
-                        </button>
+                        />
                       ) : (
                         <div
                           key={segment.group.key}
-                          className="absolute inset-y-[10px] rounded-[4px] bg-accent"
+                          className="absolute inset-y-[10px] rounded-[4px]"
                           style={{
                             left: `calc(${segment.leftPct}% + 1px)`,
                             width: `calc(${segment.widthPct}% - 2px)`,
+                            backgroundColor: segment.color,
                           }}
                         />
                       ),

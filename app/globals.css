@@ -53,6 +53,17 @@
   --danger: #b42318;
   --danger-bg: #fbe9e7;
   /*
+   * 確認タブ（日ごと）のタイムラインで、作業区分の見分けにだけ使う。
+   * 状態色ではないため装飾扱いにしない： 1 区分 = 1 色を固定で割り当てる。
+   * 値は dataviz スキルの検証済みカテゴリカルパレット（8 色）の先頭 6 色。
+   */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  /*
    * 面の区別は 1px の罫線と背景色だけでつける方針にしたので、カードの影は持たない。
    * 影が残るのは、本文の上に重ねるボトムシートだけ。
    */
@@ -78,6 +89,12 @@
   --warning-bg: rgba(232, 176, 74, 0.14);
   --danger: #f27167;
   --danger-bg: rgba(242, 113, 103, 0.14);
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.4), 0 20px 48px rgba(0, 0, 0, 0.45);
 }
 
@@ -100,6 +117,12 @@
   --color-warning-bg: var(--warning-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --font-plex-jp: "IBM Plex Sans JP";
   --font-sans: var(--font-plex-jp), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
     "Noto Sans JP", system-ui, sans-serif;
