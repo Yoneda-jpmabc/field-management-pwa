@@ -18,6 +18,11 @@ export type WorkRecordFormData = {
   workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
+  /**
+   * 圃場ごとに、いま作付け中（finished 以外）の作物 id。
+   * 区分を選んだときに該当する圃場だけへ絞り込むために使う。
+   */
+  fieldCropIds: Record<string, string[]>;
   /** 作業予定（work-plans）側の作物ピッカーがそのまま使うので残してある。 */
   crops: MasterOption[];
   workTypeSuggestions: WorkTypeSuggestion[];
@@ -68,6 +73,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     cropsResult,
     suggestionsResult,
     timeRowsResult,
+    plantingsResult,
   ] = await Promise.all([
       supabase
         .from("workers")
@@ -119,6 +125,12 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
         .order("work_date", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(1000),
+      // 区分→圃場の絞り込み用。終わった作付け（finished）は対象から外す。
+      supabase
+        .from("field_plantings")
+        .select("field_id, crop_id")
+        .is("deleted_at", null)
+        .neq("status", "finished"),
     ]);
 
   const failure =
@@ -128,7 +140,13 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
     fieldsResult.error ??
     cropsResult.error ??
     suggestionsResult.error ??
-    timeRowsResult.error;
+    timeRowsResult.error ??
+    plantingsResult.error;
+
+  const fieldCropIds: Record<string, string[]> = {};
+  for (const row of plantingsResult.data ?? []) {
+    (fieldCropIds[row.field_id] ??= []).push(row.crop_id);
+  }
 
   return {
     workers: (workersResult.data ?? []).map((row) => ({
@@ -150,6 +168,7 @@ export async function fetchWorkRecordFormData(): Promise<WorkRecordFormData> {
       id: row.id,
       label: row.name,
     })),
+    fieldCropIds,
     crops: (cropsResult.data ?? []).map((row) => ({
       id: row.id,
       label: row.name,

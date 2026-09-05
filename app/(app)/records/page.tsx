@@ -18,6 +18,7 @@ export default async function RecordsPage() {
     workCategories,
     workTypes,
     fields,
+    fieldCropIds,
     workTypeSuggestions,
     startTimeSuggestions,
     endTimeSuggestions,
@@ -39,6 +40,7 @@ export default async function RecordsPage() {
         workCategories={workCategories}
         workTypes={workTypes}
         fields={fields}
+        fieldCropIds={fieldCropIds}
         workTypeSuggestions={workTypeSuggestions}
         startTimeSuggestions={startTimeSuggestions}
         endTimeSuggestions={endTimeSuggestions}

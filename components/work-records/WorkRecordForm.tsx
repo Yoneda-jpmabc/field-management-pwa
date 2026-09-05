@@ -26,6 +26,8 @@ type Props = {
   workCategories: WorkCategoryOption[];
   workTypes: WorkTypeOption[];
   fields: MasterOption[];
+  /** 圃場ごとの作付け中の作物 id。区分で選んだ作物に合う圃場だけへ絞り込む。 */
+  fieldCropIds: Record<string, string[]>;
   workTypeSuggestions: WorkTypeSuggestion[];
   /** 過去の記録で多かった開始・終了時刻（"HH:MM"、頻度順）。ワンタップ入力用。 */
   startTimeSuggestions: string[];
@@ -89,6 +91,7 @@ export function WorkRecordForm({
   workCategories,
   workTypes,
   fields,
+  fieldCropIds,
   workTypeSuggestions,
   startTimeSuggestions,
   endTimeSuggestions,
@@ -232,6 +235,17 @@ export function WorkRecordForm({
     if (!form.categoryId) return [];
     return workTypes.filter((type) => type.categoryId === form.categoryId);
   }, [workTypes, form.categoryId]);
+
+  // 区分に紐づく作物が今作付けされている圃場だけに絞る。作付け記録が無い
+  // 作物（マスタ登録直後など）で 0 件になったときは、絞り込まず全件出す
+  // （圃場は必須ではないが、選べる圃場が消えて詰むのを避けるため）。
+  const visibleFields = useMemo(() => {
+    if (!form.cropId) return fields;
+    const matched = fields.filter((field) =>
+      fieldCropIds[field.id]?.includes(form.cropId as string),
+    );
+    return matched.length > 0 ? matched : fields;
+  }, [fields, fieldCropIds, form.cropId]);
 
   const workTypeLabel = useMemo(() => {
     const fromMaster = workTypes.find((type) => type.id === form.workTypeId);
@@ -634,15 +648,24 @@ export function WorkRecordForm({
           </Slide>
           <Slide>
             {/* 圃場は 16 件あり、1 行 1 件だと縦スクロールが長くなるので
-                作物・作業者と同じグリッドに揃える。 */}
-            <FormCard title="圃場" hint="未設定のまま登録できます。">
-              {fields.length === 0 ? (
+                作物・作業者と同じグリッドに揃える。
+                区分で作物が決まっているときは、その作物をいま作付け中の
+                圃場だけに絞る（該当が無ければ絞らず全件出す）。 */}
+            <FormCard
+              title="圃場"
+              hint={
+                form.cropId && visibleFields.length < fields.length
+                  ? `${categoryLabel ?? ""}の圃場のみ表示中。未設定のまま登録できます。`
+                  : "未設定のまま登録できます。"
+              }
+            >
+              {visibleFields.length === 0 ? (
                 <p className="text-sm text-foreground-tertiary">
                   圃場マスタが空です。登録すればここに一覧が出ます。
                 </p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {fields.map((field) => (
+                  {visibleFields.map((field) => (
                     <GridChip
                       key={field.id}
                       label={field.label}
