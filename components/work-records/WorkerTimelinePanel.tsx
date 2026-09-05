@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { IconAlertTriangle } from "@/components/icons";
-import { recordDurationMinutes, timeToMinutes } from "@/lib/work-records/time";
+import {
+  recordDurationMinutes,
+  spansLunchBreak,
+  timeToMinutes,
+} from "@/lib/work-records/time";
 import type {
   EditableWorkRecord,
   MasterOption,
@@ -108,12 +112,53 @@ function buildCategoryLookup(
 
 type Segment = {
   group: RecordGroup;
+  /** React の key 用。休憩をまたいで前後2本に割ると group.key が重複するため別に持つ。 */
+  segmentKey: string;
   leftPct: number;
   widthPct: number;
   timeLabel: string;
   color: string;
   categoryLabel: string;
 };
+
+/**
+ * 1 記録ぶんのバーを作る。12:00〜13:00 をまるごとまたぐ入力で、かつ
+ * 「休憩を含まない」がオフ（＝休憩を取った扱い）のときは、集計と同じく
+ * その1時間を差し引いて見せる必要があるため、バーも前後2本に割って
+ * 昼休憩ぶんを空白にする。そうしないと、休憩を取ったはずの時間まで
+ * 働いているように見えてしまう。
+ */
+function buildSegments(
+  group: RecordGroup,
+  color: string,
+  categoryLabel: string,
+): Segment[] {
+  const toSegment = (segmentKey: string, from: string, to: string): Segment => {
+    const leftPct = percentFor(timeToMinutes(from));
+    const rightPct = percentFor(timeToMinutes(to));
+    return {
+      group,
+      segmentKey,
+      leftPct,
+      widthPct: Math.max(rightPct - leftPct, 0.6),
+      // バーごとの実際の見た目の区間を読み上げる（休憩で割った側は前後半だけ）。
+      timeLabel: `${from}〜${to}`,
+      color,
+      categoryLabel,
+    };
+  };
+
+  if (
+    spansLunchBreak(group.startTime, group.endTime) &&
+    !group.worksThroughLunch
+  ) {
+    return [
+      toSegment(`${group.key}:am`, group.startTime, "12:00"),
+      toSegment(`${group.key}:pm`, "13:00", group.endTime),
+    ];
+  }
+  return [toSegment(group.key, group.startTime, group.endTime)];
+}
 
 type WorkerRow = {
   workerId: string;
@@ -154,16 +199,13 @@ function buildWorkerRows(
       group.endTime > group.startTime;
 
     if (hasValidRange) {
-      const leftPct = percentFor(timeToMinutes(group.startTime));
-      const rightPct = percentFor(timeToMinutes(group.endTime));
-      row.segments.push({
-        group,
-        leftPct,
-        widthPct: Math.max(rightPct - leftPct, 0.6),
-        timeLabel: `${group.startTime}〜${group.endTime}`,
-        color: category.colorFor(group),
-        categoryLabel: category.labelFor(group),
-      });
+      row.segments.push(
+        ...buildSegments(
+          group,
+          category.colorFor(group),
+          category.labelFor(group),
+        ),
+      );
       row.totalMinutes +=
         recordDurationMinutes(
           group.startTime,
@@ -312,7 +354,7 @@ export function WorkerTimelinePanel({
                     {row.segments.map((segment) =>
                       canEdit ? (
                         <button
-                          key={segment.group.key}
+                          key={segment.segmentKey}
                           type="button"
                           aria-label={`${row.workerName} ${segment.timeLabel} ${segment.categoryLabel}・${
                             segment.group.workTypeLabel ?? "作業未設定"
@@ -327,7 +369,7 @@ export function WorkerTimelinePanel({
                         />
                       ) : (
                         <div
-                          key={segment.group.key}
+                          key={segment.segmentKey}
                           className="absolute inset-y-1 rounded-[4px]"
                           style={{
                             left: `calc(${segment.leftPct}% + 1px)`,
