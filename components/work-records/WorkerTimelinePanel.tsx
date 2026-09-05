@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { IconAlertTriangle } from "@/components/icons";
 import {
+  CATEGORY_COLORS,
+  OTHER_CATEGORY_COLOR,
+} from "@/lib/work-records/categoryColors";
+import {
   recordDurationMinutes,
   spansLunchBreak,
   timeToMinutes,
@@ -53,21 +57,6 @@ function formatHoursShort(minutes: number): string {
   return `${Number((minutes / 60).toFixed(1))}h`;
 }
 
-/**
- * 区分の見分け用パレット（dataviz スキルの検証済みカテゴリカル配色から
- * 隣接ペアが CVD 安全な先頭 6 色）。区分マスタの並び順に固定で割り当てる。
- * 7 番目以降・区分が分からない記録は色を増やさず、無彩色の
- * foreground-tertiary（グレー）に畳む。
- */
-const CATEGORY_COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-6)",
-];
-const OTHER_COLOR = "var(--foreground-tertiary)";
 const OTHER_LABEL = "その他";
 
 type CategoryLookup = {
@@ -101,7 +90,7 @@ function buildCategoryLookup(
   return {
     colorFor: (group) => {
       const categoryId = categoryIdFor(group);
-      return (categoryId && colorByCategoryId.get(categoryId)) || OTHER_COLOR;
+      return (categoryId && colorByCategoryId.get(categoryId)) || OTHER_CATEGORY_COLOR;
     },
     labelFor: (group) => {
       const categoryId = categoryIdFor(group);
@@ -235,7 +224,7 @@ function buildLegend(
     }
   });
   if (used.has(OTHER_LABEL) || used.size > legend.length) {
-    legend.push({ label: OTHER_LABEL, color: OTHER_COLOR });
+    legend.push({ label: OTHER_LABEL, color: OTHER_CATEGORY_COLOR });
   }
   return legend;
 }
